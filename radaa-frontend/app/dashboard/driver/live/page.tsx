@@ -1,0 +1,413 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useAuth } from "@/context/AuthContext";
+import { useNotifications } from "@/context/NotificationContext";
+import { useSocket } from "@/hooks/useSocket";
+import { useRealtime } from "@/context/realtimeContext";
+import { acceptRide, getNearbyRequests, type RideRequest } from "@/lib/api/rides";
+import { getAssignedPassengers } from "@/lib/api/driver";
+
+interface LatLng {
+  lat: number;
+  lng: number;
+}
+
+export default function DriverLiveDashboardPage() {
+  const { token } = useAuth();
+  const { addNotification } = useNotifications();
+  const { on, off, emit } = useSocket();
+  const { driverOnline, setDriverOnline } = useRealtime();
+
+  const [coords, setCoords] = useState<LatLng | null>(null);
+  const [incoming, setIncoming] = useState<RideRequest[]>([]);
+  const [assigned, setAssigned] = useState<RideRequest[]>([]);
+  const [loadingIncoming, setLoadingIncoming] = useState<boolean>(true);
+  const [loadingAssigned, setLoadingAssigned] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!token) {
+      setLoadingIncoming(false);
+      setLoadingAssigned(false);
+      setError("You need to be signed in as a driver to view this page.");
+      return;
+    }
+
+    if (typeof window === "undefined" || !navigator.geolocation) {
+      setLoadingIncoming(false);
+      setError("Geolocation is not available in this browser.");
+      return;
+    }
+
+    let cancelled = false;
+    let watchId: number | null = null;
+
+    watchId = navigator.geolocation.watchPosition(
+      (position) => {
+        if (cancelled) return;
+        const loc: LatLng = {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude
+        };
+        setCoords(loc);
+
+        emit("driver:update_location", {
+          lat: loc.lat,
+          lng: loc.lng
+        });
+      },
+      (geoError) => {
+        if (cancelled) return;
+        setLoadingIncoming(false);
+        setError(geoError.message || "Unable to determine your current location.");
+      },
+      {
+        enableHighAccuracy: true,
+        maximumAge: 5000,
+        timeout: 10000
+      }
+    );
+
+    return () => {
+      cancelled = true;
+      if (watchId != null && typeof window !== "undefined" && navigator.geolocation) {
+        navigator.geolocation.clearWatch(watchId);
+      }
+    };
+  }, [token, emit]);
+
+  useEffect(() => {
+    if (!token || !coords) {
+      return;
+    }
+
+    let cancelled = false;
+
+    const run = async () => {
+      setLoadingIncoming(true);
+      setError(null);
+
+      try {
+        const data = await getNearbyRequests(
+          {
+            lat: coords.lat,
+            lng: coords.lng
+          },
+          token
+        );
+
+        if (cancelled) return;
+        setIncoming(Array.isArray(data) ? data : []);
+      } catch (err) {
+        if (cancelled) return;
+        const message = err instanceof Error ? err.message : "Failed to load nearby requests";
+        setError(message);
+      } finally {
+        if (!cancelled) {
+          setLoadingIncoming(false);
+        }
+      }
+    };
+
+    void run();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [token, coords]);
+
+  useEffect(() => {
+    if (!token) {
+      return;
+    }
+
+    let cancelled = false;
+
+    const run = async () => {
+      setLoadingAssigned(true);
+      try {
+        const data = await getAssignedPassengers(token);
+        if (cancelled) return;
+        setAssigned(Array.isArray(data) ? data : []);
+      } catch (err) {
+        if (cancelled) return;
+      } finally {
+        if (!cancelled) {
+          setLoadingAssigned(false);
+        }
+      }
+    };
+
+    void run();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [token]);
+
+  useEffect(() => {
+    const handleRideCreated = (payload: any) => {
+      if (!payload) return;
+
+      const id = payload?.id || payload?._id;
+
+      setIncoming((current) => {
+        const exists = current.some((r) => (r._id as any) === id || (r as any).id === id);
+        if (exists) return current;
+        const next: RideRequest = {
+          ...(payload as RideRequest),
+          _id: (payload?._id || id || "") as string
+        };
+        return [next, ...current];
+      });
+
+      addNotification({
+        type: "trip",
+        title: "New nearby ride request",
+        message: "A passenger near you has requested a ride."
+      });
+    };
+
+    const handleRideCancelled = (payload: any) => {
+      const id = payload?.id || payload?._id;
+      if (!id) return;
+
+      setIncoming((current) => current.filter((r) => (r._id as any) !== id && (r as any).id !== id));
+      setAssigned((current) => current.filter((r) => (r._id as any) !== id && (r as any).id !== id));
+
+      addNotification({
+        type: "trip",
+        title: "Ride cancelled",
+        message: "A ride in your area was cancelled."
+      });
+    };
+
+    const handlePassengerUpdate = (payload: any) => {
+      if (!payload) return;
+      const rawId = payload.id ?? payload.rideId;
+      if (!rawId) return;
+      const id = String(rawId);
+
+      setAssigned((current) => {
+        const next = current.map((ride) =>
+          (ride._id as any) === id || (ride as any).id === id
+            ? ({ ...ride, ...(payload as Partial<RideRequest>) } as RideRequest)
+            : ride
+        );
+        return next;
+      });
+    };
+
+    on("ride:created", handleRideCreated as any);
+    on("ride:cancelled", handleRideCancelled as any);
+    on("passenger:update", handlePassengerUpdate as any);
+
+    return () => {
+      off("ride:created", handleRideCreated as any);
+      off("ride:cancelled", handleRideCancelled as any);
+      off("passenger:update", handlePassengerUpdate as any);
+    };
+  }, [on, off, addNotification]);
+
+  const handleAccept = async (id: string) => {
+    if (!token) {
+      addNotification({
+        type: "system",
+        title: "Sign in required",
+        message: "You need to be signed in as a driver to accept rides."
+      });
+      return;
+    }
+
+    try {
+      await acceptRide(id, token);
+      setIncoming((current) => current.filter((r) => (r._id as any) !== id && (r as any).id !== id));
+      addNotification({
+        type: "trip",
+        title: "Ride accepted",
+        message: "The passenger has been notified of your acceptance."
+      });
+
+      const updatedAssigned = await getAssignedPassengers(token);
+      setAssigned(Array.isArray(updatedAssigned) ? updatedAssigned : []);
+    } catch (error: any) {
+      const message = error instanceof Error ? error.message : "Failed to accept ride";
+      addNotification({
+        type: "system",
+        title: "Could not accept ride",
+        message
+      });
+    }
+  };
+
+  const hasIncoming = incoming.length > 0;
+  const hasAssigned = assigned.length > 0;
+
+  return (
+    <div className="space-y-4">
+      <header className="space-y-1">
+        <h1 className="text-2xl font-semibold tracking-tight">Driver live dashboard</h1>
+        <p className="text-xs text-slate-300">
+          Watch incoming ride requests in real time and manage your currently assigned passengers.
+        </p>
+      </header>
+
+      <section className="flex items-center justify-between rounded-xl border border-slate-800 bg-slate-900/80 p-3 text-xs">
+        <div className="space-y-1">
+          <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+            Driver status
+          </div>
+          <div className="text-[11px] text-slate-300">
+            You are currently{" "}
+            <span className={driverOnline ? "text-emerald-400" : "text-slate-100"}>
+              {driverOnline ? "Online" : "Offline"}
+            </span>
+            . When online, nearby passengers can see and request you.
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={() => setDriverOnline(!driverOnline)}
+          className={`inline-flex items-center rounded-full px-3 py-1 text-[11px] font-medium transition ${
+            driverOnline
+              ? "bg-emerald-600/80 text-emerald-50 hover:bg-emerald-500/80"
+              : "bg-slate-800 text-slate-100 hover:bg-slate-700"
+          }`}
+        >
+          {driverOnline ? "Go offline" : "Go online"}
+        </button>
+      </section>
+
+      {error && (
+        <div className="rounded-xl border border-red-500/40 bg-red-500/10 p-4 text-xs text-red-200">
+          {error}
+        </div>
+      )}
+
+      <section className="grid gap-4 md:grid-cols-2">
+        <div className="space-y-3 rounded-xl border border-slate-800 bg-slate-900/80 p-4 text-xs">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-sm font-semibold text-slate-100">Incoming requests</h2>
+              <p className="text-[11px] text-slate-400">
+                New ride requests near your current location will appear here.
+              </p>
+            </div>
+            <span className="rounded-full bg-slate-800 px-2 py-0.5 text-[10px] text-slate-200">
+              {hasIncoming ? incoming.length : 0}
+            </span>
+          </div>
+
+          {loadingIncoming && (
+            <div className="h-20 animate-pulse rounded-md bg-slate-800/60" />
+          )}
+
+          {!loadingIncoming && !hasIncoming && !error && (
+            <p className="text-[11px] text-slate-400">
+              No nearby ride requests right now. When passengers request rides near you, they will
+              appear here.
+            </p>
+          )}
+
+          {!loadingIncoming && hasIncoming && (
+            <div className="overflow-hidden rounded-md border border-slate-800 bg-slate-950/80">
+              <table className="min-w-full border-collapse text-[11px]">
+                <thead className="bg-slate-900/80 text-slate-300">
+                  <tr>
+                    <th className="px-3 py-2 text-left font-medium">Pickup</th>
+                    <th className="px-3 py-2 text-left font-medium">Requested at</th>
+                    <th className="px-3 py-2 text-right font-medium">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {incoming.map((ride) => {
+                    const id = (ride._id as any) || (ride as any).id || "";
+                    const createdAt = ride.createdAt ? new Date(ride.createdAt) : null;
+
+                    const pickup = (ride as any).pickup;
+                    let pickupLabel = "—";
+                    if (pickup && Array.isArray(pickup.coordinates) && pickup.coordinates.length === 2) {
+                      const [lng, lat] = pickup.coordinates as [number, number];
+                      pickupLabel = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+                    }
+
+                    return (
+                      <tr key={id} className="border-t border-slate-800/80">
+                        <td className="px-3 py-2 text-slate-100">{pickupLabel}</td>
+                        <td className="px-3 py-2 text-slate-300">
+                          {createdAt ? createdAt.toLocaleString() : "Just now"}
+                        </td>
+                        <td className="px-3 py-2 text-right">
+                          <button
+                            type="button"
+                            onClick={() => handleAccept(String(id))}
+                            className="inline-flex items-center rounded-md border border-emerald-600/60 bg-emerald-600/20 px-2 py-1 text-[11px] font-medium text-emerald-100 shadow-sm transition hover:border-emerald-400 hover:bg-emerald-600/30"
+                          >
+                            Accept
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
+        <div className="space-y-3 rounded-xl border border-slate-800 bg-slate-900/80 p-4 text-xs">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-sm font-semibold text-slate-100">Assigned passengers</h2>
+              <p className="text-[11px] text-slate-400">
+                A summary of rides that are currently assigned to you.
+              </p>
+            </div>
+            <span className="rounded-full bg-slate-800 px-2 py-0.5 text-[10px] text-slate-200">
+              {hasAssigned ? assigned.length : 0}
+            </span>
+          </div>
+
+          {loadingAssigned && (
+            <div className="h-20 animate-pulse rounded-md bg-slate-800/60" />
+          )}
+
+          {!loadingAssigned && !hasAssigned && (
+            <p className="text-[11px] text-slate-400">
+              You have no active assigned passengers. Accepted rides will show up here.
+            </p>
+          )}
+
+          {!loadingAssigned && hasAssigned && (
+            <div className="space-y-2">
+              {assigned.map((ride) => {
+                const id = (ride._id as any) || (ride as any).id || "";
+                const createdAt = ride.createdAt ? new Date(ride.createdAt) : null;
+
+                return (
+                  <div
+                    key={id}
+                    className="flex items-center justify-between rounded-md border border-slate-800 bg-slate-950/80 px-3 py-2"
+                  >
+                    <div className="space-y-0.5 text-[11px] text-slate-200">
+                      <div className="font-semibold">Ride {String(id).slice(0, 6)}</div>
+                      <div className="text-slate-400">
+                        Status: <span className="text-emerald-300">{ride.status}</span>
+                      </div>
+                      {createdAt && (
+                        <div className="text-slate-400">
+                          Requested at: {createdAt.toLocaleString()}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </section>
+    </div>
+  );
+}

@@ -1,0 +1,38 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js",
+    "test:mongo": "node tests/testMongoConnection.js",
+    "test:integration": "node tests/integration.js",
+    "test:migrations:a": "node tests/migrations.featureFlags.js",
+    "test:checkpoint:b": "node tests/checkpointB.routes.js",
+    "test:checkpoint:c": "node tests/checkpointC.requests.js",
+    "test:checkpoint:d": "node tests/checkpointD.autocancel.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "express-rate-limit": "^8.2.1",
+    "express-sanitizer": "^1.0.6",
+    "helmet": "^8.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^9.0.0",
+    "socket.io": "^4.8.1",
+    "swagger-ui-express": "^5.0.1",
+    "xss-clean": "^0.1.4",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.11"
+  }
+}

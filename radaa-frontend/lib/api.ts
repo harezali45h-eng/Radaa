@@ -1,0 +1,92 @@
+import axios from "axios";
+
+const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
+
+export const api = axios.create({
+  baseURL: backendUrl,
+  headers: {
+    "Content-Type": "application/json"
+  }
+});
+
+export const getLiveMatatus = async () => {
+  try {
+    const res = await api.get("/matatus/live");
+    return res.data;
+  } catch (error: any) {
+    console.error("API ERROR:", (error as any)?.response?.data || error);
+    throw error;
+  }
+};
+
+export const getMapMarkers = async () => {
+  try {
+    const res = await api.get("/api/map/markers");
+    const data = res.data;
+
+    if (data && typeof data === "object" && "data" in (data as any)) {
+      return (data as any).data;
+    }
+
+    return data;
+  } catch (error: any) {
+    console.error("API ERROR:", (error as any)?.response?.data || error);
+    throw error;
+  }
+};
+
+export const getFeatureFlags = async () => {
+  try {
+    const res = await api.get("/api/feature-flags");
+    const data = res.data;
+
+    if (data && typeof data === "object" && "data" in (data as any)) {
+      return (data as any).data;
+    }
+
+    return data;
+  } catch (error: any) {
+    console.error("API ERROR:", (error as any)?.response?.data || error);
+    throw error;
+  }
+};
+
+export const getLoyaltyStatus = async (userId: string) => {
+  try {
+    const res = await api.get(`/api/users/${userId}/loyalty`);
+    return res.data;
+  } catch (error: any) {
+    console.error("API ERROR:", (error as any)?.response?.data || error);
+    throw error;
+  }
+};
+
+export const initiatePayment = async (payload: {
+  userId: string;
+  amount: number;
+  method: string;
+}) => {
+  try {
+    const res = await api.post("/payments/initiate", payload);
+    return res.data;
+  } catch (error: any) {
+    console.error("API ERROR:", (error as any)?.response?.data || error);
+    throw error;
+  }
+};
+
+export const verifyPayment = async (payload: {
+  userId: string;
+  matatuId?: string;
+  amount: number;
+  method: string;
+  transactionId: string;
+}) => {
+  try {
+    const res = await api.post("/payments/verify", payload);
+    return res.data;
+  } catch (error: any) {
+    console.error("API ERROR:", (error as any)?.response?.data || error);
+    throw error;
+  }
+};

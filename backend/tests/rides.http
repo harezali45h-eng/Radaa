@@ -1,0 +1,27 @@
+### Create ride request (replace TOKEN with a valid user JWT)
+POST http://localhost:5000/api/rides/request
+Content-Type: application/json
+Authorization: Bearer TOKEN
+
+{
+  "pickup": { "lat": -1.2921, "lng": 36.8219 },
+  "destination": { "lat": -1.295, "lng": 36.82 }
+}
+
+### Get nearby ride requests (replace DRIVER_TOKEN with driver JWT)
+GET http://localhost:5000/api/rides/nearby?lat=-1.2921&lng=36.8219&radius=2000
+Authorization: Bearer DRIVER_TOKEN
+
+### Accept ride request (replace IDs and DRIVER_TOKEN)
+POST http://localhost:5000/api/rides/ROUTE_RIDE_ID/accept
+Content-Type: application/json
+Authorization: Bearer DRIVER_TOKEN
+
+### Cancel ride request (pass user or driver token)
+POST http://localhost:5000/api/rides/ROUTE_RIDE_ID/cancel
+Content-Type: application/json
+Authorization: Bearer TOKEN
+
+### Get user rides
+GET http://localhost:5000/api/rides/user/USER_ID
+Authorization: Bearer TOKEN
