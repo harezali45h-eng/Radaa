@@ -7,6 +7,7 @@ import { useSocket } from "@/hooks/useSocket";
 import { useRealtime } from "@/context/realtimeContext";
 import { acceptRide, getNearbyRequests, type RideRequest } from "@/lib/api/rides";
 import { getAssignedPassengers } from "@/lib/api/driver";
+import { useIsFeatureEnabled } from "@/context/FeatureFlagContext";
 
 interface LatLng {
   lat: number;
@@ -18,6 +19,8 @@ export default function DriverLiveDashboardPage() {
   const { addNotification } = useNotifications();
   const { on, off, emit } = useSocket();
   const { driverOnline, setDriverOnline } = useRealtime();
+
+  const driverOnboardEnabled = useIsFeatureEnabled("driver_onboard_v1", false);
 
   const [coords, setCoords] = useState<LatLng | null>(null);
   const [incoming, setIncoming] = useState<RideRequest[]>([]);
@@ -251,6 +254,12 @@ export default function DriverLiveDashboardPage() {
         <p className="text-xs text-slate-300">
           Watch incoming ride requests in real time and manage your currently assigned passengers.
         </p>
+        {driverOnboardEnabled && (
+          <div className="mt-2 inline-flex items-center gap-2 rounded-full border border-emerald-600/60 bg-emerald-600/10 px-3 py-1 text-[10px] text-emerald-100">
+            <span className={driverOnline ? "h-1.5 w-1.5 rounded-full bg-emerald-400" : "h-1.5 w-1.5 rounded-full bg-slate-500"} />
+            <span>{driverOnline ? "Youre visible to nearby riders" : "Go online to start seeing ride requests"}</span>
+          </div>
+        )}
       </header>
 
       <section className="flex items-center justify-between rounded-xl border border-slate-800 bg-slate-900/80 p-3 text-xs">

@@ -4,6 +4,7 @@ import { FormEvent, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { useIsFeatureEnabled } from "@/context/FeatureFlagContext";
 
 export default function LoginDriverPage() {
   const { login, loading } = useAuth();
@@ -13,6 +14,8 @@ export default function LoginDriverPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+
+  const driverOnboardEnabled = useIsFeatureEnabled("driver_onboard_v1", false);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -40,6 +43,16 @@ export default function LoginDriverPage() {
           Sign in to access the live driver dashboard and manage ride requests.
         </p>
       </div>
+
+      {driverOnboardEnabled && (
+        <div className="rounded-lg border border-emerald-600/50 bg-emerald-600/10 px-3 py-2 text-xs text-emerald-100">
+          <p className="font-medium">New driver flow (beta)</p>
+          <p className="mt-0.5 text-[11px] text-emerald-100/90">
+            Use the driver sign in and live dashboard to test how rides feel from behind the wheel.
+            This flow is feature-flagged and safe to tweak.
+          </p>
+        </div>
+      )}
 
       {error && (
         <div className="rounded-md border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm text-red-200">
