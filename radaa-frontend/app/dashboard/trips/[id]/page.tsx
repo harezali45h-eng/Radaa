@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { useNotifications } from "@/context/NotificationContext";
+import { useIsFeatureEnabled } from "@/context/FeatureFlagContext";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
 
@@ -28,6 +29,8 @@ export default function TripDetailPage() {
 
   const { addNotification } = useNotifications();
 
+  const tripUiEnabled = useIsFeatureEnabled("trip_ui_v1", false);
+
   const [userId, setUserId] = useState<string | null>(null);
   const [trip, setTrip] = useState<Trip | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -39,6 +42,9 @@ export default function TripDetailPage() {
   const [currency, setCurrency] = useState<string>("KES");
   const [stopping, setStopping] = useState<boolean>(false);
   const [message, setMessage] = useState<string | null>(null);
+
+  const [rating, setRating] = useState<number | null>(null);
+  const [ratingSubmitted, setRatingSubmitted] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -129,6 +135,19 @@ export default function TripDetailPage() {
   const start = trip?.startTime ? new Date(trip.startTime) : null;
   const end = trip?.endTime ? new Date(trip.endTime) : null;
 
+  const canRate =
+    tripUiEnabled &&
+    !loading &&
+    !error &&
+    !!trip &&
+    trip.status === "completed";
+
+  const handleSetRating = (value: number) => {
+    if (!tripUiEnabled) return;
+    setRating(value);
+    setRatingSubmitted(true);
+  };
+
   return (
     <div className="space-y-6">
       {loading && (
@@ -150,6 +169,18 @@ export default function TripDetailPage() {
             <p className="text-xs text-slate-300">
               Matatu {trip.matatu?.plate || "Unknown"} · {trip.matatu?.route || "Route not set"}
             </p>
+            {tripUiEnabled && (
+              <div className="mt-2 inline-flex items-center gap-2 rounded-full border border-slate-700 bg-slate-900/80 px-3 py-1 text-[10px] text-slate-200">
+                <span
+                  className={
+                    trip.status === "ongoing"
+                      ? "h-1.5 w-1.5 rounded-full bg-emerald-400"
+                      : "h-1.5 w-1.5 rounded-full bg-slate-500"
+                  }
+                />
+                <span className="capitalize">Status: {trip.status}</span>
+              </div>
+            )}
           </header>
 
           <section className="grid gap-4 md:grid-cols-3 text-xs">
@@ -267,6 +298,45 @@ export default function TripDetailPage() {
               </div>
             )}
           </section>
+
+          {canRate && (
+            <section className="space-y-3 rounded-xl border border-slate-800 bg-slate-900/80 p-4 text-xs">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-sm font-semibold text-slate-100">Rate this trip</h2>
+                  <p className="text-[11px] text-slate-400">
+                    How was your ride? This rating helps us tune future experiments and UX.
+                  </p>
+                </div>
+                {ratingSubmitted && rating != null && (
+                  <span className="rounded-full bg-emerald-500/10 px-3 py-1 text-[10px] text-emerald-300">
+                    Thanks for rating {rating}/5
+                  </span>
+                )}
+              </div>
+
+              <div className="flex items-center gap-2">
+                {[1, 2, 3, 4, 5].map((value) => {
+                  const active = rating != null ? value <= rating : false;
+                  return (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() => handleSetRating(value)}
+                      className={`flex h-8 w-8 items-center justify-center rounded-full border text-sm transition ${
+                        active
+                          ? "border-amber-400 bg-amber-500/20 text-amber-300"
+                          : "border-slate-700 bg-slate-900 text-slate-300 hover:border-slate-500 hover:bg-slate-800"
+                      }`}
+                      aria-label={`Rate this trip ${value} star${value > 1 ? "s" : ""}`}
+                    >
+                      <span>★</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
+          )}
         </>
       )}
     </div>

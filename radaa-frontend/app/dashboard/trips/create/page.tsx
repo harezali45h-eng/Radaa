@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useIsFeatureEnabled } from "@/context/FeatureFlagContext";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
 
@@ -15,6 +16,8 @@ export default function CreateTripPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+
+  const tripUiEnabled = useIsFeatureEnabled("trip_ui_v1", false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -76,6 +79,23 @@ export default function CreateTripPage() {
           trip later with the final fare and drop-off location.
         </p>
       </header>
+
+      {tripUiEnabled && (
+        <section className="grid gap-2 text-[11px] text-slate-300 md:grid-cols-3">
+          <div className="rounded-lg border border-slate-800 bg-slate-900/80 px-3 py-2">
+            <div className="text-slate-400">Step 1</div>
+            <div className="mt-0.5 font-semibold text-slate-50">Pick a matatu</div>
+          </div>
+          <div className="rounded-lg border border-slate-800 bg-slate-900/80 px-3 py-2">
+            <div className="text-slate-400">Step 2</div>
+            <div className="mt-0.5 font-semibold text-slate-50">Set start location</div>
+          </div>
+          <div className="rounded-lg border border-slate-800 bg-slate-900/80 px-3 py-2">
+            <div className="text-slate-400">Step 3</div>
+            <div className="mt-0.5 font-semibold text-slate-50">Start trip</div>
+          </div>
+        </section>
+      )}
 
       {!userId && (
         <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-4 text-xs text-amber-100">
@@ -153,7 +173,11 @@ export default function CreateTripPage() {
           disabled={isDisabled}
           className="inline-flex items-center justify-center rounded-md bg-sky-600 px-3 py-2 text-xs font-medium text-white shadow-sm transition hover:bg-sky-500 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {isDisabled ? "Starting trip..." : "Start trip"}
+          {isDisabled
+            ? "Starting trip..."
+            : tripUiEnabled
+              ? "Start trip (beta UI)"
+              : "Start trip"}
         </button>
       </form>
     </div>

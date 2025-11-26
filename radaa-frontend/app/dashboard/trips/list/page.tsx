@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useIsFeatureEnabled } from "@/context/FeatureFlagContext";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
 
@@ -26,6 +27,8 @@ export default function TripListPage() {
   const [trips, setTrips] = useState<Trip[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+
+  const tripUiEnabled = useIsFeatureEnabled("trip_ui_v1", false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -63,6 +66,18 @@ export default function TripListPage() {
     void run();
   }, [userId]);
 
+  const totalTrips = trips.length;
+  const completedTrips = trips.filter((trip) => trip.status === "completed").length;
+  const ongoingTrips = trips.filter((trip) => trip.status === "ongoing").length;
+  const lastTripDate = trips.reduce<Date | null>((latest, trip) => {
+    const rawDate = trip.endTime || trip.startTime;
+    if (!rawDate) return latest;
+
+    const date = new Date(rawDate);
+    if (!latest || date > latest) return date;
+    return latest;
+  }, null);
+
   return (
     <div className="space-y-6">
       <header className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
@@ -80,6 +95,28 @@ export default function TripListPage() {
           Start new trip
         </Link>
       </header>
+
+      {tripUiEnabled && !loading && !error && totalTrips > 0 && (
+        <section className="grid gap-3 text-[11px] text-slate-200 md:grid-cols-3">
+          <div className="rounded-lg border border-slate-800 bg-slate-900/80 px-3 py-2">
+            <div className="text-slate-400">Total trips</div>
+            <div className="mt-0.5 text-sm font-semibold text-slate-50">{totalTrips}</div>
+          </div>
+          <div className="rounded-lg border border-slate-800 bg-slate-900/80 px-3 py-2">
+            <div className="text-slate-400">Completed</div>
+            <div className="mt-0.5 text-sm font-semibold text-emerald-300">{completedTrips}</div>
+          </div>
+          <div className="rounded-lg border border-slate-800 bg-slate-900/80 px-3 py-2">
+            <div className="text-slate-400">Ongoing</div>
+            <div className="mt-0.5 text-sm font-semibold text-amber-300">{ongoingTrips}</div>
+            {lastTripDate && (
+              <div className="mt-1 text-[10px] text-slate-400">
+                Last trip: {lastTripDate.toLocaleString()}
+              </div>
+            )}
+          </div>
+        </section>
+      )}
 
       {!userId && !loading && (
         <div className="rounded-xl border border-slate-800 bg-slate-900/80 p-4 text-xs text-slate-300">
