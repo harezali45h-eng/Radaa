@@ -4,6 +4,7 @@ import { FormEvent, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { useIsFeatureEnabled } from "@/context/FeatureFlagContext";
 
 export default function LoginSaccoPage() {
   const { login, loading } = useAuth();
@@ -13,6 +14,8 @@ export default function LoginSaccoPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+
+  const saccoOnboardEnabled = useIsFeatureEnabled("sacco_onboard_v1", false);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -40,6 +43,16 @@ export default function LoginSaccoPage() {
           Sign in as a SACCO admin to manage your fleet and drivers in Radaa.
         </p>
       </div>
+
+      {saccoOnboardEnabled && (
+        <div className="rounded-lg border border-sky-600/60 bg-sky-600/10 px-3 py-2 text-xs text-sky-100">
+          <p className="font-medium">New SACCO dashboard (beta)</p>
+          <p className="mt-0.5 text-[11px] text-sky-100/90">
+            Use this admin sign-in to explore the experimental SACCO fleet dashboard. This experience
+            is safely feature-flagged while we iterate.
+          </p>
+        </div>
+      )}
 
       {error && (
         <div className="rounded-md border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm text-red-200">

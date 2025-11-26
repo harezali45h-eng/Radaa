@@ -4,6 +4,7 @@ import { FormEvent, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { useIsFeatureEnabled } from "@/context/FeatureFlagContext";
 
 export default function RegisterSaccoPage() {
   const { register, loading } = useAuth();
@@ -17,6 +18,8 @@ export default function RegisterSaccoPage() {
   const [registrationNumber, setRegistrationNumber] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+
+  const saccoOnboardEnabled = useIsFeatureEnabled("sacco_onboard_v1", false);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -53,6 +56,23 @@ export default function RegisterSaccoPage() {
           Create a SACCO admin account to manage your fleet, drivers, and documents in Radaa.
         </p>
       </div>
+
+      {saccoOnboardEnabled && (
+        <section className="grid gap-2 text-[11px] text-slate-300 md:grid-cols-3">
+          <div className="rounded-lg border border-slate-800 bg-slate-900/80 px-3 py-2">
+            <div className="text-slate-400">Step 1</div>
+            <div className="mt-0.5 font-semibold text-slate-50">SACCO profile</div>
+          </div>
+          <div className="rounded-lg border border-slate-800 bg-slate-900/80 px-3 py-2">
+            <div className="text-slate-400">Step 2</div>
+            <div className="mt-0.5 font-semibold text-slate-50">Registration details</div>
+          </div>
+          <div className="rounded-lg border border-slate-800 bg-slate-900/80 px-3 py-2">
+            <div className="text-slate-400">Step 3</div>
+            <div className="mt-0.5 font-semibold text-slate-50">Invite drivers</div>
+          </div>
+        </section>
+      )}
 
       {error && (
         <div className="rounded-md border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm text-red-200">

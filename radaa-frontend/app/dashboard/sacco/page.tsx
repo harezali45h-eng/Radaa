@@ -14,6 +14,7 @@ import {
   type SaccoDriver,
   type SaccoMatatu
 } from "@/lib/api/sacco";
+import { useIsFeatureEnabled } from "@/context/FeatureFlagContext";
 import MapContainer from "@/components/map/MapContainer";
 import { useRealtime } from "@/context/realtimeContext";
 
@@ -60,6 +61,8 @@ export default function SaccoDashboardPage() {
   const [selectedFleetMatatuId, setSelectedFleetMatatuId] = useState<string | null>(null);
 
   const isAdmin = (user as any)?.role === "admin";
+
+  const saccoOnboardEnabled = useIsFeatureEnabled("sacco_onboard_v1", false);
 
   useEffect(() => {
     if (!saccoId || !token || !isAdmin) {
