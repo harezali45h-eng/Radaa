@@ -5,6 +5,7 @@ import { useSocket } from "@/hooks/useSocket";
 import { getLiveMatatus, getMapMarkers } from "@/lib/api";
 import MapContainer from "@/components/map/MapContainer";
 import { useRealtime } from "@/context/realtimeContext";
+import { useIsFeatureEnabled } from "@/context/FeatureFlagContext";
 
 interface LatLng {
   lat: number;
@@ -63,6 +64,8 @@ function haversineDistanceMeters(a: LatLng, b: LatLng): number {
 export default function MapPage() {
   const { connect, on, off } = useSocket();
   const { driverOnline, setDriverOnline } = useRealtime();
+
+  const uiRevampEnabled = useIsFeatureEnabled("ui_revamp_v1", false);
 
   const [matatus, setMatatus] = useState<Matatu[]>([]);
   const [passengers, setPassengers] = useState<PassengerMarker[]>([]);
@@ -372,145 +375,339 @@ export default function MapPage() {
       }
     );
   };
+  const totalMatatus = matatus.length;
+  const totalPassengers = passengers.length;
 
-  return (
-    <div className="grid gap-4 md:grid-cols-[2fr,1fr]">
-      <div className="rounded-xl border border-slate-800 bg-slate-900/80 p-4">
-        <h1 className="text-lg font-semibold">Live Matatu Map</h1>
-        <p className="mt-1 text-xs text-slate-300">
-          Live view of matatus and nearby passengers. Positions are updated in real time.
-        </p>
+  if (!uiRevampEnabled) {
+    return (
+      <div className="grid gap-4 md:grid-cols-[2fr,1fr]">
+        <div className="rounded-xl border border-slate-800 bg-slate-900/80 p-4">
+          <h1 className="text-lg font-semibold">Live Matatu Map</h1>
+          <p className="mt-1 text-xs text-slate-300">
+            Live view of matatus and nearby passengers. Positions are updated in real time.
+          </p>
 
-        <div className="mt-3 flex items-center justify-between text-[11px]">
-          <div className="inline-flex rounded-md border border-slate-700 bg-slate-950/60 p-0.5">
-            <button
-              type="button"
-              onClick={() => setDriverOnline(false)}
-              className={`rounded-sm px-2 py-0.5 text-[11px] ${
-                !driverOnline
-                  ? "bg-slate-800 text-slate-100"
-                  : "text-slate-400 hover:text-slate-100"
-              }`}
-            >
-              Passenger
-            </button>
-            <button
-              type="button"
-              onClick={() => setDriverOnline(true)}
-              className={`ml-1 rounded-sm px-2 py-0.5 text-[11px] ${
-                driverOnline
-                  ? "bg-emerald-600/70 text-emerald-50"
-                  : "text-slate-400 hover:text-slate-100"
-              }`}
-            >
-              Driver
-            </button>
+          <div className="mt-3 flex items-center justify-between text-[11px]">
+            <div className="inline-flex rounded-md border border-slate-700 bg-slate-950/60 p-0.5">
+              <button
+                type="button"
+                onClick={() => setDriverOnline(false)}
+                className={`rounded-sm px-2 py-0.5 text-[11px] ${
+                  !driverOnline
+                    ? "bg-slate-800 text-slate-100"
+                    : "text-slate-400 hover:text-slate-100"
+                }`}
+              >
+                Passenger
+              </button>
+              <button
+                type="button"
+                onClick={() => setDriverOnline(true)}
+                className={`ml-1 rounded-sm px-2 py-0.5 text-[11px] ${
+                  driverOnline
+                    ? "bg-emerald-600/70 text-emerald-50"
+                    : "text-slate-400 hover:text-slate-100"
+                }`}
+              >
+                Driver
+              </button>
+            </div>
+            <span className="text-[10px] text-slate-400">
+              Mode: {driverOnline ? "Driver" : "Passenger"}
+            </span>
           </div>
-          <span className="text-[10px] text-slate-400">
-            Mode: {driverOnline ? "Driver" : "Passenger"}
-          </span>
+
+          <MapContainer
+            matatus={matatusWithFlags}
+            passengers={passengers}
+            userLocation={userLocation}
+            displayPositions={displayPositions}
+            project={project}
+            onCenterOnMe={handleCenterOnMe}
+            onSelectMatatu={handleSelectMatatu}
+            isLoading={loading}
+            hasAnyLocation={hasAnyLocation}
+            driverMode={driverOnline}
+          />
+
+          {geoError && <p className="mt-2 text-[11px] text-amber-300">{geoError}</p>}
         </div>
 
-        <MapContainer
-          matatus={matatusWithFlags}
-          passengers={passengers}
-          userLocation={userLocation}
-          displayPositions={displayPositions}
-          project={project}
-          onCenterOnMe={handleCenterOnMe}
-          onSelectMatatu={handleSelectMatatu}
-          isLoading={loading}
-          hasAnyLocation={hasAnyLocation}
-          driverMode={driverOnline}
-        />
-
-        {geoError && <p className="mt-2 text-[11px] text-amber-300">{geoError}</p>}
-      </div>
-
-      <aside className="space-y-3 rounded-xl border border-slate-800 bg-slate-900/80 p-4">
-        <h2 className="text-base font-semibold">Matatu details</h2>
-        {selectedMatatu ? (
-          <div className="space-y-2 text-xs text-slate-200">
-            {selectedMatatuPhotoSrc && (
-              <div className="overflow-hidden rounded-md border border-slate-800">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={selectedMatatuPhotoSrc}
-                  alt="Matatu photo"
-                  className="h-28 w-full object-cover"
-                />
-              </div>
-            )}
-            <div>
-              <span className="text-slate-400">Plate: </span>
-              {selectedMatatu.plate || selectedMatatu.numberPlate || "Unknown"}
-            </div>
-            <div>
-              <span className="text-slate-400">Route: </span>
-              {selectedMatatu.route || "—"}
-            </div>
-            {selectedMatatu.driverName && (
-              <div className="flex items-center gap-2">
-                <div className="flex h-6 w-6 items-center justify-center rounded-full bg-slate-800 text-[10px] font-semibold text-slate-100">
-                  {selectedMatatu.driverName.charAt(0).toUpperCase()}
+        <aside className="space-y-3 rounded-xl border border-slate-800 bg-slate-900/80 p-4">
+          <h2 className="text-base font-semibold">Matatu details</h2>
+          {selectedMatatu ? (
+            <div className="space-y-2 text-xs text-slate-200">
+              {selectedMatatuPhotoSrc && (
+                <div className="overflow-hidden rounded-md border border-slate-800">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={selectedMatatuPhotoSrc}
+                    alt="Matatu photo"
+                    className="h-28 w-full object-cover"
+                  />
                 </div>
+              )}
+              <div>
+                <span className="text-slate-400">Plate: </span>
+                {selectedMatatu.plate || selectedMatatu.numberPlate || "Unknown"}
+              </div>
+              <div>
+                <span className="text-slate-400">Route: </span>
+                {selectedMatatu.route || "—"}
+              </div>
+              {selectedMatatu.driverName && (
+                <div className="flex items-center gap-2">
+                  <div className="flex h-6 w-6 items-center justify-center rounded-full bg-slate-800 text-[10px] font-semibold text-slate-100">
+                    {selectedMatatu.driverName.charAt(0).toUpperCase()}
+                  </div>
+                  <div>
+                    <span className="text-slate-400">Driver: </span>
+                    {selectedMatatu.driverName}
+                    {selectedMatatu.driverPhone && (
+                      <span className="text-slate-500"> · {selectedMatatu.driverPhone}</span>
+                    )}
+                  </div>
+                </div>
+              )}
+              {selectedMatatu.sacco && (
                 <div>
-                  <span className="text-slate-400">Driver: </span>
-                  {selectedMatatu.driverName}
-                  {selectedMatatu.driverPhone && (
-                    <span className="text-slate-500"> · {selectedMatatu.driverPhone}</span>
+                  <span className="text-slate-400">SACCO: </span>
+                  {selectedMatatu.sacco}
+                </div>
+              )}
+              {selectedMatatu.rating && (
+                <div>
+                  <span className="text-slate-400">Rating: </span>
+                  {selectedMatatu.rating.avgRating.toFixed(1)} ★ ({selectedMatatu.rating.count})
+                </div>
+              )}
+              <div>
+                <span className="text-slate-400">Lat: </span>
+                {selectedMatatu.location?.lat ?? "—"}
+              </div>
+              <div>
+                <span className="text-slate-400">Lng: </span>
+                {selectedMatatu.location?.lng ?? "—"}
+              </div>
+              {selectedMatatuEta && (
+                <>
+                  <div>
+                    <span className="text-slate-400">Distance from you: </span>
+                    {(selectedMatatuEta.distanceMeters / 1000).toFixed(1)} km
+                  </div>
+                  <div>
+                    <span className="text-slate-400">ETA (25 km/h): </span>
+                    {Math.round(selectedMatatuEta.etaMinutes)} min
+                  </div>
+                </>
+              )}
+              <button
+                type="button"
+                onClick={() =>
+                  setTrackingId((current) =>
+                    selectedMatatu ? (current === selectedMatatu.id ? null : selectedMatatu.id) : current
+                  )
+                }
+                className="mt-2 inline-flex items-center rounded-md bg-sky-600 px-2.5 py-1 text-[11px] font-medium text-white shadow-sm transition hover:bg-sky-500"
+              >
+                {trackingId === selectedMatatu.id ? "Stop tracking" : "Track this matatu"}
+              </button>
+            </div>
+          ) : (
+            <p className="text-xs text-slate-400">Select a matatu marker on the map.</p>
+          )}
+        </aside>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <header className="flex flex-col gap-1 md:flex-row md:items-baseline md:justify-between">
+        <div>
+          <h1 className="text-lg font-semibold">Live Matatu Map</h1>
+          <p className="text-xs text-slate-300">
+            See matatus moving in real time and tap a card below to track your ride.
+          </p>
+        </div>
+        <div className="mt-2 flex items-center gap-2 text-[10px] text-slate-400 md:mt-0">
+          <span className="inline-flex items-center rounded-full bg-emerald-500/10 px-2 py-0.5 text-emerald-300">
+            <span className="mr-1 h-1.5 w-1.5 rounded-full bg-emerald-400" />
+            Live now
+          </span>
+          <span>
+            {totalMatatus} matatus · {totalPassengers} nearby riders
+          </span>
+        </div>
+      </header>
+
+      <section className="relative overflow-hidden rounded-2xl border border-slate-800 bg-slate-950">
+        <div className="p-4 pb-3">
+          <MapContainer
+            matatus={matatusWithFlags}
+            passengers={passengers}
+            userLocation={userLocation}
+            displayPositions={displayPositions}
+            project={project}
+            onCenterOnMe={handleCenterOnMe}
+            onSelectMatatu={handleSelectMatatu}
+            isLoading={loading}
+            hasAnyLocation={hasAnyLocation}
+            driverMode={driverOnline}
+          />
+        </div>
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-slate-950 to-transparent" />
+      </section>
+
+      <section className="space-y-3 rounded-2xl border border-slate-800 bg-slate-900/80 p-4">
+        <div className="flex items-center justify-between gap-2">
+          <div>
+            <h2 className="text-sm font-semibold">Matatus on this map</h2>
+            <p className="text-[11px] text-slate-400">
+              Tap a card to focus the marker and start tracking it.
+            </p>
+          </div>
+          {selectedMatatuEta && (
+            <div className="rounded-full border border-slate-700/70 bg-slate-900/80 px-3 py-1 text-[10px] text-slate-200">
+              ~{Math.round(selectedMatatuEta.etaMinutes)} min away
+            </div>
+          )}
+        </div>
+
+        <div className="grid gap-3 md:grid-cols-2">
+          {matatusWithFlags.map((m) => {
+            const isSelected = selectedMatatu && selectedMatatu.id === m.id;
+            const isTracked = trackingId && trackingId === m.id;
+
+            return (
+              <button
+                key={m.id}
+                type="button"
+                onClick={() => setSelectedMatatuId(m.id)}
+                className={`flex items-center justify-between rounded-xl border px-3 py-2 text-left text-xs transition ${
+                  isSelected || isTracked
+                    ? "border-sky-500 bg-sky-500/10"
+                    : "border-slate-800 bg-slate-900/60 hover:border-slate-700 hover:bg-slate-900"
+                }`}
+              >
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[11px] font-semibold">
+                      {m.plate || m.numberPlate || "Unknown plate"}
+                    </span>
+                    {m.route && (
+                      <span className="rounded-full bg-slate-800 px-1.5 py-0.5 text-[10px] text-slate-200">
+                        {m.route}
+                      </span>
+                    )}
+                  </div>
+                  {m.sacco && (
+                    <p className="mt-0.5 text-[10px] text-slate-400">{m.sacco}</p>
+                  )}
+                  {m.rating && m.rating.count > 0 && (
+                    <p className="mt-0.5 text-[10px] text-amber-300">
+                      {m.rating.avgRating.toFixed(1)} ★ · {m.rating.count} rides rated
+                    </p>
                   )}
                 </div>
-              </div>
-            )}
-            {selectedMatatu.sacco && (
-              <div>
-                <span className="text-slate-400">SACCO: </span>
-                {selectedMatatu.sacco}
-              </div>
-            )}
-            {selectedMatatu.rating && (
-              <div>
-                <span className="text-slate-400">Rating: </span>
-                {selectedMatatu.rating.avgRating.toFixed(1)} ★ ({selectedMatatu.rating.count})
-              </div>
-            )}
-            <div>
-              <span className="text-slate-400">Lat: </span>
-              {selectedMatatu.location?.lat ?? "—"}
-            </div>
-            <div>
-              <span className="text-slate-400">Lng: </span>
-              {selectedMatatu.location?.lng ?? "—"}
-            </div>
-            {selectedMatatuEta && (
-              <>
-                <div>
-                  <span className="text-slate-400">Distance from you: </span>
-                  {(selectedMatatuEta.distanceMeters / 1000).toFixed(1)} km
+                <div className="flex flex-col items-end gap-1">
+                  <span className="text-[10px] text-slate-400">
+                    {m.location ? "Online" : "Offline"}
+                  </span>
+                  {m.isTracked && (
+                    <span className="rounded-full bg-sky-500/10 px-2 py-0.5 text-[9px] text-sky-300">
+                      Tracking
+                    </span>
+                  )}
                 </div>
-                <div>
-                  <span className="text-slate-400">ETA (25 km/h): </span>
-                  {Math.round(selectedMatatuEta.etaMinutes)} min
+              </button>
+            );
+          })}
+          {matatusWithFlags.length === 0 && (
+            <p className="col-span-full text-[11px] text-slate-500">
+              No matatus are online yet. They'll appear here once they come online.
+            </p>
+          )}
+        </div>
+
+        {selectedMatatu && (
+          <div className="mt-3 grid gap-3 md:grid-cols-[minmax(0,1.5fr),minmax(0,1fr)]">
+            <div className="space-y-2 text-xs text-slate-200">
+              {selectedMatatuPhotoSrc && (
+                <div className="overflow-hidden rounded-md border border-slate-800">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={selectedMatatuPhotoSrc}
+                    alt="Matatu photo"
+                    className="h-32 w-full object-cover"
+                  />
                 </div>
-              </>
-            )}
-            <button
-              type="button"
-              onClick={() =>
-                setTrackingId((current) =>
-                  selectedMatatu ? (current === selectedMatatu.id ? null : selectedMatatu.id) : current
-                )
-              }
-              className="mt-2 inline-flex items-center rounded-md bg-sky-600 px-2.5 py-1 text-[11px] font-medium text-white shadow-sm transition hover:bg-sky-500"
-            >
-              {trackingId === selectedMatatu.id ? "Stop tracking" : "Track this matatu"}
-            </button>
+              )}
+              <div>
+                <span className="text-slate-400">Plate: </span>
+                {selectedMatatu.plate || selectedMatatu.numberPlate || "Unknown"}
+              </div>
+              <div>
+                <span className="text-slate-400">Route: </span>
+                {selectedMatatu.route || "—"}
+              </div>
+              {selectedMatatu.driverName && (
+                <div className="flex items-center gap-2">
+                  <div className="flex h-6 w-6 items-center justify-center rounded-full bg-slate-800 text-[10px] font-semibold text-slate-100">
+                    {selectedMatatu.driverName.charAt(0).toUpperCase()}
+                  </div>
+                  <div>
+                    <span className="text-slate-400">Driver: </span>
+                    {selectedMatatu.driverName}
+                    {selectedMatatu.driverPhone && (
+                      <span className="text-slate-500"> · {selectedMatatu.driverPhone}</span>
+                    )}
+                  </div>
+                </div>
+              )}
+              {selectedMatatu.sacco && (
+                <div>
+                  <span className="text-slate-400">SACCO: </span>
+                  {selectedMatatu.sacco}
+                </div>
+              )}
+              {selectedMatatu.rating && (
+                <div>
+                  <span className="text-slate-400">Rating: </span>
+                  {selectedMatatu.rating.avgRating.toFixed(1)} ★ ({selectedMatatu.rating.count})
+                </div>
+              )}
+            </div>
+            <div className="space-y-2 text-[11px] text-slate-300">
+              {selectedMatatuEta && (
+                <>
+                  <div>
+                    <span className="text-slate-400">Distance from you: </span>
+                    {(selectedMatatuEta.distanceMeters / 1000).toFixed(1)} km
+                  </div>
+                  <div>
+                    <span className="text-slate-400">ETA (25 km/h): </span>
+                    {Math.round(selectedMatatuEta.etaMinutes)} min
+                  </div>
+                </>
+              )}
+              <button
+                type="button"
+                onClick={() =>
+                  setTrackingId((current) =>
+                    selectedMatatu ? (current === selectedMatatu.id ? null : selectedMatatu.id) : current
+                  )
+                }
+                className="mt-1 inline-flex items-center rounded-md bg-sky-600 px-2.5 py-1 text-[11px] font-medium text-white shadow-sm transition hover:bg-sky-500"
+              >
+                {trackingId === selectedMatatu.id ? "Stop tracking" : "Track this matatu"}
+              </button>
+            </div>
           </div>
-        ) : (
-          <p className="text-xs text-slate-400">Select a matatu marker on the map.</p>
         )}
-      </aside>
+      </section>
+
+      {geoError && <p className="text-[11px] text-amber-300">{geoError}</p>}
     </div>
   );
 }
