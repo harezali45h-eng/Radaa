@@ -1,4 +1,5 @@
 import Matatu from "../models/Matatu.js";
+import Route from "../models/Route.js";
 import { getRatingSummariesForMatatus } from "../services/ratingsService.js";
 import { isFeatureEnabled } from "../utils/featureFlags.js";
 import { FEATURE_FLAG_KEYS } from "../config/featureFlags.js";
@@ -42,6 +43,29 @@ export const getMapMarkers = async (req, res, next) => {
     });
 
     return res.json({ success: true, data: markers });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export const getRoutePolyline = async (req, res, next) => {
+  try {
+    const { routeId } = req.params;
+
+    const route = await Route.findById(routeId).lean();
+
+    if (!route) {
+      return res.status(404).json({ success: false, message: "Route not found" });
+    }
+
+    return res.json({
+      success: true,
+      data: {
+        id: route._id,
+        name: route.name,
+        polyline: route.polyline
+      }
+    });
   } catch (error) {
     return next(error);
   }
