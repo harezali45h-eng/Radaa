@@ -4,17 +4,29 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { AppShell } from "@/components/layout/AppShell";
 import { useAuth } from "@/context/AuthContext";
+import { useRealtime } from "@/context/realtimeContext";
+import { useTheme } from "@/context/ThemeContext";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const role = (user as any)?.role as string | undefined;
   const isAdmin = role === "admin";
   const isDriver = role === "driver";
+  const { activeMode } = useRealtime();
+  const { cardSurfaceClass } = useTheme();
+
+  const homeHref = isAdmin
+    ? "/dashboard/sacco"
+    : isDriver && activeMode === "driver"
+      ? "/dashboard/driver/live"
+      : "/dashboard";
+
+  const liveHref = isDriver && activeMode === "driver" ? "/dashboard/driver/live" : "/dashboard/passenger/live";
 
   return (
     <AppShell>
       <div className="grid gap-6 md:grid-cols-[210px,1fr]">
-        <aside className="rounded-xl border border-slate-800 bg-slate-900/80 p-4 text-xs">
+        <aside className={`${cardSurfaceClass} p-4 text-xs`}>
           <nav className="space-y-4">
             <div>
               <div className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
@@ -22,13 +34,13 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
               </div>
               <div className="mt-1 space-y-1">
                 <Link
-                  href="/dashboard"
+                  href={homeHref}
                   className="block rounded-md px-3 py-2 text-slate-300 transition hover:bg-slate-800/80 hover:text-white"
                 >
                   Home
                 </Link>
                 <Link
-                  href="/dashboard/passenger/live"
+                  href={liveHref}
                   className="block rounded-md px-3 py-2 text-slate-300 transition hover:bg-slate-800/80 hover:text-white"
                 >
                   Live

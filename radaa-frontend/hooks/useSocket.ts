@@ -3,7 +3,7 @@ import { io, type Socket } from "socket.io-client";
 
 const TOKEN_STORAGE_KEY = "radaa_auth_token";
 
-const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
+const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "";
 const REALTIME_URL = `${BASE_URL.replace(/\/+$/, "")}/realtime`;
 
 let socket: Socket | null = null;

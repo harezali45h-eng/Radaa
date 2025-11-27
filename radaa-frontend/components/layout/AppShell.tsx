@@ -9,6 +9,7 @@ import { useNotifications } from "@/context/NotificationContext";
 import BackToDashboardButton from "@/components/BackToDashboardButton";
 import { useSocket } from "@/hooks/useSocket";
 import { useRealtime } from "@/context/realtimeContext";
+import { useTheme } from "@/context/ThemeContext";
 
 interface AppShellProps {
   children: ReactNode;
@@ -20,7 +21,8 @@ export function AppShell({ children }: AppShellProps) {
   const { notifications, unreadCount, markAllAsRead } = useNotifications();
   const [open, setOpen] = useState(false);
   const { connect } = useSocket();
-  const { driverOnline, setDriverOnline } = useRealtime();
+  const { driverOnline, setDriverOnline, activeMode } = useRealtime();
+  const { headerBgClass } = useTheme();
 
   useEffect(() => {
     if (!token) {
@@ -36,7 +38,17 @@ export function AppShell({ children }: AppShellProps) {
   const isMarketingHome = pathname === "/";
 
   const showBackToDashboard = !isMarketingHome && !isAuthRoute && !isDashboardRoot;
-  const isAdmin = (user as any)?.role === "admin";
+  const role = (user as any)?.role as string | undefined;
+  const isAdmin = role === "admin";
+  const isDriver = role === "driver";
+
+  const homeHref = isAdmin
+    ? "/dashboard/sacco"
+    : isDriver && activeMode === "driver"
+      ? "/dashboard/driver/live"
+      : "/dashboard";
+
+  const liveHref = isDriver && activeMode === "driver" ? "/dashboard/driver/live" : "/dashboard/passenger/live";
 
   const toggleNotifications = () => {
     const next = !open;
@@ -48,17 +60,17 @@ export function AppShell({ children }: AppShellProps) {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="border-b border-slate-800 bg-slate-950/80 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-          <Link href="/dashboard" className="text-lg font-semibold tracking-tight">
+      <header className={headerBgClass}>
+        <div className="radaa-shell flex items-center justify-between py-3">
+          <Link href={homeHref} className="text-lg font-semibold tracking-tight">
             Radaa
           </Link>
           <nav className="flex items-center gap-4 text-sm text-slate-300">
             <div className="hidden items-center gap-3 md:flex">
-              <Link href="/dashboard" className="hover:text-white">
+              <Link href={homeHref} className="hover:text-white">
                 Home
               </Link>
-              <Link href="/dashboard/passenger/live" className="hover:text-white">
+              <Link href={liveHref} className="hover:text-white">
                 Live
               </Link>
               <Link href="/dashboard/trips/list" className="hover:text-white">
@@ -73,10 +85,14 @@ export function AppShell({ children }: AppShellProps) {
                 </Link>
               )}
             </div>
-            {(isDashboardRoot || isDashboardSub) && (
+            {(isDashboardRoot || isDashboardSub) && isDriver && (
               <button
                 type="button"
-                onClick={() => setDriverOnline(!driverOnline)}
+                onClick={() => {
+                  const next = !driverOnline;
+                  console.log("[mode] header toggle ->", next ? "driver" : "passenger");
+                  setDriverOnline(next);
+                }}
                 className={`inline-flex items-center rounded-md border px-2 py-1 text-[11px] font-medium shadow-sm transition ${
                   driverOnline
                     ? "border-emerald-500/80 bg-emerald-600/20 text-emerald-200"
@@ -157,14 +173,14 @@ export function AppShell({ children }: AppShellProps) {
           {children}
         </div>
       </main>
-      {(isDashboardRoot || isDashboardSub) && (
+      {(isDashboardRoot || isDashboardSub) && isDriver && (
         <nav className="fixed bottom-0 left-0 right-0 z-30 border-t border-slate-800 bg-slate-950/90 px-4 py-2 text-[11px] text-slate-200 md:hidden">
           <div className="mx-auto flex max-w-md items-center justify-between">
-            <Link href="/dashboard" className="flex flex-1 flex-col items-center px-2 py-1">
+            <Link href={homeHref} className="flex flex-1 flex-col items-center px-2 py-1">
               <span className="text-[11px]">Home</span>
             </Link>
             <Link
-              href="/dashboard/passenger/live"
+              href={liveHref}
               className="flex flex-1 flex-col items-center px-2 py-1"
             >
               <span className="text-[11px]">Live</span>

@@ -4,11 +4,13 @@ import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useNotifications } from "@/context/NotificationContext";
 import { requestRide } from "@/lib/api/rides";
+import { useTheme } from "@/context/ThemeContext";
 
 export default function RideRequestButton() {
   const { token } = useAuth();
   const { addNotification } = useNotifications();
   const [loading, setLoading] = useState(false);
+  const { primaryButtonClass } = useTheme();
 
   const handleClick = () => {
     if (!token) {
@@ -81,7 +83,7 @@ export default function RideRequestButton() {
       type="button"
       onClick={handleClick}
       disabled={loading}
-      className="inline-flex flex-none items-center justify-center rounded-md border border-emerald-600/40 bg-emerald-600/10 px-3 py-1.5 text-[11px] font-medium text-emerald-200 transition hover:border-emerald-400/70 hover:bg-emerald-600/20 disabled:cursor-not-allowed disabled:opacity-60"
+      className={`${primaryButtonClass} flex-none text-[11px] px-4 py-2 disabled:cursor-not-allowed disabled:opacity-60`}
     >
       {loading ? "Requesting ride..." : "Request a ride"}
     </button>

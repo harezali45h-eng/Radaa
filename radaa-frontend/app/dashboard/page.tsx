@@ -141,7 +141,7 @@ export default function DashboardHomePage() {
         </button>
       </header>
 
-      <section className="space-y-2 rounded-xl border border-slate-800 bg-slate-900/80 p-3 text-xs">
+      <section className="radaa-card space-y-2 p-3 text-xs">
         <div className="flex items-center justify-between gap-2">
           <h2 className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
             Quick actions
@@ -177,9 +177,7 @@ export default function DashboardHomePage() {
       </section>
 
       {loading && (
-        <div className="rounded-xl border border-slate-800 bg-slate-900/80 p-4 text-xs text-slate-300">
-          Loading your profile...
-        </div>
+        <div className="radaa-card p-4 text-xs text-slate-300">Loading your profile...</div>
       )}
 
       {error && (
@@ -191,11 +189,11 @@ export default function DashboardHomePage() {
       {effectiveUser && !loading && !error && (
         <>
           <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            <div className="rounded-xl border border-slate-800 bg-slate-900/80 p-4 text-xs">
+            <div className="radaa-card p-4 text-xs">
               <div className="text-slate-400">Email</div>
               <div className="mt-1 text-sm font-semibold text-slate-100">{effectiveUser.email}</div>
             </div>
-            <div className="rounded-xl border border-slate-800 bg-slate-900/80 p-4 text-xs">
+            <div className="radaa-card p-4 text-xs">
               <div className="text-slate-400">Handle</div>
               <div className="mt-1 text-sm font-semibold text-slate-100">
                 {effectiveUser.handle || "Not set"}
@@ -254,7 +252,7 @@ export default function DashboardHomePage() {
           </section>
 
           <section className="grid gap-4 lg:grid-cols-[2fr,1fr]">
-            <div className="rounded-xl border border-slate-800 bg-slate-900/80 p-4 text-xs">
+            <div className="radaa-card p-4 text-xs">
               <div className="flex items-center justify-between">
                 <div>
                   <div className="text-sm font-semibold text-slate-100">Live map preview</div>
@@ -294,7 +292,7 @@ export default function DashboardHomePage() {
               </div>
             </div>
 
-            <div className="space-y-3 rounded-xl border border-slate-800 bg-slate-900/80 p-4 text-xs">
+            <div className="space-y-3 radaa-card p-4 text-xs">
               <div className="flex items-center justify-between">
                 <div>
                   <div className="text-sm font-semibold text-slate-100">Your active trips</div>

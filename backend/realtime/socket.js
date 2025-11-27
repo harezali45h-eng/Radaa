@@ -214,7 +214,11 @@ export const initSocket = (server) => {
 
         const matatuRoom = matatuId ? `matatu:${matatuId}` : undefined;
 
+        const entityId = matatuId || id;
+
         const updatePayload = {
+          id: entityId ? entityId.toString() : undefined,
+          location: { lat, lng },
           driverId: id,
           lat,
           lng,
@@ -222,8 +226,11 @@ export const initSocket = (server) => {
           matatuId: matatuId || null
         };
 
+        // Broadcast in a generic shape that frontend map/realtime contexts can merge by id
         realtime.emit("matatu:live_update", updatePayload);
         realtime.emit("matatus:live_update", updatePayload);
+        // eslint-disable-next-line no-console
+        console.log("[socket] driver:update_location broadcast", updatePayload);
         if (matatuRoom) {
           realtime.to(matatuRoom).emit("matatu:live_update", updatePayload);
         }

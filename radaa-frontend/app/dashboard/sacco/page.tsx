@@ -17,6 +17,7 @@ import {
 import { useIsFeatureEnabled } from "@/context/FeatureFlagContext";
 import MapContainer from "@/components/map/MapContainer";
 import { useRealtime } from "@/context/realtimeContext";
+import { useTheme } from "@/context/ThemeContext";
 
 interface FleetLatLng {
   lat: number;
@@ -63,6 +64,7 @@ export default function SaccoDashboardPage() {
   const isAdmin = (user as any)?.role === "admin";
 
   const saccoOnboardEnabled = useIsFeatureEnabled("sacco_onboard_v1", false);
+  const { cardSurfaceClass } = useTheme();
 
   useEffect(() => {
     if (!saccoId || !token || !isAdmin) {
@@ -122,20 +124,47 @@ export default function SaccoDashboardPage() {
     }
 
     const byId = new Map<string, SaccoMatatu>(matatus.map((m) => [m._id, m]));
+    const byDriver = new Map<string, SaccoMatatu>();
+    matatus.forEach((m) => {
+      if (m.driver) {
+        byDriver.set(String(m.driver), m);
+      }
+    });
 
-    return realtimeMatatus
-      .filter((rt) => byId.has(rt.id))
-      .map((rt) => {
-        const base = byId.get(rt.id) as SaccoMatatu;
-        return {
-          id: rt.id,
-          plate: base.plate || base.numberPlate || rt.plate,
-          numberPlate: base.numberPlate || rt.numberPlate,
-          route: base.route || rt.route,
-          location: rt.location ?? null,
-          status: rt.status
-        };
-      });
+    return (
+      realtimeMatatus
+        .map((rt) => {
+          const rtAny = rt as any;
+          const primaryId = rt.id;
+          const matatuId = (rtAny.matatuId as string | undefined) || undefined;
+          const driverId = (rtAny.driverId as string | undefined) || undefined;
+
+          let base: SaccoMatatu | undefined = undefined;
+          if (matatuId && byId.has(matatuId)) {
+            base = byId.get(matatuId) as SaccoMatatu;
+          } else if (primaryId && byId.has(primaryId)) {
+            base = byId.get(primaryId) as SaccoMatatu;
+          } else if (driverId && byDriver.has(driverId)) {
+            base = byDriver.get(driverId) as SaccoMatatu;
+          }
+
+          if (!base) {
+            return null;
+          }
+
+          const canonicalId = base._id;
+
+          return {
+            id: canonicalId,
+            plate: base.plate || base.numberPlate || rt.plate,
+            numberPlate: base.numberPlate || rt.numberPlate,
+            route: base.route || rt.route,
+            location: rt.location ?? null,
+            status: rt.status
+          };
+        })
+        .filter(Boolean) as FleetMatatu[]
+    );
   }, [matatus, realtimeMatatus]);
 
   const fleetBounds = useMemo<FleetBounds | null>(() => {
@@ -292,7 +321,7 @@ export default function SaccoDashboardPage() {
       )}
 
       <section className="grid gap-3 md:grid-cols-3">
-        <div className="rounded-xl border border-slate-800 bg-slate-900/80 p-4 text-xs">
+        <div className={`${cardSurfaceClass} p-4 text-xs`}>
           <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
             Active matatus
           </div>
@@ -300,7 +329,7 @@ export default function SaccoDashboardPage() {
             {overview?.activeMatatus ?? (loading ? "…" : 0)}
           </div>
         </div>
-        <div className="rounded-xl border border-slate-800 bg-slate-900/80 p-4 text-xs">
+        <div className={`${cardSurfaceClass} p-4 text-xs`}>
           <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
             Active trips
           </div>
@@ -319,7 +348,7 @@ export default function SaccoDashboardPage() {
       </section>
 
       <section className="grid gap-4 md:grid-cols-[2fr,1.2fr]">
-        <div className="space-y-3 rounded-xl border border-slate-800 bg-slate-900/80 p-4 text-xs">
+        <div className={`space-y-3 ${cardSurfaceClass} p-4 text-xs`}>
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-sm font-semibold text-slate-100">Drivers</h2>
@@ -432,7 +461,7 @@ export default function SaccoDashboardPage() {
         </div>
       </section>
 
-      <section className="space-y-3 rounded-xl border border-slate-800 bg-slate-900/80 p-4 text-xs">
+      <section className={`space-y-3 ${cardSurfaceClass} p-4 text-xs`}>
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-sm font-semibold text-slate-100">Fleet</h2>
@@ -490,7 +519,7 @@ export default function SaccoDashboardPage() {
       </section>
 
       <section className="grid gap-4 md:grid-cols-2">
-        <div className="space-y-2 rounded-xl border border-slate-800 bg-slate-900/80 p-4 text-xs">
+        <div className={`space-y-2 ${cardSurfaceClass} p-4 text-xs`}>
           <h3 className="text-sm font-semibold text-slate-100">Pending driver approvals</h3>
           {pendingDrivers.length === 0 && (
             <p className="text-[11px] text-slate-400">No pending drivers right now.</p>

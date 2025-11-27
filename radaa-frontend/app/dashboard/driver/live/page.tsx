@@ -15,10 +15,13 @@ interface LatLng {
 }
 
 export default function DriverLiveDashboardPage() {
-  const { token } = useAuth();
+  const { user, token, loading } = useAuth();
   const { addNotification } = useNotifications();
   const { on, off, emit } = useSocket();
   const { driverOnline, setDriverOnline } = useRealtime();
+
+  const role = (user as any)?.role as string | undefined;
+  const isDriver = role === "driver";
 
   const driverOnboardEnabled = useIsFeatureEnabled("driver_onboard_v1", false);
 
@@ -30,10 +33,12 @@ export default function DriverLiveDashboardPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!token) {
+    if (!token || !isDriver) {
       setLoadingIncoming(false);
       setLoadingAssigned(false);
-      setError("You need to be signed in as a driver to view this page.");
+      if (!token) {
+        setError("You need to be signed in as a driver to view this page.");
+      }
       return;
     }
 
@@ -78,10 +83,10 @@ export default function DriverLiveDashboardPage() {
         navigator.geolocation.clearWatch(watchId);
       }
     };
-  }, [token, emit]);
+  }, [token, emit, isDriver]);
 
   useEffect(() => {
-    if (!token || !coords) {
+    if (!token || !coords || !isDriver) {
       return;
     }
 
@@ -118,10 +123,10 @@ export default function DriverLiveDashboardPage() {
     return () => {
       cancelled = true;
     };
-  }, [token, coords]);
+  }, [token, coords, isDriver]);
 
   useEffect(() => {
-    if (!token) {
+    if (!token || !isDriver) {
       return;
     }
 
@@ -147,9 +152,13 @@ export default function DriverLiveDashboardPage() {
     return () => {
       cancelled = true;
     };
-  }, [token]);
+  }, [token, isDriver]);
 
   useEffect(() => {
+    if (!isDriver) {
+      return;
+    }
+
     const handleRideCreated = (payload: any) => {
       if (!payload) return;
 
@@ -211,7 +220,7 @@ export default function DriverLiveDashboardPage() {
       off("ride:cancelled", handleRideCancelled as any);
       off("passenger:update", handlePassengerUpdate as any);
     };
-  }, [on, off, addNotification]);
+  }, [on, off, addNotification, isDriver]);
 
   const handleAccept = async (id: string) => {
     if (!token) {
@@ -246,6 +255,19 @@ export default function DriverLiveDashboardPage() {
 
   const hasIncoming = incoming.length > 0;
   const hasAssigned = assigned.length > 0;
+
+  if (loading || !user || !isDriver) {
+    return (
+      <div className="space-y-4">
+        <header className="space-y-1">
+          <h1 className="text-2xl font-semibold tracking-tight">Driver live dashboard</h1>
+          <p className="text-xs text-slate-300">
+            You must be signed in as a driver to view this dashboard.
+          </p>
+        </header>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">

@@ -6,7 +6,7 @@ const MAX_RETRIES = 5;
 const RETRY_DELAY_MS = 5000;
 
 export const connectDB = async () => {
-  const uri = process.env.MONGO_URI || process.env.MONGODB_URI;
+  const uri = process.env.MONGODB_URI || process.env.MONGO_URI;
 
   if (!uri) {
     console.error(

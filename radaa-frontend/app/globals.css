@@ -2,6 +2,39 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+@layer base {
+  body {
+    @apply bg-radaa-bg text-slate-50 antialiased;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+  }
+}
+
+@layer components {
+  .radaa-shell {
+    @apply mx-auto max-w-6xl px-4;
+  }
+
+  .radaa-card {
+    @apply rounded-card border border-slate-800/80 bg-slate-900/75 shadow-soft backdrop-blur;
+  }
+
+  .radaa-card-soft {
+    @apply rounded-card border border-slate-800/60 bg-slate-900/70 shadow-soft backdrop-blur;
+  }
+
+  .radaa-pill {
+    @apply inline-flex items-center rounded-pill border border-slate-700/80 bg-slate-900/80 px-2 py-0.5 text-[10px] font-medium text-slate-300;
+  }
+
+  .radaa-badge-soft {
+    @apply inline-flex items-center rounded-pill border border-slate-700/80 bg-slate-900/80 px-2 py-0.5 text-[10px] font-medium text-slate-300;
+  }
+
+  .radaa-btn-primary {
+    @apply inline-flex items-center justify-center rounded-pill px-4 py-2 text-xs font-semibold tracking-tight text-slate-50 shadow-soft transition-transform duration-150 ease-snappy hover:-translate-y-0.5 active:scale-95;
+  }
+
+  .radaa-btn-secondary {
+    @apply inline-flex items-center justify-center rounded-pill border border-slate-700/80 bg-slate-900/80 px-3 py-1.5 text-[11px] font-medium text-slate-200 shadow-soft hover:border-slate-500/80;
+  }
 }

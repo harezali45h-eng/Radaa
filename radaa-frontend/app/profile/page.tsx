@@ -43,7 +43,7 @@ export default function ProfilePage() {
       </section>
 
       {isDriver && user && (
-        <section className="space-y-3 rounded-xl border border-slate-800 bg-slate-900/80 p-4 text-xs">
+        <section className="space-y-3 radaa-card p-4 text-xs">
           <div className="flex items-center justify-between">
             <div>
               <div className="text-sm font-semibold text-slate-100">Driver profile</div>
@@ -96,7 +96,7 @@ export default function ProfilePage() {
       )}
 
       <section className="grid gap-4 md:grid-cols-3">
-        <div className="rounded-xl border border-slate-800 bg-slate-900/80 p-4 text-xs">
+        <div className="radaa-card p-4 text-xs">
           <div className="text-slate-400">Balance</div>
           <div className="mt-1 text-lg font-semibold text-emerald-400">
             KES {data?.balance ?? 0}

@@ -13,6 +13,7 @@ import {
 
 const TOKEN_STORAGE_KEY = "radaa_auth_token";
 const TOKEN_COOKIE_NAME = "radaa_token";
+const MODE_STORAGE_KEY = "radaa_active_mode";
 
 interface AuthContextValue {
   user: AuthUser | null;
@@ -66,6 +67,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(null);
         setToken(null);
         localStorage.removeItem(TOKEN_STORAGE_KEY);
+        localStorage.removeItem(MODE_STORAGE_KEY);
 
         if (
           !pathname.startsWith("/auth") &&
@@ -193,6 +195,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (typeof window !== "undefined") {
       localStorage.removeItem(TOKEN_STORAGE_KEY);
+      localStorage.removeItem(MODE_STORAGE_KEY);
       document.cookie = `${TOKEN_COOKIE_NAME}=; Path=/; Max-Age=0; SameSite=Lax`;
     }
 

@@ -127,9 +127,14 @@ export default function MapPage() {
     void loadInitial();
 
     connect();
+    // eslint-disable-next-line no-console
+    console.log("[map] connect realtime for map page");
 
     const handleMatatuUpdate = (payload: any) => {
       const updates: Matatu[] = Array.isArray(payload) ? payload : [payload];
+
+      // eslint-disable-next-line no-console
+      console.log("[map] matatus:live_update", { count: updates.length });
 
       setMatatus((current) => {
         const map = new Map<string, Matatu>();
@@ -179,40 +184,52 @@ export default function MapPage() {
         updates.forEach((update) => {
           if (!update) return;
 
-          const loc =
-            update.location || update.pickupLocation || update.passengerLocation || null;
+          const lat =
+            update.lat ??
+            update.location?.lat ??
+            update.pickupLocation?.lat ??
+            update.passengerLocation?.lat;
+          const lng =
+            update.lng ??
+            update.location?.lng ??
+            update.pickupLocation?.lng ??
+            update.passengerLocation?.lng;
 
-          const rawId = update.id ?? update.passengerId ?? update.rideId;
+          const rawId =
+            update.passengerId ?? update.id ?? update.rideId ?? update.requestId ?? null;
           const id = rawId != null ? String(rawId) : undefined;
 
           if (!id) {
             return;
           }
 
-          if (!loc || typeof loc.lat !== "number" || typeof loc.lng !== "number") {
+          if (typeof lat !== "number" || typeof lng !== "number") {
             byId.delete(id);
             return;
           }
 
           byId.set(id, {
             id,
-            location: { lat: loc.lat, lng: loc.lng }
+            location: { lat, lng }
           });
         });
 
         return Array.from(byId.values());
       });
+
+      // eslint-disable-next-line no-console
+      console.log("[map] passenger:live_update", { count: updates.length });
     };
 
     on("matatus:live_update", handleMatatuUpdate);
     on("ride:assigned", handleRideAssigned);
-    on("passengers:update", handlePassengersUpdate);
+    on("passenger:live_update", handlePassengersUpdate);
 
     return () => {
       cancelled = true;
       off("matatus:live_update", handleMatatuUpdate);
       off("ride:assigned", handleRideAssigned);
-      off("passengers:update", handlePassengersUpdate);
+      off("passenger:live_update", handlePassengersUpdate);
     };
   }, [connect, on, off]);
 

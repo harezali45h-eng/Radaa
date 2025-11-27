@@ -4,16 +4,31 @@ import { useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { useRealtime } from "@/context/realtimeContext";
 
 export default function HomePage() {
   const { user, token, loading } = useAuth();
   const router = useRouter();
+  const { activeMode } = useRealtime();
 
   useEffect(() => {
-    if (!loading && (user || token)) {
-      router.replace("/dashboard");
+    if (loading) return;
+    if (!user && !token) return;
+
+    const role = (user as any)?.role as string | undefined;
+    let target = "/dashboard";
+
+    if (role === "admin") {
+      target = "/dashboard/sacco";
+    } else if (role === "driver" && activeMode === "driver") {
+      target = "/dashboard/driver/live";
+    } else {
+      target = "/dashboard";
     }
-  }, [loading, user, token, router]);
+
+    console.log("[mode] root redirect", { role, activeMode, target });
+    router.replace(target);
+  }, [loading, user, token, router, activeMode]);
 
   const showLanding = !user && !token;
 
