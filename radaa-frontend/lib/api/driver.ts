@@ -1,6 +1,10 @@
 import type { RideRequest } from "./rides";
 
-const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "";
+const BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL ||
+  process.env.NEXT_PUBLIC_API_URL ||
+  process.env.NEXT_PUBLIC_BACKEND_URL ||
+  "";
 
 interface RequestOptions {
   method?: string;

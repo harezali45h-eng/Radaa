@@ -35,7 +35,7 @@ export default function RegisterSaccoPage() {
         role: "admin",
         saccoName,
         registrationNumber: registrationNumber || undefined
-      } as any);
+      });
 
       router.push("/dashboard/sacco");
     } catch (err) {

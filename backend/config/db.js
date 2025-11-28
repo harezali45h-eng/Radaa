@@ -2,6 +2,14 @@ import mongoose from "mongoose";
 
 mongoose.set("strictQuery", false);
 
+mongoose.connection.on("connected", () => {
+  console.log("MongoDB connected");
+});
+
+mongoose.connection.on("error", (err) => {
+  console.log("MongoDB error:", err);
+});
+
 const MAX_RETRIES = 5;
 const RETRY_DELAY_MS = 5000;
 
@@ -55,7 +63,9 @@ export const connectDB = async () => {
     try {
       attempt += 1;
       console.log(`Connecting to MongoDB (attempt ${attempt}/${MAX_RETRIES})...`);
-      await mongoose.connect(uri);
+      await mongoose.connect(uri, {
+        serverSelectionTimeoutMS: 5000
+      });
       console.log("🔥 Radaa DB Connected Successfully");
       return;
     } catch (error) {

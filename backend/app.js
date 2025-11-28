@@ -28,7 +28,18 @@ import featureFlagRoutes from "./routes/featureFlagRoutes.js";
 import { initSocket } from "./realtime/socket.js";
 import { notFound, errorHandler } from "./middleware/errorMiddleware.js";
 
-dotenv.config({ override: true });
+const envFile =
+  process.env.NODE_ENV === "production" ? ".env.production" : ".env";
+
+dotenv.config({ path: envFile, override: true });
+
+console.log("[env] Using env file:", envFile);
+console.log("[env] PORT=", process.env.PORT);
+console.log("[env] NODE_ENV=", process.env.NODE_ENV);
+console.log(
+  "[env] Mongo URI present=",
+  Boolean(process.env.MONGO_URI || process.env.MONGODB_URI)
+);
 
 const app = express();
 
@@ -42,8 +53,7 @@ const limiter = rateLimit({
 app.use(helmet());
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN ||
-      (process.env.NODE_ENV !== "production" ? "http://localhost:3000" : undefined),
+    origin: process.env.CORS_ORIGIN.split(","),
     credentials: true
   })
 );
@@ -56,6 +66,9 @@ app.use("/uploads", express.static("uploads"));
 app.use("/docs", swaggerUi.serve, swaggerUi.setup(openapiSpec));
 
 app.use("/api", healthRoutes);
+app.get("/health", (req, res) => {
+  res.json({ status: "ok" });
+});
 app.use("/api/debug", debugRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/auth", authRoutes);
@@ -76,7 +89,7 @@ app.use("/admin", adminRoutes);
 app.use(notFound);
 app.use(errorHandler);
 
-const BASE_PORT = Number(process.env.PORT) || 5000;
+const PORT = process.env.PORT || 5001;
 
 connectDB();
 
@@ -89,12 +102,12 @@ const startServer = (port, triedFallback = false) => {
   server.listen(port, () => {
     const address = server.address();
     const actualPort = typeof address === "string" ? address : address?.port;
-    console.log(`🚀 Radaa Backend Live on port ${actualPort}`);
+    console.log(`Server running on port ${actualPort}`);
   });
 
   server.on("error", (error) => {
     if (error && error.code === "EADDRINUSE" && !triedFallback) {
-      const fallbackPort = 5001;
+      const fallbackPort = 5002;
       console.warn(
         `Port ${port} is already in use. Attempting to start Radaa backend on fallback port ${fallbackPort}...`
       );
@@ -106,4 +119,4 @@ const startServer = (port, triedFallback = false) => {
   });
 };
 
-startServer(BASE_PORT);
+startServer(PORT);

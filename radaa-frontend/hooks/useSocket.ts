@@ -2,8 +2,13 @@ import { useCallback, useEffect, useState } from "react";
 import { io, type Socket } from "socket.io-client";
 
 const TOKEN_STORAGE_KEY = "radaa_auth_token";
+const USER_STORAGE_KEY = "user";
 
-const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "";
+const BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL ||
+  process.env.NEXT_PUBLIC_API_URL ||
+  process.env.NEXT_PUBLIC_BACKEND_URL ||
+  "";
 const REALTIME_URL = `${BASE_URL.replace(/\/+$/, "")}/realtime`;
 
 let socket: Socket | null = null;
@@ -13,6 +18,14 @@ function getStoredToken(): string | null {
   if (typeof window === "undefined") return null;
 
   try {
+    const rawUser = window.localStorage.getItem(USER_STORAGE_KEY);
+    if (rawUser) {
+      const parsed = JSON.parse(rawUser) as { token?: string };
+      if (parsed && typeof parsed.token === "string") {
+        return parsed.token;
+      }
+    }
+
     return window.localStorage.getItem(TOKEN_STORAGE_KEY);
   } catch {
     return null;

@@ -5,7 +5,11 @@ import { useParams } from "next/navigation";
 import { useNotifications } from "@/context/NotificationContext";
 import { useIsFeatureEnabled } from "@/context/FeatureFlagContext";
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
+const BACKEND_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL ||
+  process.env.NEXT_PUBLIC_API_URL ||
+  process.env.NEXT_PUBLIC_BACKEND_URL ||
+  "http://localhost:5001";
 
 interface TripMatatu {
   _id?: string;

@@ -41,7 +41,11 @@ interface Bounds {
   maxLng: number;
 }
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
+const BACKEND_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL ||
+  process.env.NEXT_PUBLIC_API_URL ||
+  process.env.NEXT_PUBLIC_BACKEND_URL ||
+  "http://localhost:5001";
 
 function haversineDistanceMeters(a: LatLng, b: LatLng): number {
   const R = 6371000;
@@ -642,7 +646,7 @@ export default function MapPage() {
           })}
           {matatusWithFlags.length === 0 && (
             <p className="col-span-full text-[11px] text-slate-500">
-              No matatus are online yet. They'll appear here once they come online.
+              No matatus are online yet. They&apos;ll appear here once they come online.
             </p>
           )}
         </div>

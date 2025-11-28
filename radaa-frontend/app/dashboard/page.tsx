@@ -202,7 +202,9 @@ export default function DashboardHomePage() {
             <div className="rounded-xl border border-slate-800 bg-slate-900/80 p-4 text-xs">
               <div className="text-slate-400">Joined</div>
               <div className="mt-1 text-sm font-semibold text-slate-100">
-                {new Date(effectiveUser.createdAt).toLocaleDateString()}
+                {effectiveUser.createdAt
+                  ? new Date(effectiveUser.createdAt).toLocaleDateString()
+                  : "—"}
               </div>
             </div>
           </section>

@@ -1,6 +1,10 @@
 import axios from "axios";
 
-const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "";
+const backendUrl =
+  process.env.NEXT_PUBLIC_API_BASE_URL ||
+  process.env.NEXT_PUBLIC_API_URL ||
+  process.env.NEXT_PUBLIC_BACKEND_URL ||
+  "";
 
 export const api = axios.create({
   baseURL: backendUrl,
@@ -84,6 +88,16 @@ export const verifyPayment = async (payload: {
 }) => {
   try {
     const res = await api.post("/payments/verify", payload);
+    return res.data;
+  } catch (error: any) {
+    console.error("API ERROR:", (error as any)?.response?.data || error);
+    throw error;
+  }
+};
+
+export const getApiHealth = async () => {
+  try {
+    const res = await api.get("/api/health");
     return res.data;
   } catch (error: any) {
     console.error("API ERROR:", (error as any)?.response?.data || error);

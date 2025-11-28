@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { validateSession } from "@/lib/api/auth";
+import { verifyToken } from "@/lib/edge/verifyToken";
 
 const TOKEN_COOKIE_NAME = "radaa_token";
 
@@ -21,9 +21,9 @@ export async function middleware(request: NextRequest) {
   }
 
   try {
-    const result = await validateSession(token);
+    const verification = await verifyToken(token);
 
-    if (!result.authenticated) {
+    if (!verification.valid) {
       const response = NextResponse.redirect(new URL("/auth/login", request.url));
       response.cookies.delete(TOKEN_COOKIE_NAME);
       return response;

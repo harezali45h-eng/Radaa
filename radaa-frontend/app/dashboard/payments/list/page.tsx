@@ -4,7 +4,11 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { getLoyaltyStatus } from "@/lib/api";
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
+const BACKEND_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL ||
+  process.env.NEXT_PUBLIC_API_URL ||
+  process.env.NEXT_PUBLIC_BACKEND_URL ||
+  "http://localhost:5001";
 
 interface LoyaltyStatus {
   userId: string;
