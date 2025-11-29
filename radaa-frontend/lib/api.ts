@@ -1,21 +1,12 @@
-import axios from "axios";
+import api from "./apiClient";
 
-const backendUrl =
-  process.env.NEXT_PUBLIC_API_BASE_URL ||
-  process.env.NEXT_PUBLIC_API_URL ||
-  process.env.NEXT_PUBLIC_BACKEND_URL ||
-  "";
+const API = api;
 
-export const api = axios.create({
-  baseURL: backendUrl,
-  headers: {
-    "Content-Type": "application/json"
-  }
-});
+export default API;
 
 export const getLiveMatatus = async () => {
   try {
-    const res = await api.get("/matatus/live");
+    const res = await API.get("/matatus/live");
     return res.data;
   } catch (error: any) {
     console.error("API ERROR:", (error as any)?.response?.data || error);
@@ -25,7 +16,7 @@ export const getLiveMatatus = async () => {
 
 export const getMapMarkers = async () => {
   try {
-    const res = await api.get("/api/map/markers");
+    const res = await API.get("/map/markers");
     const data = res.data;
 
     if (data && typeof data === "object" && "data" in (data as any)) {
@@ -41,7 +32,7 @@ export const getMapMarkers = async () => {
 
 export const getFeatureFlags = async () => {
   try {
-    const res = await api.get("/api/feature-flags");
+    const res = await API.get("/feature-flags");
     const data = res.data;
 
     if (data && typeof data === "object" && "data" in (data as any)) {
@@ -57,7 +48,7 @@ export const getFeatureFlags = async () => {
 
 export const getLoyaltyStatus = async (userId: string) => {
   try {
-    const res = await api.get(`/api/users/${userId}/loyalty`);
+    const res = await API.get(`/users/${userId}/loyalty`);
     return res.data;
   } catch (error: any) {
     console.error("API ERROR:", (error as any)?.response?.data || error);
@@ -71,7 +62,7 @@ export const initiatePayment = async (payload: {
   method: string;
 }) => {
   try {
-    const res = await api.post("/payments/initiate", payload);
+    const res = await API.post("/payments/initiate", payload);
     return res.data;
   } catch (error: any) {
     console.error("API ERROR:", (error as any)?.response?.data || error);
@@ -87,7 +78,7 @@ export const verifyPayment = async (payload: {
   transactionId: string;
 }) => {
   try {
-    const res = await api.post("/payments/verify", payload);
+    const res = await API.post("/payments/verify", payload);
     return res.data;
   } catch (error: any) {
     console.error("API ERROR:", (error as any)?.response?.data || error);
@@ -97,10 +88,11 @@ export const verifyPayment = async (payload: {
 
 export const getApiHealth = async () => {
   try {
-    const res = await api.get("/api/health");
+    const res = await API.get("/health");
     return res.data;
   } catch (error: any) {
     console.error("API ERROR:", (error as any)?.response?.data || error);
     throw error;
   }
 };
+

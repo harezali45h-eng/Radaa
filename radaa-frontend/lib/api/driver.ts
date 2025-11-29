@@ -1,10 +1,5 @@
 import type { RideRequest } from "./rides";
-
-const BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL ||
-  process.env.NEXT_PUBLIC_API_URL ||
-  process.env.NEXT_PUBLIC_BACKEND_URL ||
-  "";
+import API from "../api";
 
 interface RequestOptions {
   method?: string;
@@ -15,9 +10,7 @@ interface RequestOptions {
 async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const { method = "GET", body, token } = options;
 
-  const headers: HeadersInit = {
-    "Content-Type": "application/json"
-  };
+  const headers: Record<string, string> = {};
 
   if (token) {
     headers["Authorization"] = `Bearer ${token}`;
@@ -28,23 +21,15 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
 
   for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
     try {
-      const response = await fetch(`${BASE_URL}${path}`, {
+      const response = await API.request<{ success?: boolean; data?: T } | T>({
+        url: path,
         method,
-        headers,
-        credentials: "include",
-        body: body ? JSON.stringify(body) : undefined
+        data: body,
+        headers
       });
 
-      const contentType = response.headers.get("content-type");
-      const isJson = contentType && contentType.includes("application/json");
-
-      let data: any = null;
-
-      if (isJson) {
-        data = await response.json();
-      } else {
-        data = await response.text();
-      }
+      const data: any = response.data;
+      const isJson = data !== null && typeof data !== "undefined";
 
       const isWrappedSuccess =
         isJson &&
@@ -54,34 +39,30 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
         (data as any).success === true &&
         "data" in (data as any);
 
-      if (!response.ok) {
-        const message =
-          (data && typeof data === "object" && ((data as any).message || (data as any).error)) ||
-          (typeof data === "string" && data) ||
-          "Request failed";
-
-        if (response.status >= 500 && attempt < maxAttempts) {
-          lastError = new Error(message);
-          continue;
-        }
-
-        throw new Error(message);
-      }
-
       if (isWrappedSuccess) {
         return (data as any).data as T;
       }
 
       return data as T;
-    } catch (error) {
+    } catch (error: any) {
       lastError = error;
 
       // eslint-disable-next-line no-console
-      console.error("API ERROR:", (error as any)?.response?.data || error);
+      console.error("API ERROR:", error?.response?.data || error);
 
-      if (attempt >= maxAttempts) {
-        throw error;
+      const status = error?.response?.status as number | undefined;
+      const data = error?.response?.data;
+      const message =
+        (data && typeof data === "object" && ((data as any).message || (data as any).error)) ||
+        error?.message ||
+        "Request failed";
+
+      if (status && status >= 500 && attempt < maxAttempts) {
+        lastError = new Error(message);
+        continue;
       }
+
+      throw new Error(message);
     }
   }
 
@@ -112,7 +93,7 @@ export async function updateDriverLocation(
 }
 
 export async function getAssignedPassengers(token?: string | null): Promise<RideRequest[]> {
-  const rides = await request<RideRequest[]>("/api/rides/driver/assigned", {
+  const rides = await request<RideRequest[]>("/rides/driver/assigned", {
     method: "GET",
     token: token ?? null
   });

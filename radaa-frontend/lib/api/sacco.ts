@@ -1,8 +1,4 @@
-const BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL ||
-  process.env.NEXT_PUBLIC_API_URL ||
-  process.env.NEXT_PUBLIC_BACKEND_URL ||
-  "";
+import API from "../api";
 
 interface RequestOptions {
   method?: string;
@@ -13,59 +9,45 @@ interface RequestOptions {
 async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const { method = "GET", body, token } = options;
 
-  const headers: HeadersInit = {};
-
-  if (body && !(body instanceof FormData)) {
-    headers["Content-Type"] = "application/json";
-  }
+  const headers: Record<string, string> = {};
 
   if (token) {
     headers["Authorization"] = `Bearer ${token}`;
   }
 
-  const response = await fetch(`${BASE_URL}${path}`, {
-    method,
-    headers,
-    credentials: "include",
-    body: body
-      ? body instanceof FormData
-        ? body
-        : JSON.stringify(body)
-      : undefined
-  });
+  try {
+    const response = await API.request<{ success?: boolean; data?: T } | T>({
+      url: path,
+      method,
+      data: body,
+      headers
+    });
 
-  const contentType = response.headers.get("content-type");
-  const isJson = contentType && contentType.includes("application/json");
+    const data: any = response.data;
+    const isJson = data !== null && typeof data !== "undefined";
 
-  let data: any = null;
+    const isWrappedSuccess =
+      isJson &&
+      data &&
+      typeof data === "object" &&
+      "success" in (data as any) &&
+      (data as any).success === true &&
+      "data" in (data as any);
 
-  if (isJson) {
-    data = await response.json();
-  } else {
-    data = await response.text();
-  }
+    if (isWrappedSuccess) {
+      return (data as any).data as T;
+    }
 
-  const isWrappedSuccess =
-    isJson &&
-    data &&
-    typeof data === "object" &&
-    "success" in (data as any) &&
-    (data as any).success === true &&
-    "data" in (data as any);
-
-  if (!response.ok) {
+    return data as T;
+  } catch (error: any) {
+    const data = error?.response?.data;
     const message =
       (data && typeof data === "object" && ((data as any).message || (data as any).error)) ||
-      (typeof data === "string" && data) ||
+      error?.message ||
       "Request failed";
+
     throw new Error(message);
   }
-
-  if (isWrappedSuccess) {
-    return (data as any).data as T;
-  }
-
-  return data as T;
 }
 
 export interface SaccoOverview {
@@ -106,11 +88,11 @@ export interface SaccoMatatu {
 }
 
 export async function getSaccoOverview(id: string, token?: string | null): Promise<SaccoOverview> {
-  return request<SaccoOverview>(`/api/sacco/${id}/overview`, { method: "GET", token: token ?? null });
+  return request<SaccoOverview>(`/sacco/${id}/overview`, { method: "GET", token: token ?? null });
 }
 
 export async function getSaccoDrivers(id: string, token?: string | null): Promise<SaccoDriver[]> {
-  const data = await request<SaccoDriver[]>(`/api/sacco/${id}/drivers`, {
+  const data = await request<SaccoDriver[]>(`/sacco/${id}/drivers`, {
     method: "GET",
     token: token ?? null
   });
@@ -130,7 +112,7 @@ export async function getSaccoMatatus(
 
   const qs = params.toString();
 
-  const data = await request<SaccoMatatu[]>(`/api/sacco/${id}/matatus${qs ? `?${qs}` : ""}`, {
+  const data = await request<SaccoMatatu[]>(`/sacco/${id}/matatus${qs ? `?${qs}` : ""}`, {
     method: "GET",
     token: token ?? null
   });
@@ -148,7 +130,7 @@ export async function uploadSaccoDoc(
   formData.append("file", file);
   formData.append("type", type);
 
-  return request<any>(`/api/sacco/${id}/docs`, {
+  return request<any>(`/sacco/${id}/docs`, {
     method: "POST",
     body: formData,
     token: token ?? null
@@ -161,7 +143,7 @@ export async function setDriverEnabled(
   enabled: boolean,
   token?: string | null
 ): Promise<SaccoDriver> {
-  return request<SaccoDriver>(`/api/sacco/${saccoId}/driver/${driverId}/disable`, {
+  return request<SaccoDriver>(`/sacco/${saccoId}/driver/${driverId}/disable`, {
     method: "POST",
     body: { enabled },
     token: token ?? null
@@ -174,7 +156,7 @@ export async function setDriverVerification(
   status: "pending" | "approved" | "rejected",
   token?: string | null
 ): Promise<SaccoDriver> {
-  return request<SaccoDriver>(`/api/sacco/${saccoId}/driver/${driverId}/verification`, {
+  return request<SaccoDriver>(`/sacco/${saccoId}/driver/${driverId}/verification`, {
     method: "POST",
     body: { status },
     token: token ?? null
@@ -187,7 +169,7 @@ export async function setMatatuApproval(
   status: "pending" | "approved" | "rejected",
   token?: string | null
 ): Promise<SaccoMatatu> {
-  return request<SaccoMatatu>(`/api/sacco/${saccoId}/matatu/${matatuId}/approval`, {
+  return request<SaccoMatatu>(`/sacco/${saccoId}/matatu/${matatuId}/approval`, {
     method: "POST",
     body: { status },
     token: token ?? null

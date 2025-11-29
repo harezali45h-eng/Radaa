@@ -4,12 +4,8 @@ import { io, type Socket } from "socket.io-client";
 const TOKEN_STORAGE_KEY = "radaa_auth_token";
 const USER_STORAGE_KEY = "user";
 
-const BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL ||
-  process.env.NEXT_PUBLIC_API_URL ||
-  process.env.NEXT_PUBLIC_BACKEND_URL ||
-  "";
-const REALTIME_URL = `${BASE_URL.replace(/\/+$/, "")}/realtime`;
+const SOCKET_URL = (process.env.NEXT_PUBLIC_SOCKET_URL || "").replace(/\/+$/, "");
+const SOCKET_NAMESPACE = "/realtime";
 
 let socket: Socket | null = null;
 let subscriberCount = 0;
@@ -36,7 +32,8 @@ function ensureSocket(token?: string | null): Socket | null {
   if (typeof window === "undefined") return null;
 
   if (!socket) {
-    socket = io(REALTIME_URL, {
+    const url = `${SOCKET_URL}${SOCKET_NAMESPACE}`;
+    socket = io(url, {
       autoConnect: false,
       transports: ["websocket"],
       auth: {

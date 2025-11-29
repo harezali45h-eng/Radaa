@@ -5,10 +5,10 @@ import Link from "next/link";
 import { useIsFeatureEnabled } from "@/context/FeatureFlagContext";
 
 const BACKEND_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL ||
   process.env.NEXT_PUBLIC_API_URL ||
   process.env.NEXT_PUBLIC_BACKEND_URL ||
-  "http://localhost:5001";
+  process.env.NEXT_PUBLIC_API_BASE_URL ||
+  "";
 
 interface TripMatatu {
   _id?: string;

@@ -1,4 +1,4 @@
-const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "";
+import API from "../api";
 
 interface RequestOptions {
   method?: string;
@@ -9,59 +9,45 @@ interface RequestOptions {
 async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const { method = "GET", body, token } = options;
 
-  const headers: HeadersInit = {};
-
-  if (body && !(body instanceof FormData)) {
-    headers["Content-Type"] = "application/json";
-  }
+  const headers: Record<string, string> = {};
 
   if (token) {
     headers["Authorization"] = `Bearer ${token}`;
   }
 
-  const response = await fetch(`${BASE_URL}${path}`, {
-    method,
-    headers,
-    credentials: "include",
-    body: body
-      ? body instanceof FormData
-        ? body
-        : JSON.stringify(body)
-      : undefined
-  });
+  try {
+    const response = await API.request<{ success?: boolean; data?: T } | T>({
+      url: path,
+      method,
+      data: body,
+      headers
+    });
 
-  const contentType = response.headers.get("content-type");
-  const isJson = contentType && contentType.includes("application/json");
+    const data: any = response.data;
+    const isJson = data !== null && typeof data !== "undefined";
 
-  let data: any = null;
+    const isWrappedSuccess =
+      isJson &&
+      data &&
+      typeof data === "object" &&
+      "success" in (data as any) &&
+      (data as any).success === true &&
+      "data" in (data as any);
 
-  if (isJson) {
-    data = await response.json();
-  } else {
-    data = await response.text();
-  }
+    if (isWrappedSuccess) {
+      return (data as any).data as T;
+    }
 
-  const isWrappedSuccess =
-    isJson &&
-    data &&
-    typeof data === "object" &&
-    "success" in (data as any) &&
-    (data as any).success === true &&
-    "data" in (data as any);
-
-  if (!response.ok) {
+    return data as T;
+  } catch (error: any) {
+    const data = error?.response?.data;
     const message =
       (data && typeof data === "object" && ((data as any).message || (data as any).error)) ||
-      (typeof data === "string" && data) ||
+      error?.message ||
       "Request failed";
+
     throw new Error(message);
   }
-
-  if (isWrappedSuccess) {
-    return (data as any).data as T;
-  }
-
-  return data as T;
 }
 
 export interface MatatuPhoto {
@@ -72,7 +58,7 @@ export interface MatatuPhoto {
 }
 
 export async function getMatatuPhotos(id: string, token?: string | null): Promise<MatatuPhoto[]> {
-  const data = await request<MatatuPhoto[]>(`/api/matatus/${id}/photos`, {
+  const data = await request<MatatuPhoto[]>(`/matatus/${id}/photos`, {
     method: "GET",
     token: token ?? null
   });
@@ -92,7 +78,7 @@ export async function uploadMatatuPhoto(
     formData.append("caption", options.caption);
   }
 
-  const data = await request<MatatuPhoto[]>(`/api/matatus/${id}/photos`, {
+  const data = await request<MatatuPhoto[]>(`/matatus/${id}/photos`, {
     method: "POST",
     body: formData,
     token: token ?? null

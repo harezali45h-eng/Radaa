@@ -42,10 +42,10 @@ interface Bounds {
 }
 
 const BACKEND_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL ||
   process.env.NEXT_PUBLIC_API_URL ||
   process.env.NEXT_PUBLIC_BACKEND_URL ||
-  "http://localhost:5001";
+  process.env.NEXT_PUBLIC_API_BASE_URL ||
+  "";
 
 function haversineDistanceMeters(a: LatLng, b: LatLng): number {
   const R = 6371000;

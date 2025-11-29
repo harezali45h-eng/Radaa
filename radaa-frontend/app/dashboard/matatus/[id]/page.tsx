@@ -6,10 +6,10 @@ import { useAuth } from "@/context/AuthContext";
 import { getMatatuPhotos, uploadMatatuPhoto, type MatatuPhoto } from "@/lib/api/matatu";
 
 const BACKEND_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL ||
   process.env.NEXT_PUBLIC_API_URL ||
   process.env.NEXT_PUBLIC_BACKEND_URL ||
-  "http://localhost:5001";
+  process.env.NEXT_PUBLIC_API_BASE_URL ||
+  "";
 
 interface Matatu {
   _id: string;

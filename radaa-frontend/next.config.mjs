@@ -13,7 +13,7 @@ const nextConfig = {
       (isProd ? "https://radaa-1.onrender.com" : "http://localhost:5001"),
     NEXT_PUBLIC_API_URL:
       process.env.NEXT_PUBLIC_API_URL ||
-      (isProd ? "https://radaa-1.onrender.com" : "http://localhost:5001")
+      (isProd ? "https://radaa-1.onrender.com/api" : "http://localhost:5001/api")
   },
   eslint: {
     ignoreDuringBuilds: true

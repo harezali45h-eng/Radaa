@@ -34,6 +34,7 @@ const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:5174",
   "https://radaa-frontend.vercel.app",
+  "https://radaa-frontend.app",
   "https://radaa-frontend-pu8ch5mlr-wesley-jalangos-projects.vercel.app",
   "https://radaa-frontend-git-main-wesley-jalangos-projects.vercel.app",
   "https://radaa-frontend-weld.vercel.app"

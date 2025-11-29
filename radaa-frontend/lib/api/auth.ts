@@ -2,11 +2,7 @@
    Exports: login, register, checkAuth
    These return the inner data object from the backend so AuthContext can use it directly.
 */
-const BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL ||
-  process.env.NEXT_PUBLIC_API_URL ||
-  process.env.NEXT_PUBLIC_BACKEND_URL ||
-  "http://localhost:5001";
+import API from "../api";
 
 export interface AuthUser {
   _id: string;
@@ -64,41 +60,31 @@ export interface CheckAuthResult {
 }
 
 export async function login(payload: LoginPayload): Promise<AuthApiResponse> {
-  const res = await fetch(`${BASE_URL}/api/auth/login`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-    credentials: "include"
-  });
-  const json = (await res.json().catch(() => ({}))) as unknown;
-
-  if (!res.ok) {
-    const maybeError = json as { message?: unknown };
+  try {
+    const res = await API.post<AuthApiResponse>("/auth/login", payload);
+    return res.data;
+  } catch (error: any) {
+    const maybeError = (error?.response?.data ?? {}) as { message?: unknown };
     const message =
-      typeof maybeError.message === "string" ? maybeError.message : "Login failed";
+      (typeof maybeError.message === "string" && maybeError.message) ||
+      error?.message ||
+      "Login failed";
     throw new Error(message);
   }
-
-  return json as AuthApiResponse;
 }
 
 export async function register(payload: RegisterPayload): Promise<AuthApiResponse> {
-  const res = await fetch(`${BASE_URL}/api/auth/register`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-    credentials: "include"
-  });
-  const json = (await res.json().catch(() => ({}))) as unknown;
-
-  if (!res.ok) {
-    const maybeError = json as { message?: unknown };
+  try {
+    const res = await API.post<AuthApiResponse>("/auth/register", payload);
+    return res.data;
+  } catch (error: any) {
+    const maybeError = (error?.response?.data ?? {}) as { message?: unknown };
     const message =
-      typeof maybeError.message === "string" ? maybeError.message : "Registration failed";
+      (typeof maybeError.message === "string" && maybeError.message) ||
+      error?.message ||
+      "Registration failed";
     throw new Error(message);
   }
-
-  return json as AuthApiResponse;
 }
 
 /*
@@ -108,36 +94,32 @@ export async function register(payload: RegisterPayload): Promise<AuthApiRespons
 */
 export async function checkAuth(token?: string): Promise<CheckAuthResult> {
   try {
-    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    const headers: Record<string, string> = {};
     if (token) headers.Authorization = `Bearer ${token}`;
-    // try profile (requires valid token); if that fails try health
-    const res = await fetch(`${BASE_URL}/api/auth/profile`, {
-      method: "GET",
-      headers,
-      credentials: "include"
-    });
-    if (!res.ok) {
-      // fallback to health (non-auth)
-      const health = await fetch(`${BASE_URL}/api/auth/health`, {
-        method: "GET",
-        headers,
-        credentials: "include"
-      }).catch(() => null);
-      return {
-        authenticated: false,
-        health: health ? await health.json().catch(() => null) : null
-      };
-    }
-    const json = (await res.json().catch(() => null)) as unknown;
 
-    if (json && typeof json === "object") {
-      const fromData = (json as { data?: unknown }).data;
-      const fromUser = (json as { user?: unknown }).user;
-      const finalUser = (fromData ?? fromUser ?? json) as AuthUser;
-      return { authenticated: true, user: finalUser };
-    }
+    try {
+      const res = await API.get("/auth/profile", { headers });
+      const json = res.data as unknown;
 
-    return { authenticated: true };
+      if (json && typeof json === "object") {
+        const fromData = (json as { data?: unknown }).data;
+        const fromUser = (json as { user?: unknown }).user;
+        const finalUser = (fromData ?? fromUser ?? json) as AuthUser;
+        return { authenticated: true, user: finalUser };
+      }
+
+      return { authenticated: true };
+    } catch (error: any) {
+      try {
+        const healthRes = await API.get("/auth/health", { headers });
+        return {
+          authenticated: false,
+          health: healthRes.data
+        };
+      } catch {
+        return { authenticated: false };
+      }
+    }
   } catch {
     return { authenticated: false };
   }
@@ -145,26 +127,18 @@ export async function checkAuth(token?: string): Promise<CheckAuthResult> {
 
 export async function getProfile(token: string): Promise<AuthUser> {
   const headers: Record<string, string> = {
-    "Content-Type": "application/json",
     Authorization: `Bearer ${token}`
   };
 
-  const res = await fetch(`${BASE_URL}/api/auth/profile`, {
-    method: "GET",
-    headers,
-    credentials: "include"
-  });
-
-  const json = (await res.json().catch(() => ({}))) as unknown;
-
-  if (!res.ok) {
-    const maybeError = json as { message?: unknown };
+  try {
+    const res = await API.get<AuthUser>("/auth/profile", { headers });
+    return res.data;
+  } catch (error: any) {
+    const maybeError = (error?.response?.data ?? {}) as { message?: unknown };
     const message =
-      typeof maybeError.message === "string"
-        ? maybeError.message
-        : "Failed to load profile";
+      (typeof maybeError.message === "string" && maybeError.message) ||
+      error?.message ||
+      "Failed to load profile";
     throw new Error(message);
   }
-
-  return json as AuthUser;
 }

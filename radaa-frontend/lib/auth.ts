@@ -1,8 +1,4 @@
-const BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL ||
-  process.env.NEXT_PUBLIC_API_URL ||
-  process.env.NEXT_PUBLIC_BACKEND_URL ||
-  "";
+import API from "./api";
 
 export interface AuthUser {
   _id: string;
@@ -44,67 +40,56 @@ interface RequestOptions {
 async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const { method = "GET", body, token } = options;
 
-  const headers: HeadersInit = {
-    "Content-Type": "application/json"
-  };
+  const headers: Record<string, string> = {};
 
   if (token) {
     headers["Authorization"] = `Bearer ${token}`;
   }
 
-  const response = await fetch(`${BASE_URL}${path}`, {
-    method,
-    headers,
-    credentials: "include",
-    body: body ? JSON.stringify(body) : undefined
-  });
+  try {
+    const response = await API.request<T>({
+      url: path,
+      method,
+      data: body,
+      headers
+    });
 
-  const contentType = response.headers.get("content-type");
-  const isJson = contentType && contentType.includes("application/json");
+    return response.data as T;
+  } catch (error: any) {
+    const data = error?.response?.data;
 
-  let data: any = null;
-
-  if (isJson) {
-    data = await response.json();
-  } else {
-    data = await response.text();
-  }
-
-  if (!response.ok) {
     const message =
-      (data && typeof data === "object" && (data.message || data.error)) ||
-      (typeof data === "string" && data) ||
+      (data && typeof data === "object" && ((data as any).message || (data as any).error)) ||
+      error?.message ||
       "Request failed";
 
     throw new Error(message);
   }
-
-  return data as T;
 }
 
 export async function register(payload: RegisterPayload): Promise<AuthResult> {
-  return request<AuthResult>("/api/auth/register", {
+  return request<AuthResult>("/auth/register", {
     method: "POST",
     body: payload
   });
 }
 
 export async function login(payload: LoginPayload): Promise<AuthResult> {
-  return request<AuthResult>("/api/auth/login", {
+  return request<AuthResult>("/auth/login", {
     method: "POST",
     body: payload
   });
 }
 
 export async function getProfile(token: string): Promise<AuthUser> {
-  return request<AuthUser>("/api/auth/profile", {
+  return request<AuthUser>("/auth/profile", {
     method: "GET",
     token
   });
 }
 
 export async function checkAuth(token: string): Promise<CheckAuthResponse> {
-  return request<CheckAuthResponse>("/api/auth/check", {
+  return request<CheckAuthResponse>("/auth/check", {
     method: "GET",
     token
   });

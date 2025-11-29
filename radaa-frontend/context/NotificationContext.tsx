@@ -70,13 +70,15 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   );
 
   useEffect(() => {
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+    const socketUrl =
+      process.env.NEXT_PUBLIC_SOCKET_URL || process.env.NEXT_PUBLIC_API_URL || "";
 
-    if (!backendUrl) {
+    if (!socketUrl) {
       return undefined;
     }
 
-    const socket: Socket = io(backendUrl, {
+    const url = `${socketUrl.replace(/\/+$/, "")}/realtime`;
+    const socket: Socket = io(url, {
       transports: ["websocket"],
       path: "/socket.io"
     });

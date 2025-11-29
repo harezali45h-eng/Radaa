@@ -1,4 +1,4 @@
-const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "";
+import API from "../api";
 
 interface RequestOptions {
   method?: string;
@@ -9,9 +9,7 @@ interface RequestOptions {
 async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const { method = "GET", body, token } = options;
 
-  const headers: HeadersInit = {
-    "Content-Type": "application/json"
-  };
+  const headers: Record<string, string> = {};
 
   if (token) {
     headers["Authorization"] = `Bearer ${token}`;
@@ -22,23 +20,15 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
 
   for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
     try {
-      const response = await fetch(`${BASE_URL}${path}`, {
+      const response = await API.request<{ success?: boolean; data?: T } | T>({
+        url: path,
         method,
-        headers,
-        credentials: "include",
-        body: body ? JSON.stringify(body) : undefined
+        data: body,
+        headers
       });
 
-      const contentType = response.headers.get("content-type");
-      const isJson = contentType && contentType.includes("application/json");
-
-      let data: any = null;
-
-      if (isJson) {
-        data = await response.json();
-      } else {
-        data = await response.text();
-      }
+      const data: any = response.data;
+      const isJson = data !== null && typeof data !== "undefined";
 
       const isWrappedSuccess =
         isJson &&
@@ -48,34 +38,30 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
         (data as any).success === true &&
         "data" in (data as any);
 
-      if (!response.ok) {
-        const message =
-          (data && typeof data === "object" && ((data as any).message || (data as any).error)) ||
-          (typeof data === "string" && data) ||
-          "Request failed";
-
-        if (response.status >= 500 && attempt < maxAttempts) {
-          lastError = new Error(message);
-          continue;
-        }
-
-        throw new Error(message);
-      }
-
       if (isWrappedSuccess) {
         return (data as any).data as T;
       }
 
       return data as T;
-    } catch (error) {
+    } catch (error: any) {
       lastError = error;
 
       // eslint-disable-next-line no-console
-      console.error("API ERROR:", (error as any)?.response?.data || error);
+      console.error("API ERROR:", error?.response?.data || error);
 
-      if (attempt >= maxAttempts) {
-        throw error;
+      const status = error?.response?.status as number | undefined;
+      const data = error?.response?.data;
+      const message =
+        (data && typeof data === "object" && ((data as any).message || (data as any).error)) ||
+        error?.message ||
+        "Request failed";
+
+      if (status && status >= 500 && attempt < maxAttempts) {
+        lastError = new Error(message);
+        continue;
       }
+
+      throw new Error(message);
     }
   }
 
@@ -112,7 +98,7 @@ export interface RideRequest {
 }
 
 export async function requestRide(payload: RequestRidePayload, token: string): Promise<RideRequest> {
-  return request<RideRequest>("/api/rides/request", {
+  return request<RideRequest>("/rides/request", {
     method: "POST",
     body: payload,
     token
@@ -136,7 +122,7 @@ export async function getNearbyRequests(
     searchParams.set("radius", String(params.radiusMeters));
   }
 
-  const path = `/api/rides/nearby?${searchParams.toString()}`;
+  const path = `/rides/nearby?${searchParams.toString()}`;
 
   return request<RideRequest[]>(path, {
     method: "GET",
@@ -145,7 +131,7 @@ export async function getNearbyRequests(
 }
 
 export async function acceptRide(id: string, token: string): Promise<RideRequest> {
-  return request<RideRequest>(`/api/rides/${id}/accept`, {
+  return request<RideRequest>(`/rides/${id}/accept`, {
     method: "POST",
     token
   });
