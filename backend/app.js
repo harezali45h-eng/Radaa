@@ -30,15 +30,24 @@ import { notFound, errorHandler } from "./middleware/errorMiddleware.js";
 
 const app = express();
 
-const allowedOrigins = [
+const defaultAllowedOrigins = [
   "http://localhost:5173",
   "http://localhost:5174",
+  "http://localhost:3000",
+  "http://localhost:3002",
   "https://radaa-frontend.vercel.app",
   "https://radaa-frontend.app",
   "https://radaa-frontend-pu8ch5mlr-wesley-jalangos-projects.vercel.app",
   "https://radaa-frontend-git-main-wesley-jalangos-projects.vercel.app",
   "https://radaa-frontend-weld.vercel.app"
 ];
+
+const envAllowedOrigins = (process.env.CORS_ORIGIN || "")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+const allowedOrigins = Array.from(new Set([...defaultAllowedOrigins, ...envAllowedOrigins]));
 
 const corsOptions = {
   origin: function (origin, callback) {
@@ -71,6 +80,7 @@ app.use("/uploads", express.static("uploads"));
 
 app.use("/docs", swaggerUi.serve, swaggerUi.setup(openapiSpec));
 
+app.use(healthRoutes);
 app.use("/api", healthRoutes);
 app.use("/api/debug", debugRoutes);
 app.use("/api/users", userRoutes);
