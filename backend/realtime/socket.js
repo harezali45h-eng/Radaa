@@ -1,6 +1,17 @@
 import { Server } from "socket.io";
 import jwt from "jsonwebtoken";
 
+const rawCorsOrigin = process.env.CORS_ORIGIN || "";
+const allowedOrigins = rawCorsOrigin
+  .split(",")
+  .map((value) => value.trim())
+  .filter((value) => value.length > 0);
+
+const socketCors = {
+  origin: allowedOrigins.length ? allowedOrigins : "*",
+  credentials: true
+};
+
 // In-memory maps for realtime state. These are intentionally process-local
 // and non-persistent to keep behaviour additive and avoid schema changes.
 const driverStates = new Map(); // driverId -> "offline" | "available" | "en_route" | "busy"
@@ -93,9 +104,7 @@ export const getAvailableDrivers = () => {
 
 export const initSocket = (server) => {
   const io = new Server(server, {
-    cors: {
-      origin: "*"
-    }
+    cors: socketCors
   });
 
   const realtime = io.of("/realtime");

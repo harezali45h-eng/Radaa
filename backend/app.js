@@ -1,5 +1,5 @@
+import "./config/env.js";
 import http from "http";
-import dotenv from "dotenv";
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
@@ -28,20 +28,52 @@ import featureFlagRoutes from "./routes/featureFlagRoutes.js";
 import { initSocket } from "./realtime/socket.js";
 import { notFound, errorHandler } from "./middleware/errorMiddleware.js";
 
-const envFile =
-  process.env.NODE_ENV === "production" ? ".env.production" : ".env";
-
-dotenv.config({ path: envFile, override: true });
-
-console.log("[env] Using env file:", envFile);
-console.log("[env] PORT=", process.env.PORT);
-console.log("[env] NODE_ENV=", process.env.NODE_ENV);
-console.log(
-  "[env] Mongo URI present=",
-  Boolean(process.env.MONGO_URI || process.env.MONGODB_URI)
-);
-
 const app = express();
+
+const rawCorsOrigin = process.env.CORS_ORIGIN || "";
+const allowedOrigins = rawCorsOrigin
+  .split(",")
+  .map((value) => value.trim())
+  .filter((value) => value.length > 0);
+
+const corsOptions = {
+  origin(origin, callback) {
+    if (!origin) {
+      callback(null, true);
+      return;
+    }
+
+    if (!allowedOrigins.length) {
+      callback(null, true);
+      return;
+    }
+
+    const isAllowed = allowedOrigins.some((allowed) => {
+      if (allowed === "*") {
+        return true;
+      }
+
+      if (allowed.startsWith("*.")) {
+        try {
+          const hostname = new URL(origin).hostname;
+          const domain = allowed.slice(2);
+          return hostname === domain || hostname.endsWith(`.${domain}`);
+        } catch {
+          return false;
+        }
+      }
+
+      return origin === allowed;
+    });
+
+    if (isAllowed) {
+      callback(null, true);
+    } else {
+      callback(new Error(`Not allowed by CORS: ${origin}`));
+    }
+  },
+  credentials: true
+};
 
 const limiter = rateLimit({
   windowMs: 1 * 60 * 1000,
@@ -51,13 +83,7 @@ const limiter = rateLimit({
 });
 
 app.use(helmet());
-app.use(
-  cors({
-    origin: "*",
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    credentials: false
-  })
-);
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(sanitizeInput);
 app.use(limiter);
@@ -67,9 +93,6 @@ app.use("/uploads", express.static("uploads"));
 app.use("/docs", swaggerUi.serve, swaggerUi.setup(openapiSpec));
 
 app.use("/api", healthRoutes);
-app.get("/health", (req, res) => {
-  res.json({ status: "ok" });
-});
 app.use("/api/debug", debugRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/auth", authRoutes);
@@ -86,6 +109,10 @@ app.use("/matatus", matatuRoutes);
 app.use("/payments", paymentRoutes);
 app.use("/trips", tripRoutes);
 app.use("/admin", adminRoutes);
+app.use("/api/matatus", matatuRoutes);
+app.use("/api/payments", paymentRoutes);
+app.use("/api/trips", tripRoutes);
+app.use("/api/admin", adminRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

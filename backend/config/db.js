@@ -14,13 +14,22 @@ const MAX_RETRIES = 5;
 const RETRY_DELAY_MS = 5000;
 
 export const connectDB = async () => {
-  const uri = process.env.MONGODB_URI || process.env.MONGO_URI;
+  const nodeEnv = process.env.NODE_ENV || "development";
+
+  let uri = process.env.MONGODB_URI || process.env.MONGO_URI;
 
   if (!uri) {
-    console.error(
-      "❗ DB Connection Error: MongoDB URI is not defined in env (expected MONGO_URI or MONGODB_URI)."
+    if (nodeEnv === "production") {
+      console.error(
+        "❗ DB Connection Error: MongoDB URI is not defined in env (expected MONGO_URI or MONGODB_URI)."
+      );
+      process.exit(1);
+    }
+
+    uri = "mongodb://localhost:27017/radaa";
+    console.log(
+      "MongoDB dev fallback: using local mongodb://localhost:27017/radaa because no MONGO_URI/MONGODB_URI was set."
     );
-    process.exit(1);
   }
 
   try {
