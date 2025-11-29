@@ -30,49 +30,26 @@ import { notFound, errorHandler } from "./middleware/errorMiddleware.js";
 
 const app = express();
 
-const rawCorsOrigin = process.env.CORS_ORIGIN || "";
-const allowedOrigins = rawCorsOrigin
-  .split(",")
-  .map((value) => value.trim())
-  .filter((value) => value.length > 0);
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:5174",
+  "https://radaa-frontend.vercel.app",
+  "https://radaa-frontend-pu8ch5mlr-wesley-jalangos-projects.vercel.app",
+  "https://radaa-frontend-git-main-wesley-jalangos-projects.vercel.app",
+  "https://radaa-frontend-weld.vercel.app"
+];
 
 const corsOptions = {
-  origin(origin, callback) {
-    if (!origin) {
-      callback(null, true);
-      return;
-    }
-
-    if (!allowedOrigins.length) {
-      callback(null, true);
-      return;
-    }
-
-    const isAllowed = allowedOrigins.some((allowed) => {
-      if (allowed === "*") {
-        return true;
-      }
-
-      if (allowed.startsWith("*.")) {
-        try {
-          const hostname = new URL(origin).hostname;
-          const domain = allowed.slice(2);
-          return hostname === domain || hostname.endsWith(`.${domain}`);
-        } catch {
-          return false;
-        }
-      }
-
-      return origin === allowed;
-    });
-
-    if (isAllowed) {
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      callback(new Error(`Not allowed by CORS: ${origin}`));
+      callback(new Error(`Not allowed by CORS → ${origin}`));
     }
   },
-  credentials: true
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+  allowedHeaders: ["Content-Type", "Authorization"]
 };
 
 const limiter = rateLimit({
@@ -84,6 +61,7 @@ const limiter = rateLimit({
 
 app.use(helmet());
 app.use(cors(corsOptions));
+app.options("/{*splat}", cors(corsOptions));
 app.use(express.json());
 app.use(sanitizeInput);
 app.use(limiter);
@@ -141,7 +119,7 @@ const startServer = (port, triedFallback = false) => {
       );
       startServer(fallbackPort, true);
     } else {
-      console.error("❗ Server startup error:", error);
+      console.error(" Server startup error:", error);
       process.exit(1);
     }
   });
