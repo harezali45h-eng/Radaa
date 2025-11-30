@@ -30,35 +30,19 @@ import { notFound, errorHandler } from "./middleware/errorMiddleware.js";
 
 const app = express();
 
-const defaultAllowedOrigins = [
-  "http://localhost:5173",
-  "http://localhost:5174",
-  "http://localhost:3000",
-  "http://localhost:3002",
-  "https://radaa-frontend.vercel.app",
-  "https://radaa-frontend.app",
-  "https://radaa-frontend-pu8ch5mlr-wesley-jalangos-projects.vercel.app",
-  "https://radaa-frontend-git-main-wesley-jalangos-projects.vercel.app",
-  "https://radaa-frontend-weld.vercel.app"
-];
+const rawClientOrigin =
+  process.env.CLIENT_ORIGIN ||
+  "https://radaa.vercel.app,https://radaa-frontend-mfk378tci-wesley-jalangos-projects.vercel.app";
 
-const envAllowedOrigins = (process.env.CORS_ORIGIN || "")
+const allowedOrigins = rawClientOrigin
   .split(",")
   .map((origin) => origin.trim())
   .filter(Boolean);
 
-const allowedOrigins = Array.from(new Set([...defaultAllowedOrigins, ...envAllowedOrigins]));
-
 const corsOptions = {
-  origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error(`Not allowed by CORS → ${origin}`));
-    }
-  },
+  origin: allowedOrigins,
   credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
   allowedHeaders: ["Content-Type", "Authorization"]
 };
 

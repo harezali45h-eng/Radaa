@@ -1,14 +1,17 @@
 import { Server } from "socket.io";
 import jwt from "jsonwebtoken";
 
-const rawCorsOrigin = process.env.CORS_ORIGIN || "";
-const allowedOrigins = rawCorsOrigin
+const rawClientOrigin =
+  process.env.CLIENT_ORIGIN ||
+  "https://radaa.vercel.app,https://radaa-frontend-mfk378tci-wesley-jalangos-projects.vercel.app";
+
+const allowedOrigins = rawClientOrigin
   .split(",")
   .map((value) => value.trim())
   .filter((value) => value.length > 0);
 
 const socketCors = {
-  origin: allowedOrigins.length ? allowedOrigins : "*",
+  origin: allowedOrigins,
   credentials: true
 };
 
@@ -104,7 +107,8 @@ export const getAvailableDrivers = () => {
 
 export const initSocket = (server) => {
   const io = new Server(server, {
-    cors: socketCors
+    cors: socketCors,
+    path: "/socket.io"
   });
 
   const realtime = io.of("/realtime");
