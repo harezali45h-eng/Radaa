@@ -3,11 +3,14 @@ import http from "http";
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
+import compression from "compression";
 import rateLimit from "express-rate-limit";
 import swaggerUi from "swagger-ui-express";
+
 import { sanitizeInput } from "./middleware/sanitizeMiddleware.js";
 import { openapiSpec } from "./utils/openapi.js";
 import { connectDB } from "./config/db.js";
+import { initSocket } from "./realtime/socket.js";
 
 import userRoutes from "./routes/userRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
@@ -27,98 +30,104 @@ import matatuApiRoutes from "./routes/matatuApiRoutes.js";
 import saccoRoutes from "./routes/saccoRoutes.js";
 import featureFlagRoutes from "./routes/featureFlagRoutes.js";
 
-import { initSocket } from "./realtime/socket.js";
 import { notFound, errorHandler } from "./middleware/errorMiddleware.js";
 
 const app = express();
 
-/* -----------------------------
-      CORS CONFIGURATION
- ----------------------------- */
+/* -------------------------------------------
+   TRUST PROXY (Render, Vercel, Nginx)
+-------------------------------------------- */
+app.set("trust proxy", 1);
 
-const rawClientOrigin =
+/* -------------------------------------------
+   CORS
+-------------------------------------------- */
+const PRODUCTION_ORIGINS =
   process.env.CLIENT_ORIGIN ||
   "https://radaa.vercel.app,https://radaa-frontend-mfk378tci-wesley-jalangos-projects.vercel.app";
 
-const allowedOrigins = rawClientOrigin
-  .split(",")
-  .map(o => o.trim())
-  .filter(Boolean);
+const allowedOrigins = [
+  ...PRODUCTION_ORIGINS.split(",").map(o => o.trim()),
+  ...(process.env.NODE_ENV !== "production" ? ["http://localhost:5173", "http://localhost:3000"] : [])
+];
 
-const corsOptions = {
-  origin: allowedOrigins,
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
-  allowedHeaders: ["Content-Type", "Authorization"]
-};
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      return callback(new Error("Origin not allowed by CORS"), false);
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
 
-/* -----------------------------
-      GLOBAL MIDDLEWARE
- ----------------------------- */
-
-const limiter = rateLimit({
-  windowMs: 60 * 1000,
-  max: 1000,
-  standardHeaders: true,
-  legacyHeaders: false,
-});
-
+/* -------------------------------------------
+   SECURITY + PERFORMANCE
+-------------------------------------------- */
 app.use(helmet());
-app.use(cors(corsOptions));
-app.options("*", cors(corsOptions));
+app.use(compression());
 
-app.use(express.json());
+app.use(
+  rateLimit({
+    windowMs: 60 * 1000,
+    max: 1000,
+    standardHeaders: true,
+    legacyHeaders: false,
+  })
+);
+
+/* -------------------------------------------
+   PARSERS
+-------------------------------------------- */
+app.use(express.json({ limit: "2mb" }));
 app.use(sanitizeInput);
-app.use(limiter);
 
+/* -------------------------------------------
+   STATIC + API DOCS
+-------------------------------------------- */
 app.use("/uploads", express.static("uploads"));
-
 app.use("/docs", swaggerUi.serve, swaggerUi.setup(openapiSpec));
 
-/* -----------------------------
-              ROUTES
- ----------------------------- */
-
-app.use(healthRoutes);
-app.use("/api", healthRoutes);
-
+/* -------------------------------------------
+   ROUTES
+-------------------------------------------- */
+app.use("/api/health", healthRoutes);
 app.use("/api/debug", debugRoutes);
+
 app.use("/api/users", userRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/auth", checkRoutes);
 
 app.use("/api/rides", rideRoutes);
-app.use("/api", routesRoutes);
+app.use("/api/routes", routesRoutes);
 app.use("/api/requests", requestsRoutes);
-app.use("/api", mapRoutes);
+app.use("/api/map", mapRoutes);
 
-app.use("/api", featureFlagRoutes);
+app.use("/api/feature-flags", featureFlagRoutes);
 app.use("/api/ratings", ratingRoutes);
+
 app.use("/api/matatus", matatuApiRoutes);
 app.use("/api/sacco", saccoRoutes);
 
-app.use("/matatus", matatuRoutes);
-app.use("/payments", paymentRoutes);
-app.use("/trips", tripRoutes);
-app.use("/admin", adminRoutes);
-
-/* REMOVE DUPLICATES */
-app.use("/api/matatus", matatuRoutes);
+app.use("/api/admin", adminRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/trips", tripRoutes);
-app.use("/api/admin", adminRoutes);
 
-/* -----------------------------
-      ERROR HANDLING
- ----------------------------- */
+app.use("/api/matatu-system", matatuRoutes);
 
+/* -------------------------------------------
+   ERROR HANDLING
+-------------------------------------------- */
 app.use(notFound);
 app.use(errorHandler);
 
-/* -----------------------------
-        START SERVER
- ----------------------------- */
-
+/* -------------------------------------------
+   SERVER STARTUP
+-------------------------------------------- */
 const PORT = process.env.PORT || 5001;
 
 connectDB();
@@ -126,27 +135,38 @@ connectDB();
 const startServer = (port, triedFallback = false) => {
   const server = http.createServer(app);
 
-  const io = initSocket(server);
+  const io = initSocket(server, {
+    cors: {
+      origin: allowedOrigins,
+      methods: ["GET", "POST"],
+      credentials: true,
+    },
+  });
+
   app.set("io", io);
 
   server.listen(port, () => {
-    const address = server.address();
-    const actualPort = typeof address === "string" ? address : address?.port;
-    console.log(`Server running on port ${actualPort}`);
+    console.log(`Radaa backend running on port ${port}`);
   });
 
-  server.on("error", (error) => {
-    if (error && error.code === "EADDRINUSE" && !triedFallback) {
-      const fallbackPort = 5002;
-      console.warn(
-        `Port ${port} is in use. Starting Radaa backend on fallback port ${fallbackPort}...`
-      );
-      startServer(fallbackPort, true);
+  server.on("error", error => {
+    if (error.code === "EADDRINUSE" && !triedFallback) {
+      const fallback = 5002;
+      console.warn(`Port ${port} busy → switching to ${fallback}`);
+      startServer(fallback, true);
     } else {
       console.error("Server startup error:", error);
       process.exit(1);
     }
   });
+
+  // graceful shutdown (important for Render)
+  process.on("SIGTERM", () => {
+    console.log("Shutting down cleanly...");
+    server.close(() => process.exit(0));
+  });
 };
 
 startServer(PORT);
+
+export default app;
