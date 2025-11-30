@@ -39,13 +39,13 @@ interface AuthContextType {
   user: User | null;
   token: string | null;
   loading: boolean;
-  login: (payload: { email: string; password: string }) => Promise<void>;
+  login: (payload: { email: string; password: string }, rememberMe?: boolean) => Promise<void>;
   register: (payload: RegisterPayload) => Promise<void>;
   logout: () => void;
 }
 
 const USER_STORAGE_KEY = "user";
-const TOKEN_STORAGE_KEY = "radaa_auth_token";
+const TOKEN_STORAGE_KEY = "token";
 const TOKEN_COOKIE_NAME = "radaa_token";
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -59,18 +59,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (typeof window === "undefined") return;
 
     try {
-      const saved = window.localStorage.getItem(USER_STORAGE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved) as User;
+      const localUserRaw = window.localStorage.getItem(USER_STORAGE_KEY);
+      const sessionUserRaw = window.sessionStorage.getItem(USER_STORAGE_KEY);
+
+      let hydratedUser: User | null = null;
+      let hydratedToken: string | null = null;
+
+      if (localUserRaw) {
+        const parsed = JSON.parse(localUserRaw) as User;
         if (parsed && typeof parsed._id === "string" && typeof parsed.token === "string") {
-          setUser(parsed);
-          setToken(parsed.token);
+          hydratedUser = parsed;
+          hydratedToken = parsed.token;
         }
       }
 
-      const storedToken = window.localStorage.getItem(TOKEN_STORAGE_KEY);
-      if (storedToken && typeof storedToken === "string") {
-        setToken(storedToken);
+      if (!hydratedUser && sessionUserRaw) {
+        const parsed = JSON.parse(sessionUserRaw) as User;
+        if (parsed && typeof parsed._id === "string" && typeof parsed.token === "string") {
+          hydratedUser = parsed;
+          hydratedToken = parsed.token;
+        }
+      }
+
+      if (!hydratedToken) {
+        const storedToken =
+          window.localStorage.getItem(TOKEN_STORAGE_KEY) ||
+          window.sessionStorage.getItem(TOKEN_STORAGE_KEY);
+        if (storedToken && typeof storedToken === "string") {
+          hydratedToken = storedToken;
+        }
+      }
+
+      if (hydratedUser) {
+        setUser(hydratedUser);
+      }
+      if (hydratedToken) {
+        setToken(hydratedToken);
       }
     } catch {
       // ignore parse errors
@@ -78,7 +102,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false);
     }
   }, []);
-  const login = async (payload: { email: string; password: string }) => {
+  const login = async (payload: { email: string; password: string }, rememberMe: boolean = false) => {
     setLoading(true);
     try {
       const result = await apiLogin(payload);
@@ -101,9 +125,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setToken(userData.token);
 
       if (typeof window !== "undefined") {
-        window.localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(userData));
-        window.localStorage.setItem(TOKEN_STORAGE_KEY, userData.token);
+        const storage = rememberMe ? window.localStorage : window.sessionStorage;
+
+        storage.setItem(USER_STORAGE_KEY, JSON.stringify(userData));
+        storage.setItem(TOKEN_STORAGE_KEY, userData.token);
         window.localStorage.setItem("radaa_user_id", userData._id);
+
+        if (rememberMe) {
+          window.sessionStorage.removeItem(USER_STORAGE_KEY);
+          window.sessionStorage.removeItem(TOKEN_STORAGE_KEY);
+        } else {
+          window.localStorage.removeItem(USER_STORAGE_KEY);
+          window.localStorage.removeItem(TOKEN_STORAGE_KEY);
+        }
 
         const isSecure = window.location.protocol === "https:";
         const cookieParts = [
@@ -176,6 +210,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (typeof window !== "undefined") {
       window.localStorage.removeItem(USER_STORAGE_KEY);
       window.localStorage.removeItem(TOKEN_STORAGE_KEY);
+      window.sessionStorage.removeItem(USER_STORAGE_KEY);
+      window.sessionStorage.removeItem(TOKEN_STORAGE_KEY);
       window.localStorage.removeItem("radaa_user_id");
       document.cookie = `${TOKEN_COOKIE_NAME}=; Path=/; Max-Age=0; SameSite=Lax`;
     }

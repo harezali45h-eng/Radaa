@@ -31,7 +31,7 @@ export default function LoginPage() {
     setSubmitting(true);
 
     try {
-      await login({ email, password });
+      await login({ email, password }, rememberMe);
 
       if (typeof window !== "undefined") {
         if (rememberMe) {
