@@ -8,6 +8,7 @@ import swaggerUi from "swagger-ui-express";
 import { sanitizeInput } from "./middleware/sanitizeMiddleware.js";
 import { openapiSpec } from "./utils/openapi.js";
 import { connectDB } from "./config/db.js";
+
 import userRoutes from "./routes/userRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import checkRoutes from "./routes/checkRoutes.js";
@@ -25,10 +26,15 @@ import ratingRoutes from "./routes/ratingRoutes.js";
 import matatuApiRoutes from "./routes/matatuApiRoutes.js";
 import saccoRoutes from "./routes/saccoRoutes.js";
 import featureFlagRoutes from "./routes/featureFlagRoutes.js";
+
 import { initSocket } from "./realtime/socket.js";
 import { notFound, errorHandler } from "./middleware/errorMiddleware.js";
 
 const app = express();
+
+/* -----------------------------
+      CORS CONFIGURATION
+ ----------------------------- */
 
 const rawClientOrigin =
   process.env.CLIENT_ORIGIN ||
@@ -36,7 +42,7 @@ const rawClientOrigin =
 
 const allowedOrigins = rawClientOrigin
   .split(",")
-  .map((origin) => origin.trim())
+  .map(o => o.trim())
   .filter(Boolean);
 
 const corsOptions = {
@@ -46,16 +52,21 @@ const corsOptions = {
   allowedHeaders: ["Content-Type", "Authorization"]
 };
 
+/* -----------------------------
+      GLOBAL MIDDLEWARE
+ ----------------------------- */
+
 const limiter = rateLimit({
-  windowMs: 1 * 60 * 1000,
+  windowMs: 60 * 1000,
   max: 1000,
   standardHeaders: true,
-  legacyHeaders: false
+  legacyHeaders: false,
 });
 
 app.use(helmet());
 app.use(cors(corsOptions));
-app.options("/{*splat}", cors(corsOptions));
+app.options("*", cors(corsOptions));
+
 app.use(express.json());
 app.use(sanitizeInput);
 app.use(limiter);
@@ -64,31 +75,49 @@ app.use("/uploads", express.static("uploads"));
 
 app.use("/docs", swaggerUi.serve, swaggerUi.setup(openapiSpec));
 
+/* -----------------------------
+              ROUTES
+ ----------------------------- */
+
 app.use(healthRoutes);
 app.use("/api", healthRoutes);
+
 app.use("/api/debug", debugRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/auth", checkRoutes);
+
 app.use("/api/rides", rideRoutes);
 app.use("/api", routesRoutes);
 app.use("/api/requests", requestsRoutes);
 app.use("/api", mapRoutes);
+
 app.use("/api", featureFlagRoutes);
 app.use("/api/ratings", ratingRoutes);
 app.use("/api/matatus", matatuApiRoutes);
 app.use("/api/sacco", saccoRoutes);
+
 app.use("/matatus", matatuRoutes);
 app.use("/payments", paymentRoutes);
 app.use("/trips", tripRoutes);
 app.use("/admin", adminRoutes);
+
+/* REMOVE DUPLICATES */
 app.use("/api/matatus", matatuRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/trips", tripRoutes);
 app.use("/api/admin", adminRoutes);
 
+/* -----------------------------
+      ERROR HANDLING
+ ----------------------------- */
+
 app.use(notFound);
 app.use(errorHandler);
+
+/* -----------------------------
+        START SERVER
+ ----------------------------- */
 
 const PORT = process.env.PORT || 5001;
 
@@ -110,11 +139,11 @@ const startServer = (port, triedFallback = false) => {
     if (error && error.code === "EADDRINUSE" && !triedFallback) {
       const fallbackPort = 5002;
       console.warn(
-        `Port ${port} is already in use. Attempting to start Radaa backend on fallback port ${fallbackPort}...`
+        `Port ${port} is in use. Starting Radaa backend on fallback port ${fallbackPort}...`
       );
       startServer(fallbackPort, true);
     } else {
-      console.error(" Server startup error:", error);
+      console.error("Server startup error:", error);
       process.exit(1);
     }
   });
