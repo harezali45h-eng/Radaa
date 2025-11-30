@@ -61,7 +61,7 @@ export interface CheckAuthResult {
 
 export async function login(payload: LoginPayload): Promise<AuthApiResponse> {
   try {
-    const res = await API.post<AuthApiResponse>("/auth/login", payload);
+    const res = await API.post<AuthApiResponse>("/api/auth/login", payload);
     return res.data;
   } catch (error: any) {
     const maybeError = (error?.response?.data ?? {}) as { message?: unknown };
@@ -75,7 +75,7 @@ export async function login(payload: LoginPayload): Promise<AuthApiResponse> {
 
 export async function register(payload: RegisterPayload): Promise<AuthApiResponse> {
   try {
-    const res = await API.post<AuthApiResponse>("/auth/register", payload);
+    const res = await API.post<AuthApiResponse>("/api/auth/register", payload);
     return res.data;
   } catch (error: any) {
     const maybeError = (error?.response?.data ?? {}) as { message?: unknown };
@@ -98,7 +98,7 @@ export async function checkAuth(token?: string): Promise<CheckAuthResult> {
     if (token) headers.Authorization = `Bearer ${token}`;
 
     try {
-      const res = await API.get("/auth/profile", { headers });
+      const res = await API.get("/api/auth/profile", { headers });
       const json = res.data as unknown;
 
       if (json && typeof json === "object") {
@@ -111,7 +111,7 @@ export async function checkAuth(token?: string): Promise<CheckAuthResult> {
       return { authenticated: true };
     } catch (error: any) {
       try {
-        const healthRes = await API.get("/auth/health", { headers });
+        const healthRes = await API.get("/api/auth/health", { headers });
         return {
           authenticated: false,
           health: healthRes.data
@@ -131,7 +131,7 @@ export async function getProfile(token: string): Promise<AuthUser> {
   };
 
   try {
-    const res = await API.get<AuthUser>("/auth/profile", { headers });
+    const res = await API.get<AuthUser>("/api/auth/profile", { headers });
     return res.data;
   } catch (error: any) {
     const maybeError = (error?.response?.data ?? {}) as { message?: unknown };

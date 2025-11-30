@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { io, type Socket } from "socket.io-client";
 
-const TOKEN_STORAGE_KEY = "radaa_auth_token";
+const TOKEN_STORAGE_KEY = "token";
 const USER_STORAGE_KEY = "user";
 
 const SOCKET_URL = (process.env.NEXT_PUBLIC_SOCKET_URL || "").replace(/\/+$/, "");
@@ -14,15 +14,24 @@ function getStoredToken(): string | null {
   if (typeof window === "undefined") return null;
 
   try {
-    const rawUser = window.localStorage.getItem(USER_STORAGE_KEY);
-    if (rawUser) {
-      const parsed = JSON.parse(rawUser) as { token?: string };
+    const userCandidates = [
+      window.localStorage.getItem(USER_STORAGE_KEY),
+      window.sessionStorage.getItem(USER_STORAGE_KEY)
+    ];
+
+    for (const raw of userCandidates) {
+      if (!raw) continue;
+      const parsed = JSON.parse(raw) as { token?: string };
       if (parsed && typeof parsed.token === "string") {
         return parsed.token;
       }
     }
 
-    return window.localStorage.getItem(TOKEN_STORAGE_KEY);
+    const directToken =
+      window.localStorage.getItem(TOKEN_STORAGE_KEY) ||
+      window.sessionStorage.getItem(TOKEN_STORAGE_KEY);
+
+    return directToken;
   } catch {
     return null;
   }
@@ -36,6 +45,8 @@ function ensureSocket(token?: string | null): Socket | null {
     socket = io(url, {
       autoConnect: false,
       transports: ["websocket"],
+      path: "/socket.io",
+      withCredentials: true,
       auth: {
         token: token ?? getStoredToken() ?? undefined
       },

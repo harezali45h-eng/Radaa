@@ -1,11 +1,14 @@
 import axios from "axios";
 
-const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL,
-  withCredentials: true
-});
+const API = process.env.NEXT_PUBLIC_API_URL;
 
-api.interceptors.request.use((config) => {
+if (API) {
+  axios.defaults.baseURL = API;
+}
+
+axios.defaults.withCredentials = true;
+
+axios.interceptors.request.use((config) => {
   if (typeof window !== "undefined") {
     try {
       const token =
@@ -26,4 +29,4 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-export default api;
+export default axios;
