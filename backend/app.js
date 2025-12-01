@@ -42,14 +42,23 @@ app.set("trust proxy", 1);
 /* -------------------------------------------
    CORS
 -------------------------------------------- */
-const PRODUCTION_ORIGINS =
-  process.env.CLIENT_ORIGIN ||
-  "https://radaa.vercel.app,https://radaa-frontend-mfk378tci-wesley-jalangos-projects.vercel.app";
+const DEV_FRONTEND_URL = process.env.DEV_FRONTEND_URL || "http://localhost:3000";
+const PROD_FRONTEND_URL =
+  process.env.PROD_FRONTEND_URL ||
+  "https://radaa.vercel.app";
+const RAW_CLIENT_ORIGIN = process.env.CLIENT_ORIGIN || "";
 
-const allowedOrigins = [
-  ...PRODUCTION_ORIGINS.split(",").map(o => o.trim()),
-  ...(process.env.NODE_ENV !== "production" ? ["http://localhost:5173", "http://localhost:3000"] : [])
+const baseOrigins = [
+  PROD_FRONTEND_URL,
+  ...RAW_CLIENT_ORIGIN.split(",").map(o => o.trim()).filter(Boolean)
 ];
+
+const devOrigins =
+  process.env.NODE_ENV !== "production"
+    ? [DEV_FRONTEND_URL]
+    : [];
+
+const allowedOrigins = Array.from(new Set([...baseOrigins, ...devOrigins]));
 
 app.use(
   cors({
@@ -135,13 +144,7 @@ connectDB();
 const startServer = (port, triedFallback = false) => {
   const server = http.createServer(app);
 
-  const io = initSocket(server, {
-    cors: {
-      origin: allowedOrigins,
-      methods: ["GET", "POST"],
-      credentials: true,
-    },
-  });
+  const io = initSocket(server);
 
   app.set("io", io);
 

@@ -6,7 +6,7 @@ export default API;
 
 export const getLiveMatatus = async () => {
   try {
-    const res = await API.get("/api/matatus/live");
+    const res = await API.get("/matatu-system/live");
     return res.data;
   } catch (error: any) {
     console.error("API ERROR:", (error as any)?.response?.data || error);
@@ -16,7 +16,7 @@ export const getLiveMatatus = async () => {
 
 export const getMapMarkers = async () => {
   try {
-    const res = await API.get("/api/map/markers");
+    const res = await API.get("/map/markers");
     const data = res.data;
 
     if (data && typeof data === "object" && "data" in (data as any)) {
@@ -32,7 +32,7 @@ export const getMapMarkers = async () => {
 
 export const getFeatureFlags = async () => {
   try {
-    const res = await API.get("/api/feature-flags");
+    const res = await API.get("/feature-flags");
     const data = res.data;
 
     if (data && typeof data === "object" && "data" in (data as any)) {
@@ -48,7 +48,7 @@ export const getFeatureFlags = async () => {
 
 export const getLoyaltyStatus = async (userId: string) => {
   try {
-    const res = await API.get(`/api/users/${userId}/loyalty`);
+    const res = await API.get(`/users/${userId}/loyalty`);
     return res.data;
   } catch (error: any) {
     console.error("API ERROR:", (error as any)?.response?.data || error);
@@ -88,7 +88,7 @@ export const verifyPayment = async (payload: {
 
 export const getApiHealth = async () => {
   try {
-    const res = await API.get("/api/health");
+    const res = await API.get("/health");
     return res.data;
   } catch (error: any) {
     console.error("API ERROR:", (error as any)?.response?.data || error);

@@ -96,7 +96,7 @@ export async function cancelRide(id: string, token: string): Promise<RideRequest
 }
 
 export async function getNearbyMatatus(token?: string | null): Promise<NearbyMatatu[]> {
-  const matatus = await request<NearbyMatatu[]>("/matatus/live", {
+  const matatus = await request<NearbyMatatu[]>("/matatu-system/live", {
     method: "GET",
     token: token ?? null
   });

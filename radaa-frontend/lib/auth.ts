@@ -68,28 +68,28 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
 }
 
 export async function register(payload: RegisterPayload): Promise<AuthResult> {
-  return request<AuthResult>("/api/auth/register", {
+  return request<AuthResult>("/auth/register", {
     method: "POST",
     body: payload
   });
 }
 
 export async function login(payload: LoginPayload): Promise<AuthResult> {
-  return request<AuthResult>("/api/auth/login", {
+  return request<AuthResult>("/auth/login", {
     method: "POST",
     body: payload
   });
 }
 
 export async function getProfile(token: string): Promise<AuthUser> {
-  return request<AuthUser>("/api/auth/profile", {
+  return request<AuthUser>("/auth/profile", {
     method: "GET",
     token
   });
 }
 
 export async function checkAuth(token: string): Promise<CheckAuthResponse> {
-  return request<CheckAuthResponse>("/api/auth/check", {
+  return request<CheckAuthResponse>("/auth/check", {
     method: "GET",
     token
   });

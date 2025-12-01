@@ -3,6 +3,6 @@ import { listFeatureFlags } from "../controllers/featureFlagsController.js";
 
 const router = express.Router();
 
-router.get("/feature-flags", listFeatureFlags);
+router.get("/", listFeatureFlags);
 
 export default router;

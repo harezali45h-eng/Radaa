@@ -82,7 +82,7 @@ export async function updateDriverLocation(
   location: DriverLocation,
   token?: string | null
 ): Promise<any> {
-  return request<any>(`/matatus/${matatuId}/location`, {
+  return request<any>(`/matatu-system/${matatuId}/location`, {
     method: "POST",
     body: {
       lat: location.lat,

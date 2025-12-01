@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API = process.env.NEXT_PUBLIC_API_URL;
+const API = (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/+$/, "");
 
 if (API) {
   axios.defaults.baseURL = API;
