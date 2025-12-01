@@ -70,7 +70,7 @@ const RealtimeContext = createContext<RealtimeContextValue | undefined>(undefine
 export function RealtimeProvider({ children }: { children: ReactNode }) {
   const { connect, on, off, emit } = useSocket();
   const { addNotification } = useNotifications();
-  const { user } = useAuth();
+  const { user, token } = useAuth();
 
   const [matatus, setMatatus] = useState<RealtimeMatatu[]>([]);
   const [lastRideAssigned, setLastRideAssigned] = useState<RideAssignedPayload | null>(null);
@@ -80,7 +80,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
   );
 
   useEffect(() => {
-    connect();
+    connect(token);
 
     const handleMatatuUpdate = (payload: any) => {
       const updates: RealtimeMatatu[] = Array.isArray(payload) ? payload : [payload];
@@ -156,7 +156,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
       off("sacco:update", handleSaccoUpdate as any);
       off("passenger:live_update", handlePassengerLiveUpdate as any);
     };
-  }, [connect, on, off, addNotification]);
+  }, [connect, on, off, addNotification, token]);
 
   const setDriverOnline = useCallback(
     (online: boolean) => {

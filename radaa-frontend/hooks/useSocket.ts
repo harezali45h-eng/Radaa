@@ -126,6 +126,11 @@ export function useSocket(): UseSocket {
     if (typeof window === "undefined") return;
 
     const token = tokenOverride ?? getStoredToken();
+
+    if (!token) {
+      return;
+    }
+
     const s = ensureSocket(token);
 
     if (!s) return;
