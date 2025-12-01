@@ -6,6 +6,12 @@ import { getLiveMatatus, getMapMarkers } from "@/lib/api";
 import MapContainer from "@/components/map/MapContainer";
 import { useRealtime } from "@/context/realtimeContext";
 import { useIsFeatureEnabled } from "@/context/FeatureFlagContext";
+import {
+  searchRoutes,
+  getMatatusOnRoute,
+  type RouteSearchResult,
+  type RouteMatatu
+} from "@/lib/api/routes";
 
 interface LatLng {
   lat: number;
@@ -79,6 +85,12 @@ export default function MapPage() {
   const [geoError, setGeoError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [trackingId, setTrackingId] = useState<string | null>(null);
+  const [routeQuery, setRouteQuery] = useState("");
+  const [routeResults, setRouteResults] = useState<RouteSearchResult[]>([]);
+  const [routeSearchLoading, setRouteSearchLoading] = useState(false);
+  const [selectedRoute, setSelectedRoute] = useState<RouteSearchResult | null>(null);
+  const [routeMatatus, setRouteMatatus] = useState<Matatu[]>([]);
+  const [loadingRouteMatatus, setLoadingRouteMatatus] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -238,6 +250,100 @@ export default function MapPage() {
   }, [connect, on, off]);
 
   useEffect(() => {
+    if (!uiRevampEnabled) {
+      setRouteResults([]);
+      return;
+    }
+
+    const query = routeQuery.trim();
+
+    if (!query) {
+      setRouteResults([]);
+      return;
+    }
+
+    let cancelled = false;
+    const timeoutId = window.setTimeout(async () => {
+      try {
+        setRouteSearchLoading(true);
+        const results = await searchRoutes(query);
+        if (cancelled) return;
+        setRouteResults(Array.isArray(results) ? results : []);
+      } catch {
+        if (cancelled) return;
+        setRouteResults([]);
+      } finally {
+        if (!cancelled) {
+          setRouteSearchLoading(false);
+        }
+      }
+    }, 300);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timeoutId);
+    };
+  }, [routeQuery, uiRevampEnabled]);
+
+  useEffect(() => {
+    if (!selectedRoute) {
+      setRouteMatatus([]);
+      return;
+    }
+
+    let cancelled = false;
+
+    const run = async () => {
+      try {
+        setLoadingRouteMatatus(true);
+        const raw = await getMatatusOnRoute(selectedRoute._id, 150);
+        if (cancelled) return;
+
+        const mapped: Matatu[] = (Array.isArray(raw) ? raw : []).map((m: RouteMatatu) => {
+          const baseLocation = m.location &&
+            typeof m.location.lat === "number" &&
+            typeof m.location.lng === "number"
+            ? { lat: m.location.lat, lng: m.location.lng }
+            : null;
+
+          const lastLocation =
+            !baseLocation &&
+            m.lastLocation &&
+            Array.isArray(m.lastLocation.coordinates) &&
+            m.lastLocation.coordinates.length === 2
+              ? { lat: m.lastLocation.coordinates[1], lng: m.lastLocation.coordinates[0] }
+              : null;
+
+          const location = baseLocation || lastLocation || null;
+
+          return {
+            id: String(m._id),
+            plate: m.plate,
+            route: m.route || selectedRoute.name,
+            location,
+            status: m.status || (m.isOnline ? "online" : "offline")
+          };
+        });
+
+        setRouteMatatus(mapped);
+      } catch {
+        if (cancelled) return;
+        setRouteMatatus([]);
+      } finally {
+        if (!cancelled) {
+          setLoadingRouteMatatus(false);
+        }
+      }
+    };
+
+    void run();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedRoute]);
+
+  useEffect(() => {
     let frameId: number;
 
     const animate = () => {
@@ -352,9 +458,34 @@ export default function MapPage() {
     return `${BACKEND_URL}${url}`;
   }, [selectedMatatu]);
 
+  const baseMatatusForDisplay = useMemo(() => {
+    if (!selectedRoute || routeMatatus.length === 0) {
+      return matatus;
+    }
+
+    const byId = new Map<string, Matatu>();
+    matatus.forEach((m) => {
+      byId.set(m.id, m);
+    });
+
+    return routeMatatus.map((m) => {
+      const existing = byId.get(m.id) || null;
+      const location = m.location || existing?.location || null;
+      return {
+        ...existing,
+        ...m,
+        location
+      } as Matatu;
+    });
+  }, [matatus, routeMatatus, selectedRoute]);
+
   const matatusWithFlags = useMemo(
-    () => matatus.map((m) => ({ ...m, isTracked: trackingId != null && m.id === trackingId })),
-    [matatus, trackingId]
+    () =>
+      baseMatatusForDisplay.map((m) => ({
+        ...m,
+        isTracked: trackingId != null && m.id === trackingId
+      })),
+    [baseMatatusForDisplay, trackingId]
   );
 
   const selectedMatatuEta = useMemo(() => {
@@ -396,7 +527,7 @@ export default function MapPage() {
       }
     );
   };
-  const totalMatatus = matatus.length;
+  const totalMatatus = matatusWithFlags.length;
   const totalPassengers = passengers.length;
 
   if (!uiRevampEnabled) {
@@ -437,6 +568,44 @@ export default function MapPage() {
               Mode: {driverOnline ? "Driver" : "Passenger"}
             </span>
           </div>
+
+          <div className="mt-3 flex items-center gap-2 text-[11px]">
+            <input
+              type="text"
+              value={routeQuery}
+              onChange={(event) => {
+                setRouteQuery(event.target.value);
+                setSelectedRoute(null);
+              }}
+              className="w-full rounded-md border border-slate-700 bg-slate-950 px-2 py-1 text-[11px] text-slate-50 outline-none placeholder:text-slate-500 focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
+              placeholder="Search routes, e.g. CBD – Westlands"
+            />
+            {routeSearchLoading && (
+              <span className="text-[10px] text-slate-400">Searching…</span>
+            )}
+          </div>
+
+          {routeResults.length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-1 text-[10px]">
+              {routeResults.map((route) => (
+                <button
+                  key={route._id}
+                  type="button"
+                  onClick={() => {
+                    setSelectedRoute(route);
+                    setRouteQuery(route.name);
+                  }}
+                  className={`rounded-full border px-2 py-0.5 transition ${
+                    selectedRoute && selectedRoute._id === route._id
+                      ? "border-sky-500 bg-sky-500/10 text-sky-200"
+                      : "border-slate-700 bg-slate-900 text-slate-200 hover:border-slate-500"
+                  }`}
+                >
+                  {route.name}
+                </button>
+              ))}
+            </div>
+          )}
 
           <MapContainer
             matatus={matatusWithFlags}
@@ -551,14 +720,31 @@ export default function MapPage() {
             See matatus moving in real time and tap a card below to track your ride.
           </p>
         </div>
-        <div className="mt-2 flex items-center gap-2 text-[10px] text-slate-400 md:mt-0">
-          <span className="inline-flex items-center rounded-full bg-emerald-500/10 px-2 py-0.5 text-emerald-300">
-            <span className="mr-1 h-1.5 w-1.5 rounded-full bg-emerald-400" />
-            Live now
-          </span>
-          <span>
-            {totalMatatus} matatus · {totalPassengers} nearby riders
-          </span>
+        <div className="mt-2 flex flex-col items-stretch gap-2 text-[10px] text-slate-400 md:mt-0 md:flex-row md:items-center">
+          <div className="flex items-center gap-2">
+            <span className="inline-flex items-center rounded-full bg-emerald-500/10 px-2 py-0.5 text-emerald-300">
+              <span className="mr-1 h-1.5 w-1.5 rounded-full bg-emerald-400" />
+              Live now
+            </span>
+            <span>
+              {totalMatatus} matatus · {totalPassengers} nearby riders
+            </span>
+          </div>
+          <div className="flex items-center gap-2 md:min-w-[240px]">
+            <input
+              type="text"
+              value={routeQuery}
+              onChange={(event) => {
+                setRouteQuery(event.target.value);
+                setSelectedRoute(null);
+              }}
+              className="w-full rounded-full border border-slate-700 bg-slate-950 px-3 py-1 text-[10px] text-slate-50 outline-none placeholder:text-slate-500 focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
+              placeholder="Filter by route…"
+            />
+            {routeSearchLoading && (
+              <span className="text-[10px] text-slate-400">Searching…</span>
+            )}
+          </div>
         </div>
       </header>
 
@@ -591,6 +777,27 @@ export default function MapPage() {
           {selectedMatatuEta && (
             <div className="rounded-full border border-slate-700/70 bg-slate-900/80 px-3 py-1 text-[10px] text-slate-200">
               ~{Math.round(selectedMatatuEta.etaMinutes)} min away
+            </div>
+          )}
+          {routeResults.length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-1">
+              {routeResults.map((route) => (
+                <button
+                  key={route._id}
+                  type="button"
+                  onClick={() => {
+                    setSelectedRoute(route);
+                    setRouteQuery(route.name);
+                  }}
+                  className={`rounded-full border px-2 py-0.5 text-[10px] transition ${
+                    selectedRoute && selectedRoute._id === route._id
+                      ? "border-sky-500 bg-sky-500/10 text-sky-200"
+                      : "border-slate-700 bg-slate-900 text-slate-200 hover:border-slate-500"
+                  }`}
+                >
+                  {route.name}
+                </button>
+              ))}
             </div>
           )}
         </div>

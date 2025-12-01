@@ -46,6 +46,7 @@ export default function TripDetailPage() {
   const [currency, setCurrency] = useState<string>("KES");
   const [stopping, setStopping] = useState<boolean>(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [autoLocationMessage, setAutoLocationMessage] = useState<string | null>(null);
 
   const [rating, setRating] = useState<number | null>(null);
   const [ratingSubmitted, setRatingSubmitted] = useState(false);
@@ -136,6 +137,30 @@ export default function TripDetailPage() {
     }
   };
 
+  const handleUseCurrentEndLocation = () => {
+    if (typeof window === "undefined" || !navigator.geolocation) {
+      setAutoLocationMessage("Geolocation is not available in this browser.");
+      return;
+    }
+
+    setAutoLocationMessage("Detecting your current location…");
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setLat(String(position.coords.latitude));
+        setLng(String(position.coords.longitude));
+        setAutoLocationMessage("Location captured. You can adjust it before stopping the trip.");
+      },
+      (geoError) => {
+        setAutoLocationMessage(geoError?.message || "Unable to determine your current location.");
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000
+      }
+    );
+  };
+
   const start = trip?.startTime ? new Date(trip.startTime) : null;
   const end = trip?.endTime ? new Date(trip.endTime) : null;
 
@@ -223,6 +248,20 @@ export default function TripDetailPage() {
                 onSubmit={handleStopTrip}
                 className="grid gap-3 md:grid-cols-[repeat(4,minmax(0,1fr)),auto]"
               >
+                {tripUiEnabled && (
+                  <div className="space-y-1 md:col-span-4">
+                    <button
+                      type="button"
+                      onClick={handleUseCurrentEndLocation}
+                      className="inline-flex items-center rounded-md border border-sky-600/60 bg-sky-600/15 px-3 py-1.5 text-[11px] font-medium text-sky-100 shadow-sm transition hover:border-sky-400 hover:bg-sky-600/25"
+                    >
+                      Use my current location for end point
+                    </button>
+                    {autoLocationMessage && (
+                      <p className="text-[11px] text-slate-400">{autoLocationMessage}</p>
+                    )}
+                  </div>
+                )}
                 <div className="space-y-1">
                   <label htmlFor="lat" className="text-[11px] font-medium text-slate-100">
                     End latitude

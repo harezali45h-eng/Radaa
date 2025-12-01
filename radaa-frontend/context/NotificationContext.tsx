@@ -78,9 +78,26 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     }
 
     const url = `${socketUrl.replace(/\/+$/, "")}/realtime`;
+
+    let auth: Record<string, string> | undefined;
+
+    if (typeof window !== "undefined") {
+      const storedToken =
+        window.localStorage.getItem("token") || window.sessionStorage.getItem("token");
+
+      if (storedToken && typeof storedToken === "string") {
+        auth = { token: storedToken };
+      }
+    }
+
+    if (!auth) {
+      return undefined;
+    }
+
     const socket: Socket = io(url, {
       transports: ["websocket"],
-      path: "/socket.io"
+      path: "/socket.io",
+      auth
     });
 
     socket.on("matatu:update", (payload: any) => {

@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 
 const allowedOrigins = [
   process.env.FRONTEND_ORIGIN,
+  "https://radaa-frontend.vercel.app",
   "http://localhost:5173",
   "http://localhost:3000",
 ].filter((value) => value && value.length > 0);
@@ -112,17 +113,25 @@ export const initSocket = (server) => {
 
   realtime.use((socket, next) => {
     try {
-      const token = socket.handshake?.auth?.token;
+      const authToken = socket.handshake?.auth?.token;
+      const header = socket.handshake?.headers?.authorization;
+      let headerToken;
+
+      if (header && typeof header === "string" && header.startsWith("Bearer ")) {
+        headerToken = header.split(" ")[1];
+      }
+
+      const token = authToken || headerToken;
 
       if (!token) {
-        return next(new Error("Authentication error: missing token"));
+        return next(new Error("missing token"));
       }
 
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       socket.user = decoded;
       return next();
     } catch (err) {
-      return next(new Error("Authentication error: invalid token"));
+      return next(new Error("invalid token"));
     }
   });
 

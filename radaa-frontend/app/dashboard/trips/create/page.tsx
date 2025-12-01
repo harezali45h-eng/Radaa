@@ -20,6 +20,7 @@ export default function CreateTripPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [autoLocationMessage, setAutoLocationMessage] = useState<string | null>(null);
 
   const tripUiEnabled = useIsFeatureEnabled("trip_ui_v1", false);
 
@@ -27,6 +28,30 @@ export default function CreateTripPage() {
     if (typeof window === "undefined") return;
     setUserId(window.localStorage.getItem("radaa_user_id"));
   }, []);
+
+  const handleUseCurrentLocation = () => {
+    if (typeof window === "undefined" || !navigator.geolocation) {
+      setAutoLocationMessage("Geolocation is not available in this browser.");
+      return;
+    }
+
+    setAutoLocationMessage("Detecting your current location…");
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setLat(String(position.coords.latitude));
+        setLng(String(position.coords.longitude));
+        setAutoLocationMessage("Location captured. You can adjust it before starting the trip.");
+      },
+      (geoError) => {
+        setAutoLocationMessage(geoError?.message || "Unable to determine your current location.");
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000
+      }
+    );
+  };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -137,6 +162,21 @@ export default function CreateTripPage() {
             Use the ID from the Matatus list or backend logs while wiring things up.
           </p>
         </div>
+
+        {tripUiEnabled && (
+          <div className="space-y-1">
+            <button
+              type="button"
+              onClick={handleUseCurrentLocation}
+              className="inline-flex items-center rounded-md border border-sky-600/60 bg-sky-600/15 px-3 py-1.5 text-[11px] font-medium text-sky-100 shadow-sm transition hover:border-sky-400 hover:bg-sky-600/25"
+            >
+              Use my current location
+            </button>
+            {autoLocationMessage && (
+              <p className="text-[11px] text-slate-400">{autoLocationMessage}</p>
+            )}
+          </div>
+        )}
 
         <div className="grid gap-4 md:grid-cols-2">
           <div className="space-y-1">
