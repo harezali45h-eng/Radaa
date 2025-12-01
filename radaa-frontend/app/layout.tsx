@@ -8,10 +8,14 @@ import { ThemeProvider } from "@/context/ThemeContext";
 
 export const metadata: Metadata = {
   title: "Radaa",
-  description: "Live matatu tracking and loyalty rides"
+  description: "Live matatu tracking and loyalty rides",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="en">
       <body className="min-h-screen">

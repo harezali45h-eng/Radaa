@@ -6,7 +6,10 @@ interface RequestOptions {
   token?: string | null;
 }
 
-async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
+async function request<T>(
+  path: string,
+  options: RequestOptions = {},
+): Promise<T> {
   const { method = "GET", body, token } = options;
 
   const headers: Record<string, string> = {};
@@ -20,7 +23,7 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
       url: path,
       method,
       data: body,
-      headers
+      headers,
     });
 
     const data: any = response.data;
@@ -42,7 +45,9 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
   } catch (error: any) {
     const data = error?.response?.data;
     const message =
-      (data && typeof data === "object" && ((data as any).message || (data as any).error)) ||
+      (data &&
+        typeof data === "object" &&
+        ((data as any).message || (data as any).error)) ||
       error?.message ||
       "Request failed";
 
@@ -87,14 +92,23 @@ export interface SaccoMatatu {
   }[];
 }
 
-export async function getSaccoOverview(id: string, token?: string | null): Promise<SaccoOverview> {
-  return request<SaccoOverview>(`/sacco/${id}/overview`, { method: "GET", token: token ?? null });
+export async function getSaccoOverview(
+  id: string,
+  token?: string | null,
+): Promise<SaccoOverview> {
+  return request<SaccoOverview>(`/sacco/${id}/overview`, {
+    method: "GET",
+    token: token ?? null,
+  });
 }
 
-export async function getSaccoDrivers(id: string, token?: string | null): Promise<SaccoDriver[]> {
+export async function getSaccoDrivers(
+  id: string,
+  token?: string | null,
+): Promise<SaccoDriver[]> {
   const data = await request<SaccoDriver[]>(`/sacco/${id}/drivers`, {
     method: "GET",
-    token: token ?? null
+    token: token ?? null,
   });
 
   return Array.isArray(data) ? data : [];
@@ -103,7 +117,7 @@ export async function getSaccoDrivers(id: string, token?: string | null): Promis
 export async function getSaccoMatatus(
   id: string,
   options: { status?: string } = {},
-  token?: string | null
+  token?: string | null,
 ): Promise<SaccoMatatu[]> {
   const params = new URLSearchParams();
   if (options.status) {
@@ -112,10 +126,13 @@ export async function getSaccoMatatus(
 
   const qs = params.toString();
 
-  const data = await request<SaccoMatatu[]>(`/sacco/${id}/matatus${qs ? `?${qs}` : ""}`, {
-    method: "GET",
-    token: token ?? null
-  });
+  const data = await request<SaccoMatatu[]>(
+    `/sacco/${id}/matatus${qs ? `?${qs}` : ""}`,
+    {
+      method: "GET",
+      token: token ?? null,
+    },
+  );
 
   return Array.isArray(data) ? data : [];
 }
@@ -124,7 +141,7 @@ export async function uploadSaccoDoc(
   id: string,
   type: "logo" | "permit" | "insurance" | "compliance",
   file: File,
-  token?: string | null
+  token?: string | null,
 ): Promise<any> {
   const formData = new FormData();
   formData.append("file", file);
@@ -133,7 +150,7 @@ export async function uploadSaccoDoc(
   return request<any>(`/sacco/${id}/docs`, {
     method: "POST",
     body: formData,
-    token: token ?? null
+    token: token ?? null,
   });
 }
 
@@ -141,12 +158,12 @@ export async function setDriverEnabled(
   saccoId: string,
   driverId: string,
   enabled: boolean,
-  token?: string | null
+  token?: string | null,
 ): Promise<SaccoDriver> {
   return request<SaccoDriver>(`/sacco/${saccoId}/driver/${driverId}/disable`, {
     method: "POST",
     body: { enabled },
-    token: token ?? null
+    token: token ?? null,
   });
 }
 
@@ -154,24 +171,27 @@ export async function setDriverVerification(
   saccoId: string,
   driverId: string,
   status: "pending" | "approved" | "rejected",
-  token?: string | null
+  token?: string | null,
 ): Promise<SaccoDriver> {
-  return request<SaccoDriver>(`/sacco/${saccoId}/driver/${driverId}/verification`, {
-    method: "POST",
-    body: { status },
-    token: token ?? null
-  });
+  return request<SaccoDriver>(
+    `/sacco/${saccoId}/driver/${driverId}/verification`,
+    {
+      method: "POST",
+      body: { status },
+      token: token ?? null,
+    },
+  );
 }
 
 export async function setMatatuApproval(
   saccoId: string,
   matatuId: string,
   status: "pending" | "approved" | "rejected",
-  token?: string | null
+  token?: string | null,
 ): Promise<SaccoMatatu> {
   return request<SaccoMatatu>(`/sacco/${saccoId}/matatu/${matatuId}/approval`, {
     method: "POST",
     body: { status },
-    token: token ?? null
+    token: token ?? null,
   });
 }

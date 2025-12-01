@@ -6,7 +6,10 @@ interface RequestOptions {
   token?: string | null;
 }
 
-async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
+async function request<T>(
+  path: string,
+  options: RequestOptions = {},
+): Promise<T> {
   const { method = "GET", body, token } = options;
 
   const headers: Record<string, string> = {};
@@ -24,7 +27,7 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
         url: path,
         method,
         data: body,
-        headers
+        headers,
       });
 
       const data: any = response.data;
@@ -51,7 +54,9 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
       const status = error?.response?.status as number | undefined;
       const data = error?.response?.data;
       const message =
-        (data && typeof data === "object" && ((data as any).message || (data as any).error)) ||
+        (data &&
+          typeof data === "object" &&
+          ((data as any).message || (data as any).error)) ||
         error?.message ||
         "Request failed";
 
@@ -102,12 +107,12 @@ export interface CreateEphemeralRequestPayload {
 
 export async function createEphemeralRequest(
   payload: CreateEphemeralRequestPayload,
-  token: string
+  token: string,
 ): Promise<EphemeralRequestSummary> {
   return request<EphemeralRequestSummary>("/requests", {
     method: "POST",
     body: payload,
-    token
+    token,
   });
 }
 
@@ -119,11 +124,11 @@ export interface PingLocationPayload {
 export async function pingPassengerLocation(
   requestId: string,
   location: PingLocationPayload,
-  token: string
+  token: string,
 ): Promise<void> {
   await request<void>(`/requests/${requestId}/ping-location`, {
     method: "POST",
     body: { location },
-    token
+    token,
   });
 }

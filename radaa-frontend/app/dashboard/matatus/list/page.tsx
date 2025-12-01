@@ -43,7 +43,8 @@ export default function MatatuListPage() {
         const data = (await response.json()) as Matatu[];
         setMatatus(data);
       } catch (err) {
-        const message = err instanceof Error ? err.message : "Failed to load matatus";
+        const message =
+          err instanceof Error ? err.message : "Failed to load matatus";
         setError(message);
       } finally {
         setLoading(false);
@@ -59,8 +60,8 @@ export default function MatatuListPage() {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Matatus</h1>
           <p className="text-xs text-slate-300">
-            View all matatus that are currently online. Register new vehicles and drill into
-            individual records.
+            View all matatus that are currently online. Register new vehicles
+            and drill into individual records.
           </p>
         </div>
         <Link
@@ -85,8 +86,8 @@ export default function MatatuListPage() {
 
       {!loading && !error && matatus.length === 0 && (
         <div className="rounded-xl border border-slate-800 bg-slate-900/80 p-4 text-xs text-slate-300">
-          No matatus are currently online. As vehicles start sending location updates, they will
-          appear here.
+          No matatus are currently online. As vehicles start sending location
+          updates, they will appear here.
         </div>
       )}
 
@@ -100,7 +101,9 @@ export default function MatatuListPage() {
                 <th className="px-3 py-2 text-left font-medium">Sacco</th>
                 <th className="px-3 py-2 text-left font-medium">Driver</th>
                 <th className="px-3 py-2 text-left font-medium">Status</th>
-                <th className="px-3 py-2 text-left font-medium">Last location</th>
+                <th className="px-3 py-2 text-left font-medium">
+                  Last location
+                </th>
                 <th className="px-3 py-2 text-right font-medium">Actions</th>
               </tr>
             </thead>
@@ -114,7 +117,12 @@ export default function MatatuListPage() {
                     {m.driverName ? (
                       <span>
                         {m.driverName}
-                        {m.driverPhone ? <span className="text-slate-500"> · {m.driverPhone}</span> : null}
+                        {m.driverPhone ? (
+                          <span className="text-slate-500">
+                            {" "}
+                            · {m.driverPhone}
+                          </span>
+                        ) : null}
                       </span>
                     ) : (
                       "—"
@@ -123,7 +131,8 @@ export default function MatatuListPage() {
                   <td className="px-3 py-2 text-slate-300">
                     {m.isOnline ? (
                       <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-300">
-                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" /> Online
+                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />{" "}
+                        Online
                       </span>
                     ) : (
                       <span className="inline-flex items-center gap-1 rounded-full bg-slate-800/80 px-2 py-0.5 text-[10px] font-medium text-slate-300">

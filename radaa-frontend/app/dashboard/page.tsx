@@ -60,7 +60,8 @@ export default function DashboardHomePage() {
         }
       } catch (err) {
         if (!cancelled) {
-          const message = err instanceof Error ? err.message : "Failed to load profile";
+          const message =
+            err instanceof Error ? err.message : "Failed to load profile";
           setError(message);
         }
       } finally {
@@ -92,17 +93,19 @@ export default function DashboardHomePage() {
       try {
         const [liveMatatus, loyalty] = await Promise.all([
           getLiveMatatus().catch(() => []),
-          getLoyaltyStatus(id).catch(() => null)
+          getLoyaltyStatus(id).catch(() => null),
         ]);
 
         if (cancelled) return;
 
-        const array = Array.isArray(liveMatatus) ? (liveMatatus as LiveMatatuPreview[]) : [];
+        const array = Array.isArray(liveMatatus)
+          ? (liveMatatus as LiveMatatuPreview[])
+          : [];
 
         setStats({
           activeMatatus: array.length,
           liveSample: array.slice(0, 6),
-          loyalty: loyalty as LoyaltyStatus | null
+          loyalty: loyalty as LoyaltyStatus | null,
         });
       } finally {
         if (!cancelled) {
@@ -177,7 +180,9 @@ export default function DashboardHomePage() {
       </section>
 
       {loading && (
-        <div className="radaa-card p-4 text-xs text-slate-300">Loading your profile...</div>
+        <div className="radaa-card p-4 text-xs text-slate-300">
+          Loading your profile...
+        </div>
       )}
 
       {error && (
@@ -191,7 +196,9 @@ export default function DashboardHomePage() {
           <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             <div className="radaa-card p-4 text-xs">
               <div className="text-slate-400">Email</div>
-              <div className="mt-1 text-sm font-semibold text-slate-100">{effectiveUser.email}</div>
+              <div className="mt-1 text-sm font-semibold text-slate-100">
+                {effectiveUser.email}
+              </div>
             </div>
             <div className="radaa-card p-4 text-xs">
               <div className="text-slate-400">Handle</div>
@@ -213,9 +220,11 @@ export default function DashboardHomePage() {
             <div className="rounded-xl border border-slate-800 bg-slate-900/80 p-4 text-xs">
               <div className="text-slate-400">Active matatus</div>
               <div className="mt-1 text-lg font-semibold text-sky-400">
-                {statsLoading ? "—" : stats?.activeMatatus ?? 0}
+                {statsLoading ? "—" : (stats?.activeMatatus ?? 0)}
               </div>
-              <p className="mt-1 text-[11px] text-slate-400">Based on current live map data.</p>
+              <p className="mt-1 text-[11px] text-slate-400">
+                Based on current live map data.
+              </p>
             </div>
 
             <div className="rounded-xl border border-slate-800 bg-slate-900/80 p-4 text-xs">
@@ -242,13 +251,18 @@ export default function DashboardHomePage() {
                   style={{
                     width: `${Math.max(
                       0,
-                      Math.min(100, ((stats?.loyalty?.loyalty?.paidRidesCount ?? 0) / 10) * 100)
-                    )}%`
+                      Math.min(
+                        100,
+                        ((stats?.loyalty?.loyalty?.paidRidesCount ?? 0) / 10) *
+                          100,
+                      ),
+                    )}%`,
                   }}
                 />
               </div>
               <p className="mt-1 text-[11px] text-slate-400">
-                {stats?.loyalty?.loyalty?.paidRidesCount ?? 0}/10 paid rides towards a free ride.
+                {stats?.loyalty?.loyalty?.paidRidesCount ?? 0}/10 paid rides
+                towards a free ride.
               </p>
             </div>
           </section>
@@ -257,9 +271,12 @@ export default function DashboardHomePage() {
             <div className="radaa-card p-4 text-xs">
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="text-sm font-semibold text-slate-100">Live map preview</div>
+                  <div className="text-sm font-semibold text-slate-100">
+                    Live map preview
+                  </div>
                   <div className="text-[11px] text-slate-400">
-                    Quick glance at matatus currently online. Open the full map for details.
+                    Quick glance at matatus currently online. Open the full map
+                    for details.
                   </div>
                 </div>
                 <a
@@ -275,7 +292,9 @@ export default function DashboardHomePage() {
                   <div className="col-span-3 h-16 animate-pulse rounded-lg bg-slate-800/60" />
                 )}
                 {!statsLoading && stats?.liveSample.length === 0 && (
-                  <p className="col-span-3 text-slate-400">No live matatus at the moment.</p>
+                  <p className="col-span-3 text-slate-400">
+                    No live matatus at the moment.
+                  </p>
                 )}
                 {!statsLoading &&
                   stats?.liveSample.map((m) => (
@@ -287,7 +306,9 @@ export default function DashboardHomePage() {
                         <div className="text-[11px] font-semibold text-slate-100">
                           {m.plate || m.numberPlate || m.id.slice(0, 4)}
                         </div>
-                        <div className="text-[10px] text-slate-400">{m.route ?? "Route TBD"}</div>
+                        <div className="text-[10px] text-slate-400">
+                          {m.route ?? "Route TBD"}
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -297,7 +318,9 @@ export default function DashboardHomePage() {
             <div className="space-y-3 radaa-card p-4 text-xs">
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="text-sm font-semibold text-slate-100">Your active trips</div>
+                  <div className="text-sm font-semibold text-slate-100">
+                    Your active trips
+                  </div>
                   <div className="text-[11px] text-slate-400">
                     When a trip is live, it will appear here with quick actions.
                   </div>
@@ -307,7 +330,8 @@ export default function DashboardHomePage() {
                 </span>
               </div>
               <div className="rounded-md border border-dashed border-slate-700 bg-slate-900/60 px-3 py-4 text-[11px] text-slate-400">
-                No active trips right now. Start a ride from your matatu or trips section.
+                No active trips right now. Start a ride from your matatu or
+                trips section.
               </div>
               <a
                 href="/dashboard/trips/list"
@@ -322,7 +346,8 @@ export default function DashboardHomePage() {
 
       {!loading && !effectiveUser && !error && (
         <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-4 text-xs text-amber-100">
-          We couldn&apos;t find your profile details. Try signing out and back in again.
+          We couldn&apos;t find your profile details. Try signing out and back
+          in again.
         </div>
       )}
     </div>

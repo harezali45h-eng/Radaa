@@ -6,7 +6,10 @@ interface RequestOptions {
   token?: string | null;
 }
 
-async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
+async function request<T>(
+  path: string,
+  options: RequestOptions = {},
+): Promise<T> {
   const { method = "GET", body, token } = options;
 
   const headers: Record<string, string> = {};
@@ -20,7 +23,7 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
       url: path,
       method,
       data: body,
-      headers
+      headers,
     });
 
     const data: any = response.data;
@@ -42,7 +45,9 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
   } catch (error: any) {
     const data = error?.response?.data;
     const message =
-      (data && typeof data === "object" && ((data as any).message || (data as any).error)) ||
+      (data &&
+        typeof data === "object" &&
+        ((data as any).message || (data as any).error)) ||
       error?.message ||
       "Request failed";
 
@@ -57,10 +62,13 @@ export interface MatatuPhoto {
   caption?: string;
 }
 
-export async function getMatatuPhotos(id: string, token?: string | null): Promise<MatatuPhoto[]> {
+export async function getMatatuPhotos(
+  id: string,
+  token?: string | null,
+): Promise<MatatuPhoto[]> {
   const data = await request<MatatuPhoto[]>(`/matatus/${id}/photos`, {
     method: "GET",
-    token: token ?? null
+    token: token ?? null,
   });
 
   return Array.isArray(data) ? data : [];
@@ -70,7 +78,7 @@ export async function uploadMatatuPhoto(
   id: string,
   file: File,
   options: { caption?: string } = {},
-  token?: string | null
+  token?: string | null,
 ): Promise<MatatuPhoto[]> {
   const formData = new FormData();
   formData.append("photo", file);
@@ -81,7 +89,7 @@ export async function uploadMatatuPhoto(
   const data = await request<MatatuPhoto[]>(`/matatus/${id}/photos`, {
     method: "POST",
     body: formData,
-    token: token ?? null
+    token: token ?? null,
   });
 
   return Array.isArray(data) ? data : [];

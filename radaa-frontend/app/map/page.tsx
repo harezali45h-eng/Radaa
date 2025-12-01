@@ -10,7 +10,7 @@ import {
   searchRoutes,
   getMatatusOnRoute,
   type RouteSearchResult,
-  type RouteMatatu
+  type RouteMatatu,
 } from "@/lib/api/routes";
 
 interface LatLng {
@@ -25,14 +25,14 @@ interface Matatu {
   route?: string;
   location?: LatLng | null;
   status?: string;
-   sacco?: string;
-   driverName?: string;
-   driverPhone?: string;
-   mainPhotoUrl?: string | null;
-   rating?: {
-     avgRating: number;
-     count: number;
-   };
+  sacco?: string;
+  driverName?: string;
+  driverPhone?: string;
+  mainPhotoUrl?: string | null;
+  rating?: {
+    avgRating: number;
+    count: number;
+  };
 }
 
 interface PassengerMarker {
@@ -65,7 +65,8 @@ function haversineDistanceMeters(a: LatLng, b: LatLng): number {
   const sinDLat = Math.sin(dLat / 2);
   const sinDLng = Math.sin(dLng / 2);
 
-  const h = sinDLat * sinDLat + Math.cos(lat1) * Math.cos(lat2) * sinDLng * sinDLng;
+  const h =
+    sinDLat * sinDLat + Math.cos(lat1) * Math.cos(lat2) * sinDLng * sinDLng;
   const c = 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
 
   return R * c;
@@ -80,7 +81,9 @@ export default function MapPage() {
   const [matatus, setMatatus] = useState<Matatu[]>([]);
   const [passengers, setPassengers] = useState<PassengerMarker[]>([]);
   const [selectedMatatuId, setSelectedMatatuId] = useState<string | null>(null);
-  const [displayPositions, setDisplayPositions] = useState<Record<string, LatLng>>({});
+  const [displayPositions, setDisplayPositions] = useState<
+    Record<string, LatLng>
+  >({});
   const [userLocation, setUserLocation] = useState<LatLng | null>(null);
   const [geoError, setGeoError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -88,7 +91,9 @@ export default function MapPage() {
   const [routeQuery, setRouteQuery] = useState("");
   const [routeResults, setRouteResults] = useState<RouteSearchResult[]>([]);
   const [routeSearchLoading, setRouteSearchLoading] = useState(false);
-  const [selectedRoute, setSelectedRoute] = useState<RouteSearchResult | null>(null);
+  const [selectedRoute, setSelectedRoute] = useState<RouteSearchResult | null>(
+    null,
+  );
   const [routeMatatus, setRouteMatatus] = useState<Matatu[]>([]);
   const [loadingRouteMatatus, setLoadingRouteMatatus] = useState(false);
 
@@ -118,7 +123,7 @@ export default function MapPage() {
             location: m.location ?? null,
             status: "online",
             mainPhotoUrl: m.mainPhotoUrl ?? null,
-            rating: m.rating
+            rating: m.rating,
           }));
         } catch {
           const data = await getLiveMatatus();
@@ -172,14 +177,17 @@ export default function MapPage() {
       if (!payload) return;
 
       const loc =
-        payload.pickupLocation || payload.location || payload.passengerLocation || null;
+        payload.pickupLocation ||
+        payload.location ||
+        payload.passengerLocation ||
+        null;
 
       if (!loc || typeof loc.lat !== "number" || typeof loc.lng !== "number") {
         return;
       }
 
       const id = String(
-        payload.id || payload.rideId || `${loc.lat},${loc.lng},${Date.now()}`
+        payload.id || payload.rideId || `${loc.lat},${loc.lng},${Date.now()}`,
       );
 
       setPassengers((current) => {
@@ -195,7 +203,9 @@ export default function MapPage() {
       const updates = Array.isArray(payload) ? payload : [payload];
 
       setPassengers((current) => {
-        const byId = new Map<string, PassengerMarker>(current.map((p) => [p.id, p]));
+        const byId = new Map<string, PassengerMarker>(
+          current.map((p) => [p.id, p]),
+        );
 
         updates.forEach((update) => {
           if (!update) return;
@@ -212,7 +222,11 @@ export default function MapPage() {
             update.passengerLocation?.lng;
 
           const rawId =
-            update.passengerId ?? update.id ?? update.rideId ?? update.requestId ?? null;
+            update.passengerId ??
+            update.id ??
+            update.rideId ??
+            update.requestId ??
+            null;
           const id = rawId != null ? String(rawId) : undefined;
 
           if (!id) {
@@ -226,7 +240,7 @@ export default function MapPage() {
 
           byId.set(id, {
             id,
-            location: { lat, lng }
+            location: { lat, lng },
           });
         });
 
@@ -299,31 +313,37 @@ export default function MapPage() {
         const raw = await getMatatusOnRoute(selectedRoute._id, 150);
         if (cancelled) return;
 
-        const mapped: Matatu[] = (Array.isArray(raw) ? raw : []).map((m: RouteMatatu) => {
-          const baseLocation = m.location &&
-            typeof m.location.lat === "number" &&
-            typeof m.location.lng === "number"
-            ? { lat: m.location.lat, lng: m.location.lng }
-            : null;
+        const mapped: Matatu[] = (Array.isArray(raw) ? raw : []).map(
+          (m: RouteMatatu) => {
+            const baseLocation =
+              m.location &&
+              typeof m.location.lat === "number" &&
+              typeof m.location.lng === "number"
+                ? { lat: m.location.lat, lng: m.location.lng }
+                : null;
 
-          const lastLocation =
-            !baseLocation &&
-            m.lastLocation &&
-            Array.isArray(m.lastLocation.coordinates) &&
-            m.lastLocation.coordinates.length === 2
-              ? { lat: m.lastLocation.coordinates[1], lng: m.lastLocation.coordinates[0] }
-              : null;
+            const lastLocation =
+              !baseLocation &&
+              m.lastLocation &&
+              Array.isArray(m.lastLocation.coordinates) &&
+              m.lastLocation.coordinates.length === 2
+                ? {
+                    lat: m.lastLocation.coordinates[1],
+                    lng: m.lastLocation.coordinates[0],
+                  }
+                : null;
 
-          const location = baseLocation || lastLocation || null;
+            const location = baseLocation || lastLocation || null;
 
-          return {
-            id: String(m._id),
-            plate: m.plate,
-            route: m.route || selectedRoute.name,
-            location,
-            status: m.status || (m.isOnline ? "online" : "offline")
-          };
-        });
+            return {
+              id: String(m._id),
+              plate: m.plate,
+              route: m.route || selectedRoute.name,
+              location,
+              status: m.status || (m.isOnline ? "online" : "offline"),
+            };
+          },
+        );
 
         setRouteMatatus(mapped);
       } catch {
@@ -380,7 +400,11 @@ export default function MapPage() {
     const locations: LatLng[] = [];
 
     matatus.forEach((m) => {
-      if (m.location && typeof m.location.lat === "number" && typeof m.location.lng === "number") {
+      if (
+        m.location &&
+        typeof m.location.lat === "number" &&
+        typeof m.location.lng === "number"
+      ) {
         locations.push(m.location);
       }
     });
@@ -434,15 +458,15 @@ export default function MapPage() {
 
       return {
         left: `${Math.min(100, Math.max(0, x))}%`,
-        top: `${Math.min(100, Math.max(0, y))}%`
+        top: `${Math.min(100, Math.max(0, y))}%`,
       };
     },
-    [bounds]
+    [bounds],
   );
 
   const selectedMatatu = useMemo(
     () => matatus.find((m) => m.id === selectedMatatuId) || null,
-    [matatus, selectedMatatuId]
+    [matatus, selectedMatatuId],
   );
 
   const selectedMatatuPhotoSrc = useMemo(() => {
@@ -474,7 +498,7 @@ export default function MapPage() {
       return {
         ...existing,
         ...m,
-        location
+        location,
       } as Matatu;
     });
   }, [matatus, routeMatatus, selectedRoute]);
@@ -483,9 +507,9 @@ export default function MapPage() {
     () =>
       baseMatatusForDisplay.map((m) => ({
         ...m,
-        isTracked: trackingId != null && m.id === trackingId
+        isTracked: trackingId != null && m.id === trackingId,
       })),
-    [baseMatatusForDisplay, trackingId]
+    [baseMatatusForDisplay, trackingId],
   );
 
   const selectedMatatuEta = useMemo(() => {
@@ -493,7 +517,10 @@ export default function MapPage() {
       return null;
     }
 
-    const distanceMeters = haversineDistanceMeters(userLocation, selectedMatatu.location);
+    const distanceMeters = haversineDistanceMeters(
+      userLocation,
+      selectedMatatu.location,
+    );
     const speedKmh = 25;
     const etaMinutes = (distanceMeters / 1000 / speedKmh) * 60;
 
@@ -514,7 +541,7 @@ export default function MapPage() {
       (position) => {
         setUserLocation({
           lat: position.coords.latitude,
-          lng: position.coords.longitude
+          lng: position.coords.longitude,
         });
         setGeoError(null);
       },
@@ -523,8 +550,8 @@ export default function MapPage() {
       },
       {
         enableHighAccuracy: true,
-        timeout: 10000
-      }
+        timeout: 10000,
+      },
     );
   };
   const totalMatatus = matatusWithFlags.length;
@@ -536,7 +563,8 @@ export default function MapPage() {
         <div className="rounded-xl border border-slate-800 bg-slate-900/80 p-4">
           <h1 className="text-lg font-semibold">Live Matatu Map</h1>
           <p className="mt-1 text-xs text-slate-300">
-            Live view of matatus and nearby passengers. Positions are updated in real time.
+            Live view of matatus and nearby passengers. Positions are updated in
+            real time.
           </p>
 
           <div className="mt-3 flex items-center justify-between text-[11px]">
@@ -620,7 +648,9 @@ export default function MapPage() {
             driverMode={driverOnline}
           />
 
-          {geoError && <p className="mt-2 text-[11px] text-amber-300">{geoError}</p>}
+          {geoError && (
+            <p className="mt-2 text-[11px] text-amber-300">{geoError}</p>
+          )}
         </div>
 
         <aside className="space-y-3 rounded-xl border border-slate-800 bg-slate-900/80 p-4">
@@ -639,7 +669,9 @@ export default function MapPage() {
               )}
               <div>
                 <span className="text-slate-400">Plate: </span>
-                {selectedMatatu.plate || selectedMatatu.numberPlate || "Unknown"}
+                {selectedMatatu.plate ||
+                  selectedMatatu.numberPlate ||
+                  "Unknown"}
               </div>
               <div>
                 <span className="text-slate-400">Route: </span>
@@ -654,7 +686,10 @@ export default function MapPage() {
                     <span className="text-slate-400">Driver: </span>
                     {selectedMatatu.driverName}
                     {selectedMatatu.driverPhone && (
-                      <span className="text-slate-500"> · {selectedMatatu.driverPhone}</span>
+                      <span className="text-slate-500">
+                        {" "}
+                        · {selectedMatatu.driverPhone}
+                      </span>
                     )}
                   </div>
                 </div>
@@ -668,7 +703,8 @@ export default function MapPage() {
               {selectedMatatu.rating && (
                 <div>
                   <span className="text-slate-400">Rating: </span>
-                  {selectedMatatu.rating.avgRating.toFixed(1)} ★ ({selectedMatatu.rating.count})
+                  {selectedMatatu.rating.avgRating.toFixed(1)} ★ (
+                  {selectedMatatu.rating.count})
                 </div>
               )}
               <div>
@@ -695,16 +731,24 @@ export default function MapPage() {
                 type="button"
                 onClick={() =>
                   setTrackingId((current) =>
-                    selectedMatatu ? (current === selectedMatatu.id ? null : selectedMatatu.id) : current
+                    selectedMatatu
+                      ? current === selectedMatatu.id
+                        ? null
+                        : selectedMatatu.id
+                      : current,
                   )
                 }
                 className="mt-2 inline-flex items-center rounded-md bg-sky-600 px-2.5 py-1 text-[11px] font-medium text-white shadow-sm transition hover:bg-sky-500"
               >
-                {trackingId === selectedMatatu.id ? "Stop tracking" : "Track this matatu"}
+                {trackingId === selectedMatatu.id
+                  ? "Stop tracking"
+                  : "Track this matatu"}
               </button>
             </div>
           ) : (
-            <p className="text-xs text-slate-400">Select a matatu marker on the map.</p>
+            <p className="text-xs text-slate-400">
+              Select a matatu marker on the map.
+            </p>
           )}
         </aside>
       </div>
@@ -717,7 +761,8 @@ export default function MapPage() {
         <div>
           <h1 className="text-lg font-semibold">Live Matatu Map</h1>
           <p className="text-xs text-slate-300">
-            See matatus moving in real time and tap a card below to track your ride.
+            See matatus moving in real time and tap a card below to track your
+            ride.
           </p>
         </div>
         <div className="mt-2 flex flex-col items-stretch gap-2 text-[10px] text-slate-400 md:mt-0 md:flex-row md:items-center">
@@ -830,11 +875,14 @@ export default function MapPage() {
                     )}
                   </div>
                   {m.sacco && (
-                    <p className="mt-0.5 text-[10px] text-slate-400">{m.sacco}</p>
+                    <p className="mt-0.5 text-[10px] text-slate-400">
+                      {m.sacco}
+                    </p>
                   )}
                   {m.rating && m.rating.count > 0 && (
                     <p className="mt-0.5 text-[10px] text-amber-300">
-                      {m.rating.avgRating.toFixed(1)} ★ · {m.rating.count} rides rated
+                      {m.rating.avgRating.toFixed(1)} ★ · {m.rating.count} rides
+                      rated
                     </p>
                   )}
                 </div>
@@ -853,7 +901,8 @@ export default function MapPage() {
           })}
           {matatusWithFlags.length === 0 && (
             <p className="col-span-full text-[11px] text-slate-500">
-              No matatus are online yet. They&apos;ll appear here once they come online.
+              No matatus are online yet. They&apos;ll appear here once they come
+              online.
             </p>
           )}
         </div>
@@ -873,7 +922,9 @@ export default function MapPage() {
               )}
               <div>
                 <span className="text-slate-400">Plate: </span>
-                {selectedMatatu.plate || selectedMatatu.numberPlate || "Unknown"}
+                {selectedMatatu.plate ||
+                  selectedMatatu.numberPlate ||
+                  "Unknown"}
               </div>
               <div>
                 <span className="text-slate-400">Route: </span>
@@ -888,7 +939,10 @@ export default function MapPage() {
                     <span className="text-slate-400">Driver: </span>
                     {selectedMatatu.driverName}
                     {selectedMatatu.driverPhone && (
-                      <span className="text-slate-500"> · {selectedMatatu.driverPhone}</span>
+                      <span className="text-slate-500">
+                        {" "}
+                        · {selectedMatatu.driverPhone}
+                      </span>
                     )}
                   </div>
                 </div>
@@ -902,7 +956,8 @@ export default function MapPage() {
               {selectedMatatu.rating && (
                 <div>
                   <span className="text-slate-400">Rating: </span>
-                  {selectedMatatu.rating.avgRating.toFixed(1)} ★ ({selectedMatatu.rating.count})
+                  {selectedMatatu.rating.avgRating.toFixed(1)} ★ (
+                  {selectedMatatu.rating.count})
                 </div>
               )}
             </div>
@@ -923,12 +978,18 @@ export default function MapPage() {
                 type="button"
                 onClick={() =>
                   setTrackingId((current) =>
-                    selectedMatatu ? (current === selectedMatatu.id ? null : selectedMatatu.id) : current
+                    selectedMatatu
+                      ? current === selectedMatatu.id
+                        ? null
+                        : selectedMatatu.id
+                      : current,
                   )
                 }
                 className="mt-1 inline-flex items-center rounded-md bg-sky-600 px-2.5 py-1 text-[11px] font-medium text-white shadow-sm transition hover:bg-sky-500"
               >
-                {trackingId === selectedMatatu.id ? "Stop tracking" : "Track this matatu"}
+                {trackingId === selectedMatatu.id
+                  ? "Stop tracking"
+                  : "Track this matatu"}
               </button>
             </div>
           </div>

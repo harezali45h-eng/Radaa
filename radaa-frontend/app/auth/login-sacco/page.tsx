@@ -48,8 +48,9 @@ export default function LoginSaccoPage() {
         <div className="rounded-lg border border-sky-600/60 bg-sky-600/10 px-3 py-2 text-xs text-sky-100">
           <p className="font-medium">New SACCO dashboard (beta)</p>
           <p className="mt-0.5 text-[11px] text-sky-100/90">
-            Use this admin sign-in to explore the experimental SACCO fleet dashboard. This experience
-            is safely feature-flagged while we iterate.
+            Use this admin sign-in to explore the experimental SACCO fleet
+            dashboard. This experience is safely feature-flagged while we
+            iterate.
           </p>
         </div>
       )}
@@ -78,7 +79,10 @@ export default function LoginSaccoPage() {
         </div>
 
         <div className="space-y-1">
-          <label htmlFor="password" className="text-sm font-medium text-slate-100">
+          <label
+            htmlFor="password"
+            className="text-sm font-medium text-slate-100"
+          >
             Password
           </label>
           <input
@@ -104,14 +108,20 @@ export default function LoginSaccoPage() {
 
       <p className="text-center text-xs text-slate-400">
         Need a SACCO account?{" "}
-        <Link href="/auth/register-sacco" className="font-medium text-sky-400 hover:text-sky-300">
+        <Link
+          href="/auth/register-sacco"
+          className="font-medium text-sky-400 hover:text-sky-300"
+        >
           Create one
         </Link>
       </p>
 
       <p className="text-center text-xs text-slate-500">
         Not a SACCO admin?{" "}
-        <Link href="/auth/login" className="font-medium text-sky-400 hover:text-sky-300">
+        <Link
+          href="/auth/login"
+          className="font-medium text-sky-400 hover:text-sky-300"
+        >
           Go to main login
         </Link>
       </p>

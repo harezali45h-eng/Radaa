@@ -1,7 +1,10 @@
 const SECRET = process.env.JWT_SECRET;
 
 function base64UrlToUint8Array(base64Url) {
-  const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/").padEnd(Math.ceil(base64Url.length / 4) * 4, "=");
+  const base64 = base64Url
+    .replace(/-/g, "+")
+    .replace(/_/g, "/")
+    .padEnd(Math.ceil(base64Url.length / 4) * 4, "=");
   const binary = atob(base64);
   const bytes = new Uint8Array(binary.length);
   for (let i = 0; i < binary.length; i += 1) {
@@ -20,7 +23,10 @@ function uint8ArrayToBase64Url(bytes) {
 }
 
 function base64UrlDecodeToString(base64Url) {
-  const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/").padEnd(Math.ceil(base64Url.length / 4) * 4, "=");
+  const base64 = base64Url
+    .replace(/-/g, "+")
+    .replace(/_/g, "/")
+    .padEnd(Math.ceil(base64Url.length / 4) * 4, "=");
   const binary = atob(base64);
   return binary;
 }
@@ -77,7 +83,7 @@ export async function verifyToken(token) {
       stringToUint8Array(SECRET),
       { name: "HMAC", hash: "SHA-256" },
       false,
-      ["sign"]
+      ["sign"],
     );
 
     const data = stringToUint8Array(`${encodedHeader}.${encodedPayload}`);

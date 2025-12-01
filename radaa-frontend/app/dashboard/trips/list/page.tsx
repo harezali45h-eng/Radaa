@@ -60,7 +60,8 @@ export default function TripListPage() {
         const data = (await response.json()) as Trip[];
         setTrips(data);
       } catch (err) {
-        const message = err instanceof Error ? err.message : "Failed to load trips";
+        const message =
+          err instanceof Error ? err.message : "Failed to load trips";
         setError(message);
       } finally {
         setLoading(false);
@@ -71,7 +72,9 @@ export default function TripListPage() {
   }, [userId]);
 
   const totalTrips = trips.length;
-  const completedTrips = trips.filter((trip) => trip.status === "completed").length;
+  const completedTrips = trips.filter(
+    (trip) => trip.status === "completed",
+  ).length;
   const ongoingTrips = trips.filter((trip) => trip.status === "ongoing").length;
   const lastTripDate = trips.reduce<Date | null>((latest, trip) => {
     const rawDate = trip.endTime || trip.startTime;
@@ -88,8 +91,8 @@ export default function TripListPage() {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Trips</h1>
           <p className="text-xs text-slate-300">
-            Browse your trip history. Each completed trip is tied to a fare payment and loyalty
-            update.
+            Browse your trip history. Each completed trip is tied to a fare
+            payment and loyalty update.
           </p>
         </div>
         <Link
@@ -104,15 +107,21 @@ export default function TripListPage() {
         <section className="grid gap-3 text-[11px] text-slate-200 md:grid-cols-3">
           <div className="rounded-lg border border-slate-800 bg-slate-900/80 px-3 py-2">
             <div className="text-slate-400">Total trips</div>
-            <div className="mt-0.5 text-sm font-semibold text-slate-50">{totalTrips}</div>
+            <div className="mt-0.5 text-sm font-semibold text-slate-50">
+              {totalTrips}
+            </div>
           </div>
           <div className="rounded-lg border border-slate-800 bg-slate-900/80 px-3 py-2">
             <div className="text-slate-400">Completed</div>
-            <div className="mt-0.5 text-sm font-semibold text-emerald-300">{completedTrips}</div>
+            <div className="mt-0.5 text-sm font-semibold text-emerald-300">
+              {completedTrips}
+            </div>
           </div>
           <div className="rounded-lg border border-slate-800 bg-slate-900/80 px-3 py-2">
             <div className="text-slate-400">Ongoing</div>
-            <div className="mt-0.5 text-sm font-semibold text-amber-300">{ongoingTrips}</div>
+            <div className="mt-0.5 text-sm font-semibold text-amber-300">
+              {ongoingTrips}
+            </div>
             {lastTripDate && (
               <div className="mt-1 text-[10px] text-slate-400">
                 Last trip: {lastTripDate.toLocaleString()}
@@ -124,7 +133,8 @@ export default function TripListPage() {
 
       {!userId && !loading && (
         <div className="rounded-xl border border-slate-800 bg-slate-900/80 p-4 text-xs text-slate-300">
-          No user ID found. Make sure you are logged in via the auth screens before viewing trips.
+          No user ID found. Make sure you are logged in via the auth screens
+          before viewing trips.
         </div>
       )}
 
@@ -170,7 +180,9 @@ export default function TripListPage() {
                     <td className="px-3 py-2 text-slate-100">
                       {trip.matatu?.plate || "Unknown"}
                     </td>
-                    <td className="px-3 py-2 text-slate-300">{trip.matatu?.route || "—"}</td>
+                    <td className="px-3 py-2 text-slate-300">
+                      {trip.matatu?.route || "—"}
+                    </td>
                     <td className="px-3 py-2 text-slate-300">
                       {start ? start.toLocaleString() : "—"}
                     </td>
@@ -178,9 +190,13 @@ export default function TripListPage() {
                       {end ? end.toLocaleString() : "—"}
                     </td>
                     <td className="px-3 py-2 text-slate-300">
-                      {trip.fare != null ? `${trip.fare} ${trip.currency || "KES"}` : "—"}
+                      {trip.fare != null
+                        ? `${trip.fare} ${trip.currency || "KES"}`
+                        : "—"}
                     </td>
-                    <td className="px-3 py-2 text-slate-300 capitalize">{trip.status}</td>
+                    <td className="px-3 py-2 text-slate-300 capitalize">
+                      {trip.status}
+                    </td>
                     <td className="px-3 py-2 text-right">
                       <Link
                         href={`/dashboard/trips/${trip._id}`}

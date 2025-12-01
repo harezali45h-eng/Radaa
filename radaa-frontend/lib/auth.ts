@@ -37,7 +37,10 @@ interface RequestOptions {
   token?: string | null;
 }
 
-async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
+async function request<T>(
+  path: string,
+  options: RequestOptions = {},
+): Promise<T> {
   const { method = "GET", body, token } = options;
 
   const headers: Record<string, string> = {};
@@ -51,7 +54,7 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
       url: path,
       method,
       data: body,
-      headers
+      headers,
     });
 
     return response.data as T;
@@ -59,7 +62,9 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
     const data = error?.response?.data;
 
     const message =
-      (data && typeof data === "object" && ((data as any).message || (data as any).error)) ||
+      (data &&
+        typeof data === "object" &&
+        ((data as any).message || (data as any).error)) ||
       error?.message ||
       "Request failed";
 
@@ -70,31 +75,33 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
 export async function register(payload: RegisterPayload): Promise<AuthResult> {
   return request<AuthResult>("/auth/register", {
     method: "POST",
-    body: payload
+    body: payload,
   });
 }
 
 export async function login(payload: LoginPayload): Promise<AuthResult> {
   return request<AuthResult>("/auth/login", {
     method: "POST",
-    body: payload
+    body: payload,
   });
 }
 
 export async function getProfile(token: string): Promise<AuthUser> {
   return request<AuthUser>("/auth/profile", {
     method: "GET",
-    token
+    token,
   });
 }
 
 export async function checkAuth(token: string): Promise<CheckAuthResponse> {
   return request<CheckAuthResponse>("/auth/check", {
     method: "GET",
-    token
+    token,
   });
 }
 
-export async function validateSession(token: string): Promise<CheckAuthResponse> {
+export async function validateSession(
+  token: string,
+): Promise<CheckAuthResponse> {
   return checkAuth(token);
 }

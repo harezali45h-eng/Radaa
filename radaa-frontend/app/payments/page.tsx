@@ -12,7 +12,10 @@ export default function PaymentsPage() {
   const [result, setResult] = useState<any>(null);
   const [loading, setLoading] = useState(false);
 
-  const userId = typeof window !== "undefined" ? window.localStorage.getItem("radaa_user_id") : null;
+  const userId =
+    typeof window !== "undefined"
+      ? window.localStorage.getItem("radaa_user_id")
+      : null;
 
   const handleInitiate = async () => {
     if (!userId) return;
@@ -25,7 +28,7 @@ export default function PaymentsPage() {
       addNotification({
         type: "payment",
         title: "Payment initiated",
-        message: `Started a ${method} payment for KES ${amount}.`
+        message: `Started a ${method} payment for KES ${amount}.`,
       });
     } catch (e) {
       setResult({ error: true });
@@ -42,7 +45,7 @@ export default function PaymentsPage() {
         userId,
         amount,
         method,
-        transactionId
+        transactionId,
       });
       setResult(res);
 
@@ -51,13 +54,13 @@ export default function PaymentsPage() {
         addNotification({
           type: "payment",
           title: "Payment confirmed",
-          message: `Payment ${transactionId} was verified successfully.`
+          message: `Payment ${transactionId} was verified successfully.`,
         });
       } else {
         addNotification({
           type: "payment",
           title: "Payment verification",
-          message: `Verification for payment ${transactionId} completed with status: ${status ?? "unknown"}.`
+          message: `Verification for payment ${transactionId} completed with status: ${status ?? "unknown"}.`,
         });
       }
     } catch (e) {
@@ -72,8 +75,8 @@ export default function PaymentsPage() {
       <section className="space-y-2">
         <h1 className="text-2xl font-semibold tracking-tight">Payments</h1>
         <p className="text-xs text-slate-300">
-          This page uses a placeholder payment gateway. Wire it up to Mpesa STK Push, Stripe, or
-          Flutterwave in production.
+          This page uses a placeholder payment gateway. Wire it up to Mpesa STK
+          Push, Stripe, or Flutterwave in production.
         </p>
       </section>
 
@@ -103,7 +106,9 @@ export default function PaymentsPage() {
           </label>
 
           <label className="space-y-1">
-            <span className="block text-slate-300">Transaction ID (for verify)</span>
+            <span className="block text-slate-300">
+              Transaction ID (for verify)
+            </span>
             <input
               type="text"
               value={transactionId}

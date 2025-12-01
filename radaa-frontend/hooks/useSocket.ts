@@ -4,7 +4,10 @@ import { io, type Socket } from "socket.io-client";
 const TOKEN_STORAGE_KEY = "token";
 const USER_STORAGE_KEY = "user";
 
-const SOCKET_URL = (process.env.NEXT_PUBLIC_SOCKET_URL || "").replace(/\/+$/, "");
+const SOCKET_URL = (process.env.NEXT_PUBLIC_SOCKET_URL || "").replace(
+  /\/+$/,
+  "",
+);
 const SOCKET_NAMESPACE = "/realtime";
 
 let socket: Socket | null = null;
@@ -16,7 +19,7 @@ function getStoredToken(): string | null {
   try {
     const userCandidates = [
       window.localStorage.getItem(USER_STORAGE_KEY),
-      window.sessionStorage.getItem(USER_STORAGE_KEY)
+      window.sessionStorage.getItem(USER_STORAGE_KEY),
     ];
 
     for (const raw of userCandidates) {
@@ -48,14 +51,14 @@ function ensureSocket(token?: string | null): Socket | null {
       path: "/socket.io",
       withCredentials: true,
       auth: {
-        token: token ?? getStoredToken() ?? undefined
+        token: token ?? getStoredToken() ?? undefined,
       },
       reconnection: true,
       reconnectionAttempts: Infinity,
       reconnectionDelay: 500,
       reconnectionDelayMax: 10000,
       randomizationFactor: 0.5,
-      timeout: 10000
+      timeout: 10000,
     });
   } else if (token) {
     socket.auth = { ...(socket.auth || {}), token };
@@ -67,7 +70,11 @@ function ensureSocket(token?: string | null): Socket | null {
 export interface UseSocket {
   connect: (tokenOverride?: string | null) => void;
   disconnect: () => void;
-  emit: (event: string, payload?: any, callback?: (...args: any[]) => void) => void;
+  emit: (
+    event: string,
+    payload?: any,
+    callback?: (...args: any[]) => void,
+  ) => void;
   on: (event: string, callback: (...args: any[]) => void) => void;
   off: (event: string, callback?: (...args: any[]) => void) => void;
   connected: boolean;
@@ -166,27 +173,33 @@ export function useSocket(): UseSocket {
         s.emit(event);
       }
     },
-    []
+    [],
   );
 
-  const on = useCallback((event: string, callback: (...args: any[]) => void) => {
-    const s = socket;
-    if (!s) return;
+  const on = useCallback(
+    (event: string, callback: (...args: any[]) => void) => {
+      const s = socket;
+      if (!s) return;
 
-    s.off(event, callback);
-    s.on(event, callback);
-  }, []);
-
-  const off = useCallback((event: string, callback?: (...args: any[]) => void) => {
-    const s = socket;
-    if (!s) return;
-
-    if (callback) {
       s.off(event, callback);
-    } else {
-      s.removeAllListeners(event);
-    }
-  }, []);
+      s.on(event, callback);
+    },
+    [],
+  );
+
+  const off = useCallback(
+    (event: string, callback?: (...args: any[]) => void) => {
+      const s = socket;
+      if (!s) return;
+
+      if (callback) {
+        s.off(event, callback);
+      } else {
+        s.removeAllListeners(event);
+      }
+    },
+    [],
+  );
 
   return {
     connect,
@@ -194,6 +207,6 @@ export function useSocket(): UseSocket {
     emit,
     on,
     off,
-    connected
+    connected,
   };
 }

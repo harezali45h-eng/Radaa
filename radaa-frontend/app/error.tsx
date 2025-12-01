@@ -2,7 +2,13 @@
 
 import { useEffect } from "react";
 
-export default function GlobalError({ error, reset }: { error: Error; reset: () => void }) {
+export default function GlobalError({
+  error,
+  reset,
+}: {
+  error: Error;
+  reset: () => void;
+}) {
   useEffect(() => {
     // eslint-disable-next-line no-console
     console.error("Global app error:", error);
@@ -13,10 +19,12 @@ export default function GlobalError({ error, reset }: { error: Error; reset: () 
       <body className="min-h-screen bg-slate-950 text-slate-50">
         <div className="flex min-h-screen items-center justify-center px-4">
           <div className="max-w-md space-y-4 rounded-xl border border-red-500/40 bg-red-500/10 p-6 text-xs">
-            <h1 className="text-lg font-semibold text-red-100">Something went wrong</h1>
+            <h1 className="text-lg font-semibold text-red-100">
+              Something went wrong
+            </h1>
             <p className="text-slate-200">
-              An unexpected error occurred while rendering this page. You can try again, or go back
-              to the dashboard.
+              An unexpected error occurred while rendering this page. You can
+              try again, or go back to the dashboard.
             </p>
             <div className="flex gap-3 text-[11px]">
               <button

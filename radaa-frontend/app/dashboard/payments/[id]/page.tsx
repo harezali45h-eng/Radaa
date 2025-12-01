@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
+const BACKEND_URL =
+  process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
 
 interface TripMatatu {
   _id?: string;
@@ -62,7 +63,8 @@ export default function PaymentDetailPage() {
 
         setTrip(current);
       } catch (err) {
-        const message = err instanceof Error ? err.message : "Failed to load payment detail";
+        const message =
+          err instanceof Error ? err.message : "Failed to load payment detail";
         setError(message);
       } finally {
         setLoading(false);
@@ -92,10 +94,11 @@ export default function PaymentDetailPage() {
       {!loading && !error && trip && (
         <>
           <header className="space-y-1">
-            <h1 className="text-2xl font-semibold tracking-tight">Payment detail</h1>
+            <h1 className="text-2xl font-semibold tracking-tight">
+              Payment detail
+            </h1>
             <p className="text-xs text-slate-300">
-              Trip payment for matatu {trip.matatu?.plate || "Unknown"} on route
-              {" "}
+              Trip payment for matatu {trip.matatu?.plate || "Unknown"} on route{" "}
               {trip.matatu?.route || "Route not set"}.
             </p>
           </header>
@@ -104,7 +107,9 @@ export default function PaymentDetailPage() {
             <div className="rounded-xl border border-slate-800 bg-slate-900/80 p-4">
               <div className="text-slate-400">Fare</div>
               <div className="mt-1 text-lg font-semibold text-slate-100">
-                {trip.fare != null ? `${trip.fare} ${trip.currency || "KES"}` : "—"}
+                {trip.fare != null
+                  ? `${trip.fare} ${trip.currency || "KES"}`
+                  : "—"}
               </div>
             </div>
             <div className="rounded-xl border border-slate-800 bg-slate-900/80 p-4">
@@ -118,26 +123,33 @@ export default function PaymentDetailPage() {
               <div className="mt-1 text-sm font-semibold text-slate-100">
                 {trip.matatu?.plate || "Unknown"}
               </div>
-              <div className="text-[11px] text-slate-400">{trip.matatu?.route || "Route not set"}</div>
+              <div className="text-[11px] text-slate-400">
+                {trip.matatu?.route || "Route not set"}
+              </div>
             </div>
           </section>
 
           <section className="grid gap-4 md:grid-cols-2 text-xs">
             <div className="rounded-xl border border-slate-800 bg-slate-900/80 p-4">
               <div className="text-slate-400">Start time</div>
-              <div className="mt-1 text-slate-100">{start ? start.toLocaleString() : "—"}</div>
+              <div className="mt-1 text-slate-100">
+                {start ? start.toLocaleString() : "—"}
+              </div>
             </div>
             <div className="rounded-xl border border-slate-800 bg-slate-900/80 p-4">
               <div className="text-slate-400">End time</div>
-              <div className="mt-1 text-slate-100">{end ? end.toLocaleString() : "—"}</div>
+              <div className="mt-1 text-slate-100">
+                {end ? end.toLocaleString() : "—"}
+              </div>
             </div>
           </section>
 
           <section className="rounded-xl border border-slate-800 bg-slate-900/80 p-4 text-xs text-slate-300">
             <p>
-              Detailed payment records (e.g. gateway reference IDs) are handled server-side via the
-              RidePayment model and payment gateway integrations. This screen focuses on the
-              user-facing payment outcome based on trip data.
+              Detailed payment records (e.g. gateway reference IDs) are handled
+              server-side via the RidePayment model and payment gateway
+              integrations. This screen focuses on the user-facing payment
+              outcome based on trip data.
             </p>
           </section>
         </>

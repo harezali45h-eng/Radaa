@@ -95,4 +95,3 @@ export const getApiHealth = async () => {
     throw error;
   }
 };
-

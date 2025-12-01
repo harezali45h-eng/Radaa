@@ -63,7 +63,7 @@ export default function PaymentsListPage() {
       try {
         const [loyaltyData, tripsRes] = await Promise.all([
           getLoyaltyStatus(userId),
-          fetch(`${BACKEND_URL}/trips/user/${userId}`)
+          fetch(`${BACKEND_URL}/trips/user/${userId}`),
         ]);
 
         setLoyalty(loyaltyData as LoyaltyStatus);
@@ -76,7 +76,8 @@ export default function PaymentsListPage() {
         const tripData = (await tripsRes.json()) as Trip[];
         setTrips(tripData);
       } catch (err) {
-        const message = err instanceof Error ? err.message : "Failed to load payment data";
+        const message =
+          err instanceof Error ? err.message : "Failed to load payment data";
         setError(message);
       } finally {
         setLoading(false);
@@ -86,22 +87,24 @@ export default function PaymentsListPage() {
     void run();
   }, [userId]);
 
-  const completedTrips = trips.filter((t) => t.status === "completed" && t.fare != null);
+  const completedTrips = trips.filter(
+    (t) => t.status === "completed" && t.fare != null,
+  );
 
   return (
     <div className="space-y-6">
       <header className="space-y-2">
         <h1 className="text-2xl font-semibold tracking-tight">Payments</h1>
         <p className="text-xs text-slate-300">
-          View a ledger of completed trips and the fares that were charged. Loyalty and balance
-          data comes directly from the backend.
+          View a ledger of completed trips and the fares that were charged.
+          Loyalty and balance data comes directly from the backend.
         </p>
       </header>
 
       {!userId && !loading && (
         <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-4 text-xs text-amber-100">
-          No user ID found. Make sure you are logged in via the auth screens before viewing
-          payments.
+          No user ID found. Make sure you are logged in via the auth screens
+          before viewing payments.
         </div>
       )}
 
@@ -149,9 +152,12 @@ export default function PaymentsListPage() {
       {!loading && !error && completedTrips.length > 0 && (
         <section className="space-y-3">
           <div className="flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-slate-100">Completed payments</h2>
+            <h2 className="text-sm font-semibold text-slate-100">
+              Completed payments
+            </h2>
             <p className="text-[11px] text-slate-400">
-              Each row represents a completed trip with a fare recorded on the backend.
+              Each row represents a completed trip with a fare recorded on the
+              backend.
             </p>
           </div>
 
@@ -169,7 +175,9 @@ export default function PaymentsListPage() {
               </thead>
               <tbody>
                 {completedTrips.map((trip) => {
-                  const start = trip.startTime ? new Date(trip.startTime) : null;
+                  const start = trip.startTime
+                    ? new Date(trip.startTime)
+                    : null;
                   const end = trip.endTime ? new Date(trip.endTime) : null;
 
                   return (
@@ -177,7 +185,9 @@ export default function PaymentsListPage() {
                       <td className="px-3 py-2 text-slate-100">
                         {trip.matatu?.plate || "Unknown"}
                       </td>
-                      <td className="px-3 py-2 text-slate-300">{trip.matatu?.route || "—"}</td>
+                      <td className="px-3 py-2 text-slate-300">
+                        {trip.matatu?.route || "—"}
+                      </td>
                       <td className="px-3 py-2 text-slate-300">
                         {start ? start.toLocaleString() : "—"}
                       </td>
@@ -185,7 +195,9 @@ export default function PaymentsListPage() {
                         {end ? end.toLocaleString() : "—"}
                       </td>
                       <td className="px-3 py-2 text-slate-300">
-                        {trip.fare != null ? `${trip.fare} ${trip.currency || "KES"}` : "—"}
+                        {trip.fare != null
+                          ? `${trip.fare} ${trip.currency || "KES"}`
+                          : "—"}
                       </td>
                       <td className="px-3 py-2 text-right">
                         <Link
@@ -206,8 +218,8 @@ export default function PaymentsListPage() {
 
       {!loading && !error && completedTrips.length === 0 && userId && (
         <div className="rounded-xl border border-slate-800 bg-slate-900/80 p-4 text-xs text-slate-300">
-          No completed trips with fares recorded yet. Once you stop trips with a fare, they will
-          appear here as payments.
+          No completed trips with fares recorded yet. Once you stop trips with a
+          fare, they will appear here as payments.
         </div>
       )}
     </div>

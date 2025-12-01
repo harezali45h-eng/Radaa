@@ -6,7 +6,7 @@ import {
   useEffect,
   useMemo,
   useState,
-  type ReactNode
+  type ReactNode,
 } from "react";
 import { getFeatureFlags } from "@/lib/api";
 
@@ -23,7 +23,9 @@ interface FeatureFlagContextValue {
   error: string | null;
 }
 
-const FeatureFlagContext = createContext<FeatureFlagContextValue | undefined>(undefined);
+const FeatureFlagContext = createContext<FeatureFlagContextValue | undefined>(
+  undefined,
+);
 
 export function FeatureFlagProvider({ children }: { children: ReactNode }) {
   const [flags, setFlags] = useState<FeatureFlagMap | null>(null);
@@ -50,7 +52,8 @@ export function FeatureFlagProvider({ children }: { children: ReactNode }) {
         if (cancelled) return;
         // Keep new UI safely OFF if flags cannot be loaded
         setFlags({});
-        const message = err instanceof Error ? err.message : "Failed to load feature flags";
+        const message =
+          err instanceof Error ? err.message : "Failed to load feature flags";
         setError(message);
       } finally {
         if (!cancelled) {
@@ -68,23 +71,32 @@ export function FeatureFlagProvider({ children }: { children: ReactNode }) {
 
   const value: FeatureFlagContextValue = useMemo(
     () => ({ flags, loading, error }),
-    [flags, loading, error]
+    [flags, loading, error],
   );
 
-  return <FeatureFlagContext.Provider value={value}>{children}</FeatureFlagContext.Provider>;
+  return (
+    <FeatureFlagContext.Provider value={value}>
+      {children}
+    </FeatureFlagContext.Provider>
+  );
 }
 
 export function useFeatureFlags(): FeatureFlagContextValue {
   const ctx = useContext(FeatureFlagContext);
 
   if (!ctx) {
-    throw new Error("useFeatureFlags must be used within a FeatureFlagProvider");
+    throw new Error(
+      "useFeatureFlags must be used within a FeatureFlagProvider",
+    );
   }
 
   return ctx;
 }
 
-export function useIsFeatureEnabled(key: string, fallbackEnabled = false): boolean {
+export function useIsFeatureEnabled(
+  key: string,
+  fallbackEnabled = false,
+): boolean {
   const { flags, loading } = useFeatureFlags();
 
   if (loading || !flags) {
@@ -104,7 +116,11 @@ interface FeatureGateProps {
   children: ReactNode;
 }
 
-export function FeatureGate({ flagKey, fallback = null, children }: FeatureGateProps) {
+export function FeatureGate({
+  flagKey,
+  fallback = null,
+  children,
+}: FeatureGateProps) {
   const enabled = useIsFeatureEnabled(flagKey, false);
 
   if (!enabled) return <>{fallback}</>;

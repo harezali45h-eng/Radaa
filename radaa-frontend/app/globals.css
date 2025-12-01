@@ -5,7 +5,12 @@
 @layer base {
   body {
     @apply bg-radaa-bg text-slate-50 antialiased;
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+    font-family:
+      system-ui,
+      -apple-system,
+      BlinkMacSystemFont,
+      "SF Pro Text",
+      sans-serif;
   }
 }
 

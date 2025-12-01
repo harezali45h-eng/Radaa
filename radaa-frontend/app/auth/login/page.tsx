@@ -79,7 +79,10 @@ export default function LoginPage() {
         </div>
 
         <div className="space-y-1">
-          <label htmlFor="password" className="text-sm font-medium text-slate-100">
+          <label
+            htmlFor="password"
+            className="text-sm font-medium text-slate-100"
+          >
             Password
           </label>
           <div className="relative">
@@ -105,7 +108,11 @@ export default function LoginPage() {
             </button>
           </div>
           {error && (
-            <p id="password-error" className="text-xs text-red-400" role="alert">
+            <p
+              id="password-error"
+              className="text-xs text-red-400"
+              role="alert"
+            >
               {error}
             </p>
           )}
@@ -161,7 +168,10 @@ export default function LoginPage() {
 
       <p className="text-center text-xs text-slate-400">
         Don&apos;t have an account?{" "}
-        <Link href="/auth/register" className="font-medium text-sky-400 hover:text-sky-300">
+        <Link
+          href="/auth/register"
+          className="font-medium text-sky-400 hover:text-sky-300"
+        >
           Create one
         </Link>
       </p>

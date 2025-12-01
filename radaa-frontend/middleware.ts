@@ -24,7 +24,9 @@ export async function middleware(request: NextRequest) {
     const verification = await verifyToken(token);
 
     if (!verification.valid) {
-      const response = NextResponse.redirect(new URL("/auth/login", request.url));
+      const response = NextResponse.redirect(
+        new URL("/auth/login", request.url),
+      );
       response.cookies.delete(TOKEN_COOKIE_NAME);
       return response;
     }

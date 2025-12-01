@@ -17,7 +17,7 @@ export default function RideRequestButton() {
       addNotification({
         type: "system",
         title: "Sign in required",
-        message: "You need to be signed in to request a ride."
+        message: "You need to be signed in to request a ride.",
       });
       return;
     }
@@ -26,7 +26,7 @@ export default function RideRequestButton() {
       addNotification({
         type: "system",
         title: "Location unavailable",
-        message: "Geolocation is not available in this browser."
+        message: "Geolocation is not available in this browser.",
       });
       return;
     }
@@ -40,23 +40,24 @@ export default function RideRequestButton() {
             {
               pickup: {
                 lat: position.coords.latitude,
-                lng: position.coords.longitude
-              }
+                lng: position.coords.longitude,
+              },
             },
-            token
+            token,
           );
 
           addNotification({
             type: "trip",
             title: "Ride requested",
-            message: "We are finding a nearby driver for you."
+            message: "We are finding a nearby driver for you.",
           });
         } catch (error: any) {
-          const message = error instanceof Error ? error.message : "Failed to request ride";
+          const message =
+            error instanceof Error ? error.message : "Failed to request ride";
           addNotification({
             type: "system",
             title: "Ride request failed",
-            message
+            message,
           });
         } finally {
           setLoading(false);
@@ -67,14 +68,14 @@ export default function RideRequestButton() {
         addNotification({
           type: "system",
           title: "Location error",
-          message
+          message,
         });
         setLoading(false);
       },
       {
         enableHighAccuracy: true,
-        timeout: 10000
-      }
+        timeout: 10000,
+      },
     );
   };
 

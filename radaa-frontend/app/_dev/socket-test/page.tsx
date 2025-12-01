@@ -44,7 +44,11 @@ export default function SocketTestPage() {
       // eslint-disable-next-line no-console
       console.log("[socket-test] connect_error", error);
       const message =
-        error instanceof Error ? error.message : typeof error === "string" ? error : "Connect error";
+        error instanceof Error
+          ? error.message
+          : typeof error === "string"
+            ? error
+            : "Connect error";
       setLastError(message);
     };
 
@@ -74,18 +78,14 @@ export default function SocketTestPage() {
       const start = performance.now();
 
       try {
-        emit(
-          "debug:ping",
-          { at: Date.now() },
-          () => {
-            if (cancelled) return;
-            const duration = performance.now() - start;
-            setLatency(Math.round(duration));
-            setLastPingAt(new Date().toLocaleTimeString());
-            // eslint-disable-next-line no-console
-            console.log("[socket-test] ping ack in", duration, "ms");
-          }
-        );
+        emit("debug:ping", { at: Date.now() }, () => {
+          if (cancelled) return;
+          const duration = performance.now() - start;
+          setLatency(Math.round(duration));
+          setLastPingAt(new Date().toLocaleTimeString());
+          // eslint-disable-next-line no-console
+          console.log("[socket-test] ping ack in", duration, "ms");
+        });
       } catch (error) {
         // eslint-disable-next-line no-console
         console.log("[socket-test] ping emit error", error);
@@ -133,7 +133,9 @@ export default function SocketTestPage() {
         </div>
         <div>Latency: {latency !== null ? `${latency} ms` : "—"}</div>
         <div>Last ping: {lastPingAt ?? "—"}</div>
-        {lastError && <div className="text-xs text-red-400">Last error: {lastError}</div>}
+        {lastError && (
+          <div className="text-xs text-red-400">Last error: {lastError}</div>
+        )}
       </div>
 
       <div className="flex gap-2">
@@ -154,7 +156,8 @@ export default function SocketTestPage() {
       </div>
 
       <p className="text-xs text-slate-400">
-        Open the browser console to see raw socket events, connection attempts, and ping logs.
+        Open the browser console to see raw socket events, connection attempts,
+        and ping logs.
       </p>
     </div>
   );

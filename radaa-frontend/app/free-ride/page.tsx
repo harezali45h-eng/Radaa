@@ -8,8 +8,8 @@ export default function FreeRidePage() {
         You&apos;ve unlocked a FREE ride!
       </h1>
       <p className="mx-auto max-w-md text-xs text-slate-300">
-        Redeem this ride on your next trip. The backend increments your free ride balance every time
-        you complete 10 paid rides.
+        Redeem this ride on your next trip. The backend increments your free
+        ride balance every time you complete 10 paid rides.
       </p>
     </div>
   );

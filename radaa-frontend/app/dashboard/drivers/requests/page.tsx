@@ -4,7 +4,11 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useNotifications } from "@/context/NotificationContext";
 import { useSocket } from "@/hooks/useSocket";
-import { acceptRide, getNearbyRequests, type RideRequest } from "@/lib/api/rides";
+import {
+  acceptRide,
+  getNearbyRequests,
+  type RideRequest,
+} from "@/lib/api/rides";
 
 interface NearbyRide extends RideRequest {
   id?: string;
@@ -16,7 +20,9 @@ export default function DriverRequestsPage() {
   const { on, off } = useSocket();
 
   const [locationReady, setLocationReady] = useState(false);
-  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(
+    null,
+  );
   const [requests, setRequests] = useState<NearbyRide[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -24,7 +30,9 @@ export default function DriverRequestsPage() {
   useEffect(() => {
     if (!token) {
       setLoading(false);
-      setError("You need to be signed in as a driver to view nearby ride requests.");
+      setError(
+        "You need to be signed in as a driver to view nearby ride requests.",
+      );
       return;
     }
 
@@ -36,17 +44,22 @@ export default function DriverRequestsPage() {
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        setCoords({ lat: position.coords.latitude, lng: position.coords.longitude });
+        setCoords({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        });
         setLocationReady(true);
       },
       (geoError) => {
         setLoading(false);
-        setError(geoError.message || "Unable to determine your current location.");
+        setError(
+          geoError.message || "Unable to determine your current location.",
+        );
       },
       {
         enableHighAccuracy: true,
-        timeout: 10000
-      }
+        timeout: 10000,
+      },
     );
   }, [token]);
 
@@ -65,9 +78,9 @@ export default function DriverRequestsPage() {
         const data = await getNearbyRequests(
           {
             lat: coords.lat,
-            lng: coords.lng
+            lng: coords.lng,
           },
-          token
+          token,
         );
 
         if (cancelled) return;
@@ -75,7 +88,8 @@ export default function DriverRequestsPage() {
         setRequests(data || []);
       } catch (err) {
         if (cancelled) return;
-        const message = err instanceof Error ? err.message : "Failed to load ride requests";
+        const message =
+          err instanceof Error ? err.message : "Failed to load ride requests";
         setError(message);
       } finally {
         if (!cancelled) {
@@ -102,7 +116,7 @@ export default function DriverRequestsPage() {
 
         const next: NearbyRide = {
           ...(payload as NearbyRide),
-          _id: payload?._id || id
+          _id: payload?._id || id,
         };
 
         return [next, ...current];
@@ -113,7 +127,7 @@ export default function DriverRequestsPage() {
         title: "New nearby ride request",
         message: pickup
           ? "A rider near your area has requested a pickup."
-          : "A new ride request is available."
+          : "A new ride request is available.",
       });
     };
 
@@ -129,7 +143,7 @@ export default function DriverRequestsPage() {
       addNotification({
         type: "system",
         title: "Sign in required",
-        message: "You need to be signed in as a driver to accept rides."
+        message: "You need to be signed in as a driver to accept rides.",
       });
       return;
     }
@@ -140,14 +154,15 @@ export default function DriverRequestsPage() {
       addNotification({
         type: "trip",
         title: "Ride accepted",
-        message: "The rider has been notified of your acceptance."
+        message: "The rider has been notified of your acceptance.",
       });
     } catch (error: any) {
-      const message = error instanceof Error ? error.message : "Failed to accept ride";
+      const message =
+        error instanceof Error ? error.message : "Failed to accept ride";
       addNotification({
         type: "system",
         title: "Could not accept ride",
-        message
+        message,
       });
     }
   };
@@ -157,9 +172,12 @@ export default function DriverRequestsPage() {
   return (
     <div className="space-y-4">
       <header className="space-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight">Nearby ride requests</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">
+          Nearby ride requests
+        </h1>
         <p className="text-xs text-slate-300">
-          See ride requests near your current location and accept them in real time.
+          See ride requests near your current location and accept them in real
+          time.
         </p>
       </header>
 
@@ -177,8 +195,8 @@ export default function DriverRequestsPage() {
 
       {!loading && !error && !hasRequests && (
         <div className="rounded-xl border border-slate-800 bg-slate-900/80 p-4 text-xs text-slate-300">
-          No nearby ride requests right now. When passengers request rides near you, they will
-          appear here.
+          No nearby ride requests right now. When passengers request rides near
+          you, they will appear here.
         </div>
       )}
 
@@ -188,18 +206,26 @@ export default function DriverRequestsPage() {
             <thead className="bg-slate-900/80 text-slate-300">
               <tr>
                 <th className="px-3 py-2 text-left font-medium">Pickup</th>
-                <th className="px-3 py-2 text-left font-medium">Requested at</th>
+                <th className="px-3 py-2 text-left font-medium">
+                  Requested at
+                </th>
                 <th className="px-3 py-2 text-right font-medium">Actions</th>
               </tr>
             </thead>
             <tbody>
               {requests.map((ride) => {
                 const id = ride._id || ride.id || "";
-                const createdAt = ride.createdAt ? new Date(ride.createdAt) : null;
+                const createdAt = ride.createdAt
+                  ? new Date(ride.createdAt)
+                  : null;
 
                 const pickup = (ride as any).pickup;
                 let pickupLabel = "—";
-                if (pickup && Array.isArray(pickup.coordinates) && pickup.coordinates.length === 2) {
+                if (
+                  pickup &&
+                  Array.isArray(pickup.coordinates) &&
+                  pickup.coordinates.length === 2
+                ) {
                   const [lng, lat] = pickup.coordinates as [number, number];
                   pickupLabel = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
                 }

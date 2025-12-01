@@ -58,8 +58,10 @@ export function MatatuSwipeDeck({ items, onSelect }: MatatuSwipeDeckProps) {
     );
   }
 
-  const displayPlate = active.plate || active.numberPlate || active.id.slice(0, 6);
-  const km = active.distanceMeters != null ? active.distanceMeters / 1000 : null;
+  const displayPlate =
+    active.plate || active.numberPlate || active.id.slice(0, 6);
+  const km =
+    active.distanceMeters != null ? active.distanceMeters / 1000 : null;
   const eta = active.etaMinutes != null ? Math.round(active.etaMinutes) : null;
 
   return (
@@ -70,7 +72,9 @@ export function MatatuSwipeDeck({ items, onSelect }: MatatuSwipeDeckProps) {
             Nearby match
           </div>
           <div className="text-sm font-semibold text-slate-50">{title}</div>
-          {subtitle && <div className="text-[11px] text-slate-400">{subtitle}</div>}
+          {subtitle && (
+            <div className="text-[11px] text-slate-400">{subtitle}</div>
+          )}
         </div>
         {remainingCount > 0 && (
           <span className="rounded-full bg-slate-900/80 px-2 py-1 text-[10px] text-slate-400">
@@ -96,19 +100,13 @@ export function MatatuSwipeDeck({ items, onSelect }: MatatuSwipeDeckProps) {
         <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between text-[11px] text-slate-100">
           <div>
             <div className="font-semibold">{displayPlate}</div>
-            {active.route && <div className="text-slate-300">Route {active.route}</div>}
+            {active.route && (
+              <div className="text-slate-300">Route {active.route}</div>
+            )}
           </div>
           <div className="text-right text-[10px] text-slate-200">
-            {km != null && (
-              <div>
-                {km.toFixed(1)} km away
-              </div>
-            )}
-            {eta != null && (
-              <div>
-                ~{eta} min ETA
-              </div>
-            )}
+            {km != null && <div>{km.toFixed(1)} km away</div>}
+            {eta != null && <div>~{eta} min ETA</div>}
           </div>
         </div>
       </div>

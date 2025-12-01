@@ -7,7 +7,10 @@ interface RequestOptions {
   token?: string | null;
 }
 
-async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
+async function request<T>(
+  path: string,
+  options: RequestOptions = {},
+): Promise<T> {
   const { method = "GET", body, token } = options;
 
   const headers: Record<string, string> = {};
@@ -25,7 +28,7 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
         url: path,
         method,
         data: body,
-        headers
+        headers,
       });
 
       const data: any = response.data;
@@ -53,7 +56,9 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
       const status = error?.response?.status as number | undefined;
       const data = error?.response?.data;
       const message =
-        (data && typeof data === "object" && ((data as any).message || (data as any).error)) ||
+        (data &&
+          typeof data === "object" &&
+          ((data as any).message || (data as any).error)) ||
         error?.message ||
         "Request failed";
 
@@ -80,22 +85,24 @@ export interface DriverLocation {
 export async function updateDriverLocation(
   matatuId: string,
   location: DriverLocation,
-  token?: string | null
+  token?: string | null,
 ): Promise<any> {
   return request<any>(`/matatu-system/${matatuId}/location`, {
     method: "POST",
     body: {
       lat: location.lat,
-      lng: location.lng
+      lng: location.lng,
     },
-    token: token ?? null
+    token: token ?? null,
   });
 }
 
-export async function getAssignedPassengers(token?: string | null): Promise<RideRequest[]> {
+export async function getAssignedPassengers(
+  token?: string | null,
+): Promise<RideRequest[]> {
   const rides = await request<RideRequest[]>("/rides/driver/assigned", {
     method: "GET",
-    token: token ?? null
+    token: token ?? null,
   });
 
   return Array.isArray(rides) ? rides : [];

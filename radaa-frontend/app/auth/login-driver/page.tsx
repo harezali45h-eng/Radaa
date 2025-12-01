@@ -38,7 +38,9 @@ export default function LoginDriverPage() {
   return (
     <div className="mx-auto max-w-md space-y-6">
       <div className="space-y-2">
-        <h1 className="text-2xl font-semibold tracking-tight">Driver sign in</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">
+          Driver sign in
+        </h1>
         <p className="text-sm text-slate-300">
           Sign in to access the live driver dashboard and manage ride requests.
         </p>
@@ -48,8 +50,9 @@ export default function LoginDriverPage() {
         <div className="rounded-lg border border-emerald-600/50 bg-emerald-600/10 px-3 py-2 text-xs text-emerald-100">
           <p className="font-medium">New driver flow (beta)</p>
           <p className="mt-0.5 text-[11px] text-emerald-100/90">
-            Use the driver sign in and live dashboard to test how rides feel from behind the wheel.
-            This flow is feature-flagged and safe to tweak.
+            Use the driver sign in and live dashboard to test how rides feel
+            from behind the wheel. This flow is feature-flagged and safe to
+            tweak.
           </p>
         </div>
       )}
@@ -78,7 +81,10 @@ export default function LoginDriverPage() {
         </div>
 
         <div className="space-y-1">
-          <label htmlFor="password" className="text-sm font-medium text-slate-100">
+          <label
+            htmlFor="password"
+            className="text-sm font-medium text-slate-100"
+          >
             Password
           </label>
           <input
@@ -114,7 +120,10 @@ export default function LoginDriverPage() {
 
       <p className="text-center text-xs text-slate-500">
         Not a driver?{" "}
-        <Link href="/auth/login" className="font-medium text-sky-400 hover:text-sky-300">
+        <Link
+          href="/auth/login"
+          className="font-medium text-sky-400 hover:text-sky-300"
+        >
           Go to passenger/admin login
         </Link>
       </p>

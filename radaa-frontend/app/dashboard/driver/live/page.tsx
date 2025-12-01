@@ -5,7 +5,11 @@ import { useAuth } from "@/context/AuthContext";
 import { useNotifications } from "@/context/NotificationContext";
 import { useSocket } from "@/hooks/useSocket";
 import { useRealtime } from "@/context/realtimeContext";
-import { acceptRide, getNearbyRequests, type RideRequest } from "@/lib/api/rides";
+import {
+  acceptRide,
+  getNearbyRequests,
+  type RideRequest,
+} from "@/lib/api/rides";
 import { getAssignedPassengers } from "@/lib/api/driver";
 import { useIsFeatureEnabled } from "@/context/FeatureFlagContext";
 import MapContainer from "@/components/map/MapContainer";
@@ -27,7 +31,8 @@ function haversineDistanceMeters(a: LatLng, b: LatLng): number {
   const sinDLat = Math.sin(dLat / 2);
   const sinDLng = Math.sin(dLng / 2);
 
-  const h = sinDLat * sinDLat + Math.cos(lat1) * Math.cos(lat2) * sinDLng * sinDLng;
+  const h =
+    sinDLat * sinDLat + Math.cos(lat1) * Math.cos(lat2) * sinDLng * sinDLng;
   const c = 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
 
   return R * c;
@@ -75,30 +80,36 @@ export default function DriverLiveDashboardPage() {
         if (cancelled) return;
         const loc: LatLng = {
           lat: position.coords.latitude,
-          lng: position.coords.longitude
+          lng: position.coords.longitude,
         };
         setCoords(loc);
 
         emit("driver:update_location", {
           lat: loc.lat,
-          lng: loc.lng
+          lng: loc.lng,
         });
       },
       (geoError) => {
         if (cancelled) return;
         setLoadingIncoming(false);
-        setError(geoError.message || "Unable to determine your current location.");
+        setError(
+          geoError.message || "Unable to determine your current location.",
+        );
       },
       {
         enableHighAccuracy: true,
         maximumAge: 5000,
-        timeout: 10000
-      }
+        timeout: 10000,
+      },
     );
 
     return () => {
       cancelled = true;
-      if (watchId != null && typeof window !== "undefined" && navigator.geolocation) {
+      if (
+        watchId != null &&
+        typeof window !== "undefined" &&
+        navigator.geolocation
+      ) {
         navigator.geolocation.clearWatch(watchId);
       }
     };
@@ -119,16 +130,17 @@ export default function DriverLiveDashboardPage() {
         const data = await getNearbyRequests(
           {
             lat: coords.lat,
-            lng: coords.lng
+            lng: coords.lng,
           },
-          token
+          token,
         );
 
         if (cancelled) return;
         setIncoming(Array.isArray(data) ? data : []);
       } catch (err) {
         if (cancelled) return;
-        const message = err instanceof Error ? err.message : "Failed to load nearby requests";
+        const message =
+          err instanceof Error ? err.message : "Failed to load nearby requests";
         setError(message);
       } finally {
         if (!cancelled) {
@@ -184,11 +196,13 @@ export default function DriverLiveDashboardPage() {
       const id = payload?.id || payload?._id;
 
       setIncoming((current) => {
-        const exists = current.some((r) => (r._id as any) === id || (r as any).id === id);
+        const exists = current.some(
+          (r) => (r._id as any) === id || (r as any).id === id,
+        );
         if (exists) return current;
         const next: RideRequest = {
           ...(payload as RideRequest),
-          _id: (payload?._id || id || "") as string
+          _id: (payload?._id || id || "") as string,
         };
         return [next, ...current];
       });
@@ -196,7 +210,7 @@ export default function DriverLiveDashboardPage() {
       addNotification({
         type: "trip",
         title: "New nearby ride request",
-        message: "A passenger near you has requested a ride."
+        message: "A passenger near you has requested a ride.",
       });
     };
 
@@ -204,13 +218,17 @@ export default function DriverLiveDashboardPage() {
       const id = payload?.id || payload?._id;
       if (!id) return;
 
-      setIncoming((current) => current.filter((r) => (r._id as any) !== id && (r as any).id !== id));
-      setAssigned((current) => current.filter((r) => (r._id as any) !== id && (r as any).id !== id));
+      setIncoming((current) =>
+        current.filter((r) => (r._id as any) !== id && (r as any).id !== id),
+      );
+      setAssigned((current) =>
+        current.filter((r) => (r._id as any) !== id && (r as any).id !== id),
+      );
 
       addNotification({
         type: "trip",
         title: "Ride cancelled",
-        message: "A ride in your area was cancelled."
+        message: "A ride in your area was cancelled.",
       });
     };
 
@@ -224,7 +242,7 @@ export default function DriverLiveDashboardPage() {
         const next = current.map((ride) =>
           (ride._id as any) === id || (ride as any).id === id
             ? ({ ...ride, ...(payload as Partial<RideRequest>) } as RideRequest)
-            : ride
+            : ride,
         );
         return next;
       });
@@ -246,28 +264,31 @@ export default function DriverLiveDashboardPage() {
       addNotification({
         type: "system",
         title: "Sign in required",
-        message: "You need to be signed in as a driver to accept rides."
+        message: "You need to be signed in as a driver to accept rides.",
       });
       return;
     }
 
     try {
       await acceptRide(id, token);
-      setIncoming((current) => current.filter((r) => (r._id as any) !== id && (r as any).id !== id));
+      setIncoming((current) =>
+        current.filter((r) => (r._id as any) !== id && (r as any).id !== id),
+      );
       addNotification({
         type: "trip",
         title: "Ride accepted",
-        message: "The passenger has been notified of your acceptance."
+        message: "The passenger has been notified of your acceptance.",
       });
 
       const updatedAssigned = await getAssignedPassengers(token);
       setAssigned(Array.isArray(updatedAssigned) ? updatedAssigned : []);
     } catch (error: any) {
-      const message = error instanceof Error ? error.message : "Failed to accept ride";
+      const message =
+        error instanceof Error ? error.message : "Failed to accept ride";
       addNotification({
         type: "system",
         title: "Could not accept ride",
-        message
+        message,
       });
     }
   };
@@ -280,7 +301,11 @@ export default function DriverLiveDashboardPage() {
       incoming
         .map((ride) => {
           const pickup = (ride as any).pickup;
-          if (!pickup || !Array.isArray(pickup.coordinates) || pickup.coordinates.length !== 2) {
+          if (
+            !pickup ||
+            !Array.isArray(pickup.coordinates) ||
+            pickup.coordinates.length !== 2
+          ) {
             return null;
           }
 
@@ -293,11 +318,11 @@ export default function DriverLiveDashboardPage() {
           const id = (ride._id as any) || (ride as any).id || `${lat},${lng}`;
           return {
             id: String(id),
-            location: { lat, lng }
+            location: { lat, lng },
           };
         })
         .filter(Boolean) as { id: string; location: LatLng }[],
-    [incoming]
+    [incoming],
   );
 
   const bounds = useMemo(() => {
@@ -351,7 +376,7 @@ export default function DriverLiveDashboardPage() {
 
     return {
       left: `${Math.min(100, Math.max(0, x))}%`,
-      top: `${Math.min(100, Math.max(0, y))}%`
+      top: `${Math.min(100, Math.max(0, y))}%`,
     };
   };
 
@@ -361,7 +386,9 @@ export default function DriverLiveDashboardPage() {
     return (
       <div className="space-y-4">
         <header className="space-y-1">
-          <h1 className="text-2xl font-semibold tracking-tight">Driver live dashboard</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">
+            Driver live dashboard
+          </h1>
           <p className="text-xs text-slate-300">
             You must be signed in as a driver to view this dashboard.
           </p>
@@ -373,14 +400,27 @@ export default function DriverLiveDashboardPage() {
   return (
     <div className="space-y-4">
       <header className="space-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight">Driver live dashboard</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">
+          Driver live dashboard
+        </h1>
         <p className="text-xs text-slate-300">
-          Watch incoming ride requests in real time and manage your currently assigned passengers.
+          Watch incoming ride requests in real time and manage your currently
+          assigned passengers.
         </p>
         {driverOnboardEnabled && (
           <div className="mt-2 inline-flex items-center gap-2 rounded-full border border-emerald-600/60 bg-emerald-600/10 px-3 py-1 text-[10px] text-emerald-100">
-            <span className={driverOnline ? "h-1.5 w-1.5 rounded-full bg-emerald-400" : "h-1.5 w-1.5 rounded-full bg-slate-500"} />
-            <span>{driverOnline ? "You're visible to nearby riders" : "Go online to start seeing ride requests"}</span>
+            <span
+              className={
+                driverOnline
+                  ? "h-1.5 w-1.5 rounded-full bg-emerald-400"
+                  : "h-1.5 w-1.5 rounded-full bg-slate-500"
+              }
+            />
+            <span>
+              {driverOnline
+                ? "You're visible to nearby riders"
+                : "Go online to start seeing ride requests"}
+            </span>
           </div>
         )}
       </header>
@@ -392,7 +432,9 @@ export default function DriverLiveDashboardPage() {
           </div>
           <div className="text-[11px] text-slate-300">
             You are currently{" "}
-            <span className={driverOnline ? "text-emerald-400" : "text-slate-100"}>
+            <span
+              className={driverOnline ? "text-emerald-400" : "text-slate-100"}
+            >
               {driverOnline ? "Online" : "Offline"}
             </span>
             . When online, nearby passengers can see and request you.
@@ -437,7 +479,7 @@ export default function DriverLiveDashboardPage() {
               (position) => {
                 const loc: LatLng = {
                   lat: position.coords.latitude,
-                  lng: position.coords.longitude
+                  lng: position.coords.longitude,
                 };
                 setCoords(loc);
               },
@@ -446,8 +488,8 @@ export default function DriverLiveDashboardPage() {
               },
               {
                 enableHighAccuracy: true,
-                timeout: 10000
-              }
+                timeout: 10000,
+              },
             );
           }}
           onSelectMatatu={() => {}}
@@ -467,7 +509,9 @@ export default function DriverLiveDashboardPage() {
         <div className="space-y-3 rounded-xl border border-slate-800 bg-slate-900/80 p-4 text-xs">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-sm font-semibold text-slate-100">Incoming requests</h2>
+              <h2 className="text-sm font-semibold text-slate-100">
+                Incoming requests
+              </h2>
               <p className="text-[11px] text-slate-400">
                 New ride requests near your current location will appear here.
               </p>
@@ -483,53 +527,78 @@ export default function DriverLiveDashboardPage() {
 
           {!loadingIncoming && !hasIncoming && !error && (
             <p className="text-[11px] text-slate-400">
-              No nearby ride requests right now. When passengers request rides near you, they will
-              appear here.
+              No nearby ride requests right now. When passengers request rides
+              near you, they will appear here.
             </p>
           )}
 
           {!loadingIncoming && hasIncoming && (
-            <div className="overflow-hidden rounded-md border border-slate-800 bg-slate-950/80">
+            <div className="overflow-x-auto rounded-md border border-slate-800 bg-slate-950/80">
               <table className="min-w-full border-collapse text-[11px]">
                 <thead className="bg-slate-900/80 text-slate-300">
                   <tr>
                     <th className="px-3 py-2 text-left font-medium">Pickup</th>
-                    <th className="px-3 py-2 text-left font-medium">Requested at</th>
-                    <th className="px-3 py-2 text-left font-medium">Distance</th>
-                    <th className="px-3 py-2 text-right font-medium">Actions</th>
+                    <th className="px-3 py-2 text-left font-medium">
+                      Requested at
+                    </th>
+                    <th className="px-3 py-2 text-left font-medium">
+                      Distance
+                    </th>
+                    <th className="px-3 py-2 text-right font-medium">
+                      Actions
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   {incoming.map((ride) => {
                     const id = (ride._id as any) || (ride as any).id || "";
-                    const createdAt = ride.createdAt ? new Date(ride.createdAt) : null;
+                    const createdAt = ride.createdAt
+                      ? new Date(ride.createdAt)
+                      : null;
 
                     const pickup = (ride as any).pickup;
                     let pickupLabel = "—";
-                    if (pickup && Array.isArray(pickup.coordinates) && pickup.coordinates.length === 2) {
+                    if (
+                      pickup &&
+                      Array.isArray(pickup.coordinates) &&
+                      pickup.coordinates.length === 2
+                    ) {
                       const [lng, lat] = pickup.coordinates as [number, number];
                       pickupLabel = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
                     }
 
                     let distanceLabel = "—";
-                    if (coords && pickup && Array.isArray(pickup.coordinates) && pickup.coordinates.length === 2) {
+                    if (
+                      coords &&
+                      pickup &&
+                      Array.isArray(pickup.coordinates) &&
+                      pickup.coordinates.length === 2
+                    ) {
                       const [lng, lat] = pickup.coordinates as [number, number];
-                      const distanceMeters = haversineDistanceMeters(coords, { lat, lng });
+                      const distanceMeters = haversineDistanceMeters(coords, {
+                        lat,
+                        lng,
+                      });
                       if (Number.isFinite(distanceMeters)) {
                         const km = distanceMeters / 1000;
                         const speedKmh = 25;
-                        const etaMinutes = (distanceMeters / 1000 / speedKmh) * 60;
+                        const etaMinutes =
+                          (distanceMeters / 1000 / speedKmh) * 60;
                         distanceLabel = `${km.toFixed(1)} km · ~${Math.round(etaMinutes)} min`;
                       }
                     }
 
                     return (
                       <tr key={id} className="border-t border-slate-800/80">
-                        <td className="px-3 py-2 text-slate-100">{pickupLabel}</td>
+                        <td className="px-3 py-2 text-slate-100">
+                          {pickupLabel}
+                        </td>
                         <td className="px-3 py-2 text-slate-300">
                           {createdAt ? createdAt.toLocaleString() : "Just now"}
                         </td>
-                        <td className="px-3 py-2 text-slate-300">{distanceLabel}</td>
+                        <td className="px-3 py-2 text-slate-300">
+                          {distanceLabel}
+                        </td>
                         <td className="px-3 py-2 text-right">
                           <button
                             type="button"
@@ -551,7 +620,9 @@ export default function DriverLiveDashboardPage() {
         <div className="space-y-3 rounded-xl border border-slate-800 bg-slate-900/80 p-4 text-xs">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-sm font-semibold text-slate-100">Assigned passengers</h2>
+              <h2 className="text-sm font-semibold text-slate-100">
+                Assigned passengers
+              </h2>
               <p className="text-[11px] text-slate-400">
                 A summary of rides that are currently assigned to you.
               </p>
@@ -567,7 +638,8 @@ export default function DriverLiveDashboardPage() {
 
           {!loadingAssigned && !hasAssigned && (
             <p className="text-[11px] text-slate-400">
-              You have no active assigned passengers. Accepted rides will show up here.
+              You have no active assigned passengers. Accepted rides will show
+              up here.
             </p>
           )}
 
@@ -575,7 +647,9 @@ export default function DriverLiveDashboardPage() {
             <div className="space-y-2">
               {assigned.map((ride) => {
                 const id = (ride._id as any) || (ride as any).id || "";
-                const createdAt = ride.createdAt ? new Date(ride.createdAt) : null;
+                const createdAt = ride.createdAt
+                  ? new Date(ride.createdAt)
+                  : null;
 
                 return (
                   <div
@@ -583,9 +657,12 @@ export default function DriverLiveDashboardPage() {
                     className="flex items-center justify-between rounded-md border border-slate-800 bg-slate-950/80 px-3 py-2"
                   >
                     <div className="space-y-0.5 text-[11px] text-slate-200">
-                      <div className="font-semibold">Ride {String(id).slice(0, 6)}</div>
+                      <div className="font-semibold">
+                        Ride {String(id).slice(0, 6)}
+                      </div>
                       <div className="text-slate-400">
-                        Status: <span className="text-emerald-300">{ride.status}</span>
+                        Status:{" "}
+                        <span className="text-emerald-300">{ride.status}</span>
                       </div>
                       {createdAt && (
                         <div className="text-slate-400">

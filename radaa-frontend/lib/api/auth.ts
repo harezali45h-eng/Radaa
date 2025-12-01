@@ -73,7 +73,9 @@ export async function login(payload: LoginPayload): Promise<AuthApiResponse> {
   }
 }
 
-export async function register(payload: RegisterPayload): Promise<AuthApiResponse> {
+export async function register(
+  payload: RegisterPayload,
+): Promise<AuthApiResponse> {
   try {
     const res = await API.post<AuthApiResponse>("/auth/register", payload);
     return res.data;
@@ -114,7 +116,7 @@ export async function checkAuth(token?: string): Promise<CheckAuthResult> {
         const healthRes = await API.get("/auth/health", { headers });
         return {
           authenticated: false,
-          health: healthRes.data
+          health: healthRes.data,
         };
       } catch {
         return { authenticated: false };
@@ -127,7 +129,7 @@ export async function checkAuth(token?: string): Promise<CheckAuthResult> {
 
 export async function getProfile(token: string): Promise<AuthUser> {
   const headers: Record<string, string> = {
-    Authorization: `Bearer ${token}`
+    Authorization: `Bearer ${token}`,
   };
 
   try {

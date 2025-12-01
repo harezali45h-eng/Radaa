@@ -10,7 +10,8 @@ export default function BackToDashboardButton() {
   const { primaryButtonClass } = useTheme();
 
   const handleClick = () => {
-    const target = activeMode === "driver" ? "/dashboard/driver/live" : "/dashboard";
+    const target =
+      activeMode === "driver" ? "/dashboard/driver/live" : "/dashboard";
     console.log("[mode] back-to-dashboard", { activeMode, target });
     router.push(target);
   };

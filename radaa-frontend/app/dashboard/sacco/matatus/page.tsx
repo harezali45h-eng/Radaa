@@ -2,7 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { getSaccoMatatus, setMatatuApproval, type SaccoMatatu } from "@/lib/api/sacco";
+import {
+  getSaccoMatatus,
+  setMatatuApproval,
+  type SaccoMatatu,
+} from "@/lib/api/sacco";
 
 export default function SaccoMatatusPage() {
   const { user, token } = useAuth();
@@ -33,7 +37,8 @@ export default function SaccoMatatusPage() {
         setMatatus(data);
       } catch (err) {
         if (cancelled) return;
-        const message = err instanceof Error ? err.message : "Failed to load matatus";
+        const message =
+          err instanceof Error ? err.message : "Failed to load matatus";
         setError(message);
       } finally {
         if (!cancelled) {
@@ -51,14 +56,17 @@ export default function SaccoMatatusPage() {
 
   const handleMatatuApproval = async (
     matatuId: string,
-    status: "approved" | "rejected"
+    status: "approved" | "rejected",
   ) => {
     if (!saccoId || !token) return;
     try {
       const updated = await setMatatuApproval(saccoId, matatuId, status, token);
-      setMatatus((prev) => prev.map((m) => (m._id === updated._id ? updated : m)));
+      setMatatus((prev) =>
+        prev.map((m) => (m._id === updated._id ? updated : m)),
+      );
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Unable to update matatu";
+      const message =
+        err instanceof Error ? err.message : "Unable to update matatu";
       setError(message);
     }
   };
@@ -67,7 +75,9 @@ export default function SaccoMatatusPage() {
     return (
       <div className="space-y-4">
         <header className="space-y-1">
-          <h1 className="text-2xl font-semibold tracking-tight">SACCO matatus</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">
+            SACCO matatus
+          </h1>
           <p className="text-xs text-slate-300">
             You must be signed in as a SACCO admin to view this page.
           </p>
@@ -133,7 +143,9 @@ export default function SaccoMatatusPage() {
                     <td className="px-3 py-2 text-slate-100">
                       {m.plate || m.numberPlate || m._id.slice(0, 6)}
                     </td>
-                    <td className="px-3 py-2 text-slate-300">{m.route ?? "—"}</td>
+                    <td className="px-3 py-2 text-slate-300">
+                      {m.route ?? "—"}
+                    </td>
                     <td className="px-3 py-2">
                       <span className="rounded-full bg-slate-800 px-2 py-0.5 text-[10px] text-slate-100">
                         {m.approvalStatus ?? "pending"}
@@ -143,14 +155,18 @@ export default function SaccoMatatusPage() {
                       <div className="inline-flex gap-1">
                         <button
                           type="button"
-                          onClick={() => handleMatatuApproval(m._id, "approved")}
+                          onClick={() =>
+                            handleMatatuApproval(m._id, "approved")
+                          }
                           className="rounded-full bg-emerald-600/80 px-2 py-0.5 text-[10px] text-emerald-50 hover:bg-emerald-500/80"
                         >
                           Approve
                         </button>
                         <button
                           type="button"
-                          onClick={() => handleMatatuApproval(m._id, "rejected")}
+                          onClick={() =>
+                            handleMatatuApproval(m._id, "rejected")
+                          }
                           className="rounded-full bg-red-600/70 px-2 py-0.5 text-[10px] text-red-50 hover:bg-red-500/80"
                         >
                           Reject

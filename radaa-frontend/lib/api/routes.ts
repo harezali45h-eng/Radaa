@@ -5,7 +5,10 @@ interface RequestOptions {
   body?: unknown;
 }
 
-async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
+async function request<T>(
+  path: string,
+  options: RequestOptions = {},
+): Promise<T> {
   const { method = "GET", body } = options;
 
   const maxAttempts = 3;
@@ -16,7 +19,7 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
       const response = await API.request<{ success?: boolean; data?: T } | T>({
         url: path,
         method,
-        data: body
+        data: body,
       });
 
       const data: any = response.data;
@@ -43,7 +46,9 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
       const status = error?.response?.status as number | undefined;
       const data = error?.response?.data;
       const message =
-        (data && typeof data === "object" && ((data as any).message || (data as any).error)) ||
+        (data &&
+          typeof data === "object" &&
+          ((data as any).message || (data as any).error)) ||
         error?.message ||
         "Request failed";
 
@@ -74,7 +79,9 @@ export async function searchRoutes(q: string): Promise<RouteSearchResult[]> {
   const searchParams = new URLSearchParams();
   searchParams.set("q", query);
 
-  return request<RouteSearchResult[]>(`/search/route?${searchParams.toString()}`);
+  return request<RouteSearchResult[]>(
+    `/search/route?${searchParams.toString()}`,
+  );
 }
 
 export interface RouteMatatu {
@@ -95,7 +102,7 @@ export interface RouteMatatu {
 
 export async function getMatatusOnRoute(
   routeId: string,
-  radiusMeters?: number
+  radiusMeters?: number,
 ): Promise<RouteMatatu[]> {
   const searchParams = new URLSearchParams();
   if (typeof radiusMeters === "number") {

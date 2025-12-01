@@ -34,12 +34,13 @@ export default function RegisterSaccoPage() {
         phone: phone || undefined,
         role: "admin",
         saccoName,
-        registrationNumber: registrationNumber || undefined
+        registrationNumber: registrationNumber || undefined,
       });
 
       router.push("/dashboard/sacco");
     } catch (err) {
-      const message = err instanceof Error ? err.message : "SACCO registration failed";
+      const message =
+        err instanceof Error ? err.message : "SACCO registration failed";
       setError(message);
     } finally {
       setSubmitting(false);
@@ -53,7 +54,8 @@ export default function RegisterSaccoPage() {
       <div className="space-y-2">
         <h1 className="text-2xl font-semibold tracking-tight">SACCO sign up</h1>
         <p className="text-sm text-slate-300">
-          Create a SACCO admin account to manage your fleet, drivers, and documents in Radaa.
+          Create a SACCO admin account to manage your fleet, drivers, and
+          documents in Radaa.
         </p>
       </div>
 
@@ -61,15 +63,21 @@ export default function RegisterSaccoPage() {
         <section className="grid gap-2 text-[11px] text-slate-300 md:grid-cols-3">
           <div className="rounded-lg border border-slate-800 bg-slate-900/80 px-3 py-2">
             <div className="text-slate-400">Step 1</div>
-            <div className="mt-0.5 font-semibold text-slate-50">SACCO profile</div>
+            <div className="mt-0.5 font-semibold text-slate-50">
+              SACCO profile
+            </div>
           </div>
           <div className="rounded-lg border border-slate-800 bg-slate-900/80 px-3 py-2">
             <div className="text-slate-400">Step 2</div>
-            <div className="mt-0.5 font-semibold text-slate-50">Registration details</div>
+            <div className="mt-0.5 font-semibold text-slate-50">
+              Registration details
+            </div>
           </div>
           <div className="rounded-lg border border-slate-800 bg-slate-900/80 px-3 py-2">
             <div className="text-slate-400">Step 3</div>
-            <div className="mt-0.5 font-semibold text-slate-50">Invite drivers</div>
+            <div className="mt-0.5 font-semibold text-slate-50">
+              Invite drivers
+            </div>
           </div>
         </section>
       )}
@@ -82,7 +90,10 @@ export default function RegisterSaccoPage() {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-1">
-          <label htmlFor="username" className="text-sm font-medium text-slate-100">
+          <label
+            htmlFor="username"
+            className="text-sm font-medium text-slate-100"
+          >
             Admin name
           </label>
           <input
@@ -97,7 +108,10 @@ export default function RegisterSaccoPage() {
         </div>
 
         <div className="space-y-1">
-          <label htmlFor="saccoName" className="text-sm font-medium text-slate-100">
+          <label
+            htmlFor="saccoName"
+            className="text-sm font-medium text-slate-100"
+          >
             SACCO name
           </label>
           <input
@@ -112,8 +126,14 @@ export default function RegisterSaccoPage() {
         </div>
 
         <div className="space-y-1">
-          <label htmlFor="registrationNumber" className="text-sm font-medium text-slate-100">
-            Registration number <span className="text-xs font-normal text-slate-400">(optional)</span>
+          <label
+            htmlFor="registrationNumber"
+            className="text-sm font-medium text-slate-100"
+          >
+            Registration number{" "}
+            <span className="text-xs font-normal text-slate-400">
+              (optional)
+            </span>
           </label>
           <input
             id="registrationNumber"
@@ -143,7 +163,10 @@ export default function RegisterSaccoPage() {
 
         <div className="space-y-1">
           <label htmlFor="phone" className="text-sm font-medium text-slate-100">
-            Phone <span className="text-xs font-normal text-slate-400">(optional)</span>
+            Phone{" "}
+            <span className="text-xs font-normal text-slate-400">
+              (optional)
+            </span>
           </label>
           <input
             id="phone"
@@ -156,7 +179,10 @@ export default function RegisterSaccoPage() {
         </div>
 
         <div className="space-y-1">
-          <label htmlFor="password" className="text-sm font-medium text-slate-100">
+          <label
+            htmlFor="password"
+            className="text-sm font-medium text-slate-100"
+          >
             Password
           </label>
           <input
@@ -182,7 +208,10 @@ export default function RegisterSaccoPage() {
 
       <p className="text-center text-xs text-slate-400">
         Already have a SACCO account?{" "}
-        <Link href="/auth/login-sacco" className="font-medium text-sky-400 hover:text-sky-300">
+        <Link
+          href="/auth/login-sacco"
+          className="font-medium text-sky-400 hover:text-sky-300"
+        >
           Sign in
         </Link>
       </p>

@@ -3,7 +3,11 @@
 import { FormEvent, useEffect, useState, ChangeEvent } from "react";
 import { useParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
-import { getMatatuPhotos, uploadMatatuPhoto, type MatatuPhoto } from "@/lib/api/matatu";
+import {
+  getMatatuPhotos,
+  uploadMatatuPhoto,
+  type MatatuPhoto,
+} from "@/lib/api/matatu";
 
 const BACKEND_URL =
   process.env.NEXT_PUBLIC_API_URL ||
@@ -74,7 +78,8 @@ export default function MatatuDetailPage() {
           setLng(String(data.location.lng));
         }
       } catch (err) {
-        const message = err instanceof Error ? err.message : "Failed to load matatu";
+        const message =
+          err instanceof Error ? err.message : "Failed to load matatu";
         setError(message);
       } finally {
         setLoading(false);
@@ -99,7 +104,8 @@ export default function MatatuDetailPage() {
         setPhotos(data);
       } catch (err) {
         if (cancelled) return;
-        const message = err instanceof Error ? err.message : "Failed to load photos";
+        const message =
+          err instanceof Error ? err.message : "Failed to load photos";
         setPhotoError(message);
       } finally {
         if (!cancelled) {
@@ -126,9 +132,9 @@ export default function MatatuDetailPage() {
       const response = await fetch(`${BACKEND_URL}/matatus/${id}/location`, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify({ lat, lng })
+        body: JSON.stringify({ lat, lng }),
       });
 
       const data = await response.json().catch(() => null);
@@ -142,7 +148,8 @@ export default function MatatuDetailPage() {
 
       setUpdateMessage("Location updated successfully");
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to update location";
+      const message =
+        err instanceof Error ? err.message : "Failed to update location";
       setUpdateMessage(message);
     } finally {
       setUpdating(false);
@@ -162,12 +169,18 @@ export default function MatatuDetailPage() {
     setPhotoError(null);
 
     try {
-      const updated = await uploadMatatuPhoto(id, photoFile, { caption: photoCaption || undefined }, token);
+      const updated = await uploadMatatuPhoto(
+        id,
+        photoFile,
+        { caption: photoCaption || undefined },
+        token,
+      );
       setPhotos(updated);
       setPhotoFile(null);
       setPhotoCaption("");
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to upload photo";
+      const message =
+        err instanceof Error ? err.message : "Failed to upload photo";
       setPhotoError(message);
     } finally {
       setUploadingPhoto(false);
@@ -191,7 +204,9 @@ export default function MatatuDetailPage() {
       {!loading && !error && matatu && (
         <>
           <header className="space-y-1">
-            <h1 className="text-2xl font-semibold tracking-tight">{matatu.plate}</h1>
+            <h1 className="text-2xl font-semibold tracking-tight">
+              {matatu.plate}
+            </h1>
             <p className="text-xs text-slate-300">Route: {matatu.route}</p>
             {matatu.sacco && (
               <p className="text-xs text-slate-400">Sacco: {matatu.sacco}</p>
@@ -204,7 +219,10 @@ export default function MatatuDetailPage() {
               <div className="mt-1 text-slate-100">
                 {matatu.driverName || "Not set"}
                 {matatu.driverPhone && (
-                  <span className="text-slate-500"> · {matatu.driverPhone}</span>
+                  <span className="text-slate-500">
+                    {" "}
+                    · {matatu.driverPhone}
+                  </span>
                 )}
               </div>
             </div>
@@ -227,10 +245,12 @@ export default function MatatuDetailPage() {
           <section className="space-y-3 rounded-xl border border-slate-800 bg-slate-900/80 p-4 text-xs">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-sm font-semibold text-slate-100">Update live location</h2>
+                <h2 className="text-sm font-semibold text-slate-100">
+                  Update live location
+                </h2>
                 <p className="text-[11px] text-slate-400">
-                  Send a one-off location update for this matatu. This will also broadcast over
-                  Socket.IO to any live map subscribers.
+                  Send a one-off location update for this matatu. This will also
+                  broadcast over Socket.IO to any live map subscribers.
                 </p>
               </div>
             </div>
@@ -241,9 +261,15 @@ export default function MatatuDetailPage() {
               </div>
             )}
 
-            <form onSubmit={handleUpdateLocation} className="grid gap-3 md:grid-cols-[1fr,1fr,auto]">
+            <form
+              onSubmit={handleUpdateLocation}
+              className="grid gap-3 md:grid-cols-[1fr,1fr,auto]"
+            >
               <div className="space-y-1">
-                <label htmlFor="lat" className="text-[11px] font-medium text-slate-100">
+                <label
+                  htmlFor="lat"
+                  className="text-[11px] font-medium text-slate-100"
+                >
                   Latitude
                 </label>
                 <input
@@ -259,7 +285,10 @@ export default function MatatuDetailPage() {
               </div>
 
               <div className="space-y-1">
-                <label htmlFor="lng" className="text-[11px] font-medium text-slate-100">
+                <label
+                  htmlFor="lng"
+                  className="text-[11px] font-medium text-slate-100"
+                >
                   Longitude
                 </label>
                 <input
@@ -291,8 +320,8 @@ export default function MatatuDetailPage() {
               <div>
                 <h2 className="text-sm font-semibold text-slate-100">Photos</h2>
                 <p className="text-[11px] text-slate-400">
-                  Upload photos of this matatu. Approved photos will be used on the global map and in
-                  SACCO dashboards.
+                  Upload photos of this matatu. Approved photos will be used on
+                  the global map and in SACCO dashboards.
                 </p>
               </div>
             </div>
@@ -310,7 +339,9 @@ export default function MatatuDetailPage() {
             {!loadingPhotos && photos.length > 0 && (
               <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
                 {photos.map((p) => {
-                  const src = p.url.startsWith("http") ? p.url : `${BACKEND_URL}${p.url}`;
+                  const src = p.url.startsWith("http")
+                    ? p.url
+                    : `${BACKEND_URL}${p.url}`;
                   return (
                     <figure key={p._id} className="space-y-1">
                       {/* eslint-disable-next-line @next/next/no-img-element */}

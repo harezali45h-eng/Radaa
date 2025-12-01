@@ -46,7 +46,9 @@ export default function TripDetailPage() {
   const [currency, setCurrency] = useState<string>("KES");
   const [stopping, setStopping] = useState<boolean>(false);
   const [message, setMessage] = useState<string | null>(null);
-  const [autoLocationMessage, setAutoLocationMessage] = useState<string | null>(null);
+  const [autoLocationMessage, setAutoLocationMessage] = useState<string | null>(
+    null,
+  );
 
   const [rating, setRating] = useState<number | null>(null);
   const [ratingSubmitted, setRatingSubmitted] = useState(false);
@@ -83,7 +85,8 @@ export default function TripDetailPage() {
 
         setTrip(current);
       } catch (err) {
-        const message = err instanceof Error ? err.message : "Failed to load trip";
+        const message =
+          err instanceof Error ? err.message : "Failed to load trip";
         setError(message);
       } finally {
         setLoading(false);
@@ -104,9 +107,9 @@ export default function TripDetailPage() {
       const response = await fetch(`${BACKEND_URL}/trips/${id}/stop`, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify({ lat, lng, fare, currency })
+        body: JSON.stringify({ lat, lng, fare, currency }),
       });
 
       const data = await response.json().catch(() => null);
@@ -127,10 +130,13 @@ export default function TripDetailPage() {
         title: "Trip completed",
         message:
           (updatedTrip.matatu?.plate || "Trip") +
-          (updatedTrip.fare != null ? ` completed with fare ${updatedTrip.fare}` : " completed.")
+          (updatedTrip.fare != null
+            ? ` completed with fare ${updatedTrip.fare}`
+            : " completed."),
       });
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to stop trip";
+      const message =
+        err instanceof Error ? err.message : "Failed to stop trip";
       setMessage(message);
     } finally {
       setStopping(false);
@@ -149,15 +155,19 @@ export default function TripDetailPage() {
       (position) => {
         setLat(String(position.coords.latitude));
         setLng(String(position.coords.longitude));
-        setAutoLocationMessage("Location captured. You can adjust it before stopping the trip.");
+        setAutoLocationMessage(
+          "Location captured. You can adjust it before stopping the trip.",
+        );
       },
       (geoError) => {
-        setAutoLocationMessage(geoError?.message || "Unable to determine your current location.");
+        setAutoLocationMessage(
+          geoError?.message || "Unable to determine your current location.",
+        );
       },
       {
         enableHighAccuracy: true,
-        timeout: 10000
-      }
+        timeout: 10000,
+      },
     );
   };
 
@@ -194,9 +204,12 @@ export default function TripDetailPage() {
       {!loading && !error && trip && (
         <>
           <header className="space-y-1">
-            <h1 className="text-2xl font-semibold tracking-tight">Trip details</h1>
+            <h1 className="text-2xl font-semibold tracking-tight">
+              Trip details
+            </h1>
             <p className="text-xs text-slate-300">
-              Matatu {trip.matatu?.plate || "Unknown"} · {trip.matatu?.route || "Route not set"}
+              Matatu {trip.matatu?.plate || "Unknown"} ·{" "}
+              {trip.matatu?.route || "Route not set"}
             </p>
             {tripUiEnabled && (
               <div className="mt-2 inline-flex items-center gap-2 rounded-full border border-slate-700 bg-slate-900/80 px-3 py-1 text-[10px] text-slate-200">
@@ -215,24 +228,33 @@ export default function TripDetailPage() {
           <section className="grid gap-4 md:grid-cols-3 text-xs">
             <div className="rounded-xl border border-slate-800 bg-slate-900/80 p-4">
               <div className="text-slate-400">Status</div>
-              <div className="mt-1 text-slate-100 capitalize">{trip.status}</div>
+              <div className="mt-1 text-slate-100 capitalize">
+                {trip.status}
+              </div>
             </div>
             <div className="rounded-xl border border-slate-800 bg-slate-900/80 p-4">
               <div className="text-slate-400">Start time</div>
-              <div className="mt-1 text-slate-100">{start ? start.toLocaleString() : "—"}</div>
+              <div className="mt-1 text-slate-100">
+                {start ? start.toLocaleString() : "—"}
+              </div>
             </div>
             <div className="rounded-xl border border-slate-800 bg-slate-900/80 p-4">
               <div className="text-slate-400">End time</div>
-              <div className="mt-1 text-slate-100">{end ? end.toLocaleString() : "—"}</div>
+              <div className="mt-1 text-slate-100">
+                {end ? end.toLocaleString() : "—"}
+              </div>
             </div>
           </section>
 
           <section className="space-y-3 rounded-xl border border-slate-800 bg-slate-900/80 p-4 text-xs">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-sm font-semibold text-slate-100">Fare and completion</h2>
+                <h2 className="text-sm font-semibold text-slate-100">
+                  Fare and completion
+                </h2>
                 <p className="text-[11px] text-slate-400">
-                  If this trip is still ongoing, you can stop it and record the fare amount.
+                  If this trip is still ongoing, you can stop it and record the
+                  fare amount.
                 </p>
               </div>
             </div>
@@ -258,12 +280,17 @@ export default function TripDetailPage() {
                       Use my current location for end point
                     </button>
                     {autoLocationMessage && (
-                      <p className="text-[11px] text-slate-400">{autoLocationMessage}</p>
+                      <p className="text-[11px] text-slate-400">
+                        {autoLocationMessage}
+                      </p>
                     )}
                   </div>
                 )}
                 <div className="space-y-1">
-                  <label htmlFor="lat" className="text-[11px] font-medium text-slate-100">
+                  <label
+                    htmlFor="lat"
+                    className="text-[11px] font-medium text-slate-100"
+                  >
                     End latitude
                   </label>
                   <input
@@ -279,7 +306,10 @@ export default function TripDetailPage() {
                 </div>
 
                 <div className="space-y-1">
-                  <label htmlFor="lng" className="text-[11px] font-medium text-slate-100">
+                  <label
+                    htmlFor="lng"
+                    className="text-[11px] font-medium text-slate-100"
+                  >
                     End longitude
                   </label>
                   <input
@@ -295,7 +325,10 @@ export default function TripDetailPage() {
                 </div>
 
                 <div className="space-y-1">
-                  <label htmlFor="fare" className="text-[11px] font-medium text-slate-100">
+                  <label
+                    htmlFor="fare"
+                    className="text-[11px] font-medium text-slate-100"
+                  >
                     Fare amount
                   </label>
                   <input
@@ -312,7 +345,10 @@ export default function TripDetailPage() {
                 </div>
 
                 <div className="space-y-1">
-                  <label htmlFor="currency" className="text-[11px] font-medium text-slate-100">
+                  <label
+                    htmlFor="currency"
+                    className="text-[11px] font-medium text-slate-100"
+                  >
                     Currency
                   </label>
                   <input
@@ -336,7 +372,8 @@ export default function TripDetailPage() {
               </form>
             ) : (
               <div className="text-[11px] text-slate-300">
-                This trip has already been completed. Fare: {trip.fare != null ? `${trip.fare} ` : ""}
+                This trip has already been completed. Fare:{" "}
+                {trip.fare != null ? `${trip.fare} ` : ""}
                 {trip.currency || (trip.fare != null ? "KES" : "") || "—"}.
               </div>
             )}
@@ -346,9 +383,12 @@ export default function TripDetailPage() {
             <section className="space-y-3 rounded-xl border border-slate-800 bg-slate-900/80 p-4 text-xs">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-sm font-semibold text-slate-100">Rate this trip</h2>
+                  <h2 className="text-sm font-semibold text-slate-100">
+                    Rate this trip
+                  </h2>
                   <p className="text-[11px] text-slate-400">
-                    How was your ride? This rating helps us tune future experiments and UX.
+                    How was your ride? This rating helps us tune future
+                    experiments and UX.
                   </p>
                 </div>
                 {ratingSubmitted && rating != null && (

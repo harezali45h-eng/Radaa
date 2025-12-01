@@ -48,12 +48,12 @@ export default function MapContainer({
   isLoading,
   hasAnyLocation,
   driverMode,
-  showCenterOnMe = true
+  showCenterOnMe = true,
 }: MapContainerProps) {
   const showEmptyState = !isLoading && !hasAnyLocation;
 
   return (
-    <div className="relative mt-4 h-80 overflow-hidden rounded-lg bg-slate-950">
+    <div className="relative mt-4 min-h-[320px] h-[55vh] md:h-[65vh] overflow-hidden rounded-lg bg-slate-950">
       {isLoading && (
         <div className="absolute inset-0 animate-pulse bg-gradient-to-br from-slate-900 via-slate-950 to-slate-900">
           <div className="absolute inset-4 rounded-lg border border-slate-800/60" />

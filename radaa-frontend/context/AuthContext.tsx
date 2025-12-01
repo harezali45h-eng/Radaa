@@ -5,9 +5,13 @@ import {
   useContext,
   useEffect,
   useState,
-  type ReactNode
+  type ReactNode,
 } from "react";
-import { login as apiLogin, register as apiRegister, type RegisterPayload } from "@/lib/api/auth";
+import {
+  login as apiLogin,
+  register as apiRegister,
+  type RegisterPayload,
+} from "@/lib/api/auth";
 
 interface User {
   _id: string;
@@ -39,7 +43,10 @@ interface AuthContextType {
   user: User | null;
   token: string | null;
   loading: boolean;
-  login: (payload: { email: string; password: string }, rememberMe?: boolean) => Promise<void>;
+  login: (
+    payload: { email: string; password: string },
+    rememberMe?: boolean,
+  ) => Promise<void>;
   register: (payload: RegisterPayload) => Promise<void>;
   logout: () => void;
 }
@@ -48,7 +55,9 @@ const USER_STORAGE_KEY = "user";
 const TOKEN_STORAGE_KEY = "token";
 const TOKEN_COOKIE_NAME = "radaa_token";
 
-export const AuthContext = createContext<AuthContextType | undefined>(undefined);
+export const AuthContext = createContext<AuthContextType | undefined>(
+  undefined,
+);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -67,7 +76,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (localUserRaw) {
         const parsed = JSON.parse(localUserRaw) as User;
-        if (parsed && typeof parsed._id === "string" && typeof parsed.token === "string") {
+        if (
+          parsed &&
+          typeof parsed._id === "string" &&
+          typeof parsed.token === "string"
+        ) {
           hydratedUser = parsed;
           hydratedToken = parsed.token;
         }
@@ -75,7 +88,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (!hydratedUser && sessionUserRaw) {
         const parsed = JSON.parse(sessionUserRaw) as User;
-        if (parsed && typeof parsed._id === "string" && typeof parsed.token === "string") {
+        if (
+          parsed &&
+          typeof parsed._id === "string" &&
+          typeof parsed.token === "string"
+        ) {
           hydratedUser = parsed;
           hydratedToken = parsed.token;
         }
@@ -102,7 +119,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false);
     }
   }, []);
-  const login = async (payload: { email: string; password: string }, rememberMe: boolean = false) => {
+  const login = async (
+    payload: { email: string; password: string },
+    rememberMe: boolean = false,
+  ) => {
     setLoading(true);
     try {
       const result = await apiLogin(payload);
@@ -118,14 +138,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         enabled: (result as any).enabled,
         driverProfile: (result as any).driverProfile,
         driverVerificationStatus: (result as any).driverVerificationStatus,
-        saccoProfile: (result as any).saccoProfile
+        saccoProfile: (result as any).saccoProfile,
       };
 
       setUser(userData);
       setToken(userData.token);
 
       if (typeof window !== "undefined") {
-        const storage = rememberMe ? window.localStorage : window.sessionStorage;
+        const storage = rememberMe
+          ? window.localStorage
+          : window.sessionStorage;
 
         storage.setItem(USER_STORAGE_KEY, JSON.stringify(userData));
         storage.setItem(TOKEN_STORAGE_KEY, userData.token);
@@ -144,7 +166,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           `${TOKEN_COOKIE_NAME}=${userData.token}`,
           "Path=/",
           "SameSite=Lax",
-          "Max-Age=" + 7 * 24 * 60 * 60
+          "Max-Age=" + 7 * 24 * 60 * 60,
         ];
 
         if (isSecure) {
@@ -174,7 +196,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         enabled: (result as any).enabled,
         driverProfile: (result as any).driverProfile,
         driverVerificationStatus: (result as any).driverVerificationStatus,
-        saccoProfile: (result as any).saccoProfile
+        saccoProfile: (result as any).saccoProfile,
       };
 
       setUser(userData);
@@ -190,7 +212,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           `${TOKEN_COOKIE_NAME}=${userData.token}`,
           "Path=/",
           "SameSite=Lax",
-          "Max-Age=" + 7 * 24 * 60 * 60
+          "Max-Age=" + 7 * 24 * 60 * 60,
         ];
 
         if (isSecure) {
@@ -218,7 +240,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, register, logout }}>
+    <AuthContext.Provider
+      value={{ user, token, loading, login, register, logout }}
+    >
       {children}
     </AuthContext.Provider>
   );

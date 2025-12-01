@@ -37,7 +37,8 @@ export function AppShell({ children }: AppShellProps) {
   const isAuthRoute = pathname.startsWith("/auth");
   const isMarketingHome = pathname === "/";
 
-  const showBackToDashboard = !isMarketingHome && !isAuthRoute && !isDashboardRoot;
+  const showBackToDashboard =
+    !isMarketingHome && !isAuthRoute && !isDashboardRoot;
   const role = (user as any)?.role as string | undefined;
   const isAdmin = role === "admin";
   const isDriver = role === "driver";
@@ -48,7 +49,10 @@ export function AppShell({ children }: AppShellProps) {
       ? "/dashboard/driver/live"
       : "/dashboard";
 
-  const liveHref = isDriver && activeMode === "driver" ? "/dashboard/driver/live" : "/dashboard/passenger/live";
+  const liveHref =
+    isDriver && activeMode === "driver"
+      ? "/dashboard/driver/live"
+      : "/dashboard/passenger/live";
 
   const toggleNotifications = () => {
     const next = !open;
@@ -62,7 +66,10 @@ export function AppShell({ children }: AppShellProps) {
     <div className="flex min-h-screen flex-col">
       <header className={headerBgClass}>
         <div className="radaa-shell flex items-center justify-between py-3">
-          <Link href={homeHref} className="text-lg font-semibold tracking-tight">
+          <Link
+            href={homeHref}
+            className="text-lg font-semibold tracking-tight"
+          >
             Radaa
           </Link>
           <nav className="flex items-center gap-4 text-sm text-slate-300">
@@ -90,7 +97,10 @@ export function AppShell({ children }: AppShellProps) {
                 type="button"
                 onClick={() => {
                   const next = !driverOnline;
-                  console.log("[mode] header toggle ->", next ? "driver" : "passenger");
+                  console.log(
+                    "[mode] header toggle ->",
+                    next ? "driver" : "passenger",
+                  );
                   setDriverOnline(next);
                 }}
                 className={`inline-flex items-center rounded-md border px-2 py-1 text-[11px] font-medium shadow-sm transition ${
@@ -128,15 +138,24 @@ export function AppShell({ children }: AppShellProps) {
                     Notifications
                   </div>
                   {notifications.length === 0 ? (
-                    <div className="px-3 py-3 text-slate-400">No notifications yet.</div>
+                    <div className="px-3 py-3 text-slate-400">
+                      No notifications yet.
+                    </div>
                   ) : (
                     <ul className="max-h-64 divide-y divide-slate-800 overflow-auto">
                       {notifications.map((n) => (
-                        <li key={n.id} className="px-3 py-2 hover:bg-slate-900/80">
+                        <li
+                          key={n.id}
+                          className="px-3 py-2 hover:bg-slate-900/80"
+                        >
                           <div className="flex items-start justify-between gap-2">
                             <div>
-                              <div className="text-[11px] font-semibold text-slate-100">{n.title}</div>
-                              <div className="mt-0.5 text-[11px] text-slate-300">{n.message}</div>
+                              <div className="text-[11px] font-semibold text-slate-100">
+                                {n.title}
+                              </div>
+                              <div className="mt-0.5 text-[11px] text-slate-300">
+                                {n.message}
+                              </div>
                             </div>
                             {!n.read && (
                               <span className="mt-1 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-sky-400" />
@@ -176,7 +195,10 @@ export function AppShell({ children }: AppShellProps) {
       {(isDashboardRoot || isDashboardSub) && isDriver && (
         <nav className="fixed bottom-0 left-0 right-0 z-30 border-t border-slate-800 bg-slate-950/90 px-4 py-2 text-[11px] text-slate-200 md:hidden">
           <div className="mx-auto flex max-w-md items-center justify-between">
-            <Link href={homeHref} className="flex flex-1 flex-col items-center px-2 py-1">
+            <Link
+              href={homeHref}
+              className="flex flex-1 flex-col items-center px-2 py-1"
+            >
               <span className="text-[11px]">Home</span>
             </Link>
             <Link
@@ -191,7 +213,10 @@ export function AppShell({ children }: AppShellProps) {
             >
               <span className="text-[11px]">Trips</span>
             </Link>
-            <Link href="/profile" className="flex flex-1 flex-col items-center px-2 py-1">
+            <Link
+              href="/profile"
+              className="flex flex-1 flex-col items-center px-2 py-1"
+            >
               <span className="text-[11px]">Profile</span>
             </Link>
             {isAdmin && (

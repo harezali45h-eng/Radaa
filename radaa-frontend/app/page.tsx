@@ -43,10 +43,12 @@ export default function HomePage() {
   return (
     <div className="space-y-6">
       <section className="space-y-3">
-        <h1 className="text-3xl font-semibold tracking-tight">Welcome to Radaa</h1>
+        <h1 className="text-3xl font-semibold tracking-tight">
+          Welcome to Radaa
+        </h1>
         <p className="max-w-2xl text-sm text-slate-300">
-          Track live matatus, manage your rides, and unlock free trips through the built-in
-          loyalty program.
+          Track live matatus, manage your rides, and unlock free trips through
+          the built-in loyalty program.
         </p>
       </section>
 
@@ -57,7 +59,8 @@ export default function HomePage() {
         >
           <h2 className="text-base font-semibold">Live Matatu Map</h2>
           <p className="mt-1 text-xs text-slate-300">
-            See matatus in real time, including their latest location and basic route details.
+            See matatus in real time, including their latest location and basic
+            route details.
           </p>
         </Link>
 
@@ -77,7 +80,8 @@ export default function HomePage() {
         >
           <h2 className="text-base font-semibold">Quick Payments</h2>
           <p className="mt-1 text-xs text-slate-300">
-            Initiate and verify payments via Mpesa, card, or other providers (sandboxed).
+            Initiate and verify payments via Mpesa, card, or other providers
+            (sandboxed).
           </p>
         </Link>
       </section>

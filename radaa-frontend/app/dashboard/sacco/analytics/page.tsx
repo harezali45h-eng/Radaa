@@ -4,7 +4,9 @@ export default function SaccoAnalyticsPage() {
   return (
     <div className="space-y-4">
       <header className="space-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight">SACCO analytics</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">
+          SACCO analytics
+        </h1>
         <p className="text-xs text-slate-300">
           Visualise revenue, occupancy, and route performance for your SACCO.
         </p>

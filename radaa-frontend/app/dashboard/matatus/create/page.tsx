@@ -31,15 +31,15 @@ export default function CreateMatatuPage() {
       const response = await fetch(`${BACKEND_URL}/matatus`, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           plate,
           route,
           sacco: sacco || undefined,
           driverName: driverName || undefined,
-          driverPhone: driverPhone || undefined
-        })
+          driverPhone: driverPhone || undefined,
+        }),
       });
 
       const data = await response.json().catch(() => null);
@@ -57,7 +57,8 @@ export default function CreateMatatuPage() {
         router.push(`/dashboard/matatus/${data._id}`);
       }
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to register matatu";
+      const message =
+        err instanceof Error ? err.message : "Failed to register matatu";
       setError(message);
     } finally {
       setSubmitting(false);
@@ -69,9 +70,12 @@ export default function CreateMatatuPage() {
   return (
     <div className="space-y-6">
       <header className="space-y-2">
-        <h1 className="text-2xl font-semibold tracking-tight">Register matatu</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">
+          Register matatu
+        </h1>
         <p className="text-xs text-slate-300">
-          Create a new matatu record that can later be tracked live on the map and in trip logs.
+          Create a new matatu record that can later be tracked live on the map
+          and in trip logs.
         </p>
       </header>
 
@@ -87,10 +91,16 @@ export default function CreateMatatuPage() {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-4 rounded-xl border border-slate-800 bg-slate-900/80 p-4 text-xs">
+      <form
+        onSubmit={handleSubmit}
+        className="space-y-4 rounded-xl border border-slate-800 bg-slate-900/80 p-4 text-xs"
+      >
         <div className="grid gap-4 md:grid-cols-2">
           <div className="space-y-1">
-            <label htmlFor="plate" className="text-xs font-medium text-slate-100">
+            <label
+              htmlFor="plate"
+              className="text-xs font-medium text-slate-100"
+            >
               Number plate
             </label>
             <input
@@ -105,7 +115,10 @@ export default function CreateMatatuPage() {
           </div>
 
           <div className="space-y-1">
-            <label htmlFor="route" className="text-xs font-medium text-slate-100">
+            <label
+              htmlFor="route"
+              className="text-xs font-medium text-slate-100"
+            >
               Route
             </label>
             <input
@@ -120,8 +133,14 @@ export default function CreateMatatuPage() {
           </div>
 
           <div className="space-y-1">
-            <label htmlFor="sacco" className="text-xs font-medium text-slate-100">
-              Sacco <span className="text-[10px] font-normal text-slate-400">(optional)</span>
+            <label
+              htmlFor="sacco"
+              className="text-xs font-medium text-slate-100"
+            >
+              Sacco{" "}
+              <span className="text-[10px] font-normal text-slate-400">
+                (optional)
+              </span>
             </label>
             <input
               id="sacco"
@@ -134,8 +153,14 @@ export default function CreateMatatuPage() {
           </div>
 
           <div className="space-y-1">
-            <label htmlFor="driverName" className="text-xs font-medium text-slate-100">
-              Driver name <span className="text-[10px] font-normal text-slate-400">(optional)</span>
+            <label
+              htmlFor="driverName"
+              className="text-xs font-medium text-slate-100"
+            >
+              Driver name{" "}
+              <span className="text-[10px] font-normal text-slate-400">
+                (optional)
+              </span>
             </label>
             <input
               id="driverName"
@@ -148,8 +173,14 @@ export default function CreateMatatuPage() {
           </div>
 
           <div className="space-y-1 md:col-span-2">
-            <label htmlFor="driverPhone" className="text-xs font-medium text-slate-100">
-              Driver phone <span className="text-[10px] font-normal text-slate-400">(optional)</span>
+            <label
+              htmlFor="driverPhone"
+              className="text-xs font-medium text-slate-100"
+            >
+              Driver phone{" "}
+              <span className="text-[10px] font-normal text-slate-400">
+                (optional)
+              </span>
             </label>
             <input
               id="driverPhone"

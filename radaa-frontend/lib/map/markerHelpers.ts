@@ -25,7 +25,7 @@ export type MarkerStatus = "online" | "offline" | "driver";
 export function interpolateCoordinates(
   prev: LatLng | null | undefined,
   next: LatLng | null | undefined,
-  progress: number
+  progress: number,
 ): LatLng | null {
   if (!prev && !next) {
     return null;
@@ -47,7 +47,9 @@ export function interpolateCoordinates(
   return { lat, lng };
 }
 
-export function formatMatatuLabel(matatu: MatatuLike | null | undefined): string {
+export function formatMatatuLabel(
+  matatu: MatatuLike | null | undefined,
+): string {
   if (!matatu) {
     return "Matatu";
   }

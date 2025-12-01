@@ -13,7 +13,12 @@ interface MatatuMarkerProps {
   onSelect?: () => void;
 }
 
-export function MatatuMarker({ matatu, status, style, onSelect }: MatatuMarkerProps) {
+export function MatatuMarker({
+  matatu,
+  status,
+  style,
+  onSelect,
+}: MatatuMarkerProps) {
   const label = formatMatatuLabel(matatu);
 
   const photosEnabled = useIsFeatureEnabled("map_photos_v1", false);
@@ -29,7 +34,8 @@ export function MatatuMarker({ matatu, status, style, onSelect }: MatatuMarkerPr
       return url;
     }
 
-    const backend = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
+    const backend =
+      process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
     return `${backend}${url}`;
   }, [photosEnabled, matatu.mainPhotoUrl]);
 
@@ -38,7 +44,7 @@ export function MatatuMarker({ matatu, status, style, onSelect }: MatatuMarkerPr
       type="button"
       onClick={onSelect}
       className={`absolute -translate-x-1/2 -translate-y-1/2 rounded-full border px-1.5 py-0.5 text-[9px] font-semibold shadow ${chooseColor(
-        status
+        status,
       )}`}
       style={style}
       aria-label={label}
@@ -49,7 +55,11 @@ export function MatatuMarker({ matatu, status, style, onSelect }: MatatuMarkerPr
           aria-hidden="true"
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={thumbnailSrc} alt="" className="h-full w-full object-cover" />
+          <img
+            src={thumbnailSrc}
+            alt=""
+            className="h-full w-full object-cover"
+          />
         </span>
       )}
       <span aria-hidden="true">{label}</span>

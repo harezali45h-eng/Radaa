@@ -21,7 +21,10 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       ? "/dashboard/driver/live"
       : "/dashboard";
 
-  const liveHref = isDriver && activeMode === "driver" ? "/dashboard/driver/live" : "/dashboard/passenger/live";
+  const liveHref =
+    isDriver && activeMode === "driver"
+      ? "/dashboard/driver/live"
+      : "/dashboard/passenger/live";
 
   return (
     <AppShell>

@@ -7,7 +7,10 @@ interface RequestOptions {
   token?: string | null;
 }
 
-async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
+async function request<T>(
+  path: string,
+  options: RequestOptions = {},
+): Promise<T> {
   const { method = "GET", body, token } = options;
 
   const headers: Record<string, string> = {};
@@ -25,7 +28,7 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
         url: path,
         method,
         data: body,
-        headers
+        headers,
       });
 
       const data: any = response.data;
@@ -53,7 +56,9 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
       const status = error?.response?.status as number | undefined;
       const data = error?.response?.data;
       const message =
-        (data && typeof data === "object" && ((data as any).message || (data as any).error)) ||
+        (data &&
+          typeof data === "object" &&
+          ((data as any).message || (data as any).error)) ||
         error?.message ||
         "Request failed";
 
@@ -88,17 +93,22 @@ export interface NearbyMatatu {
   [key: string]: any;
 }
 
-export async function cancelRide(id: string, token: string): Promise<RideRequest> {
+export async function cancelRide(
+  id: string,
+  token: string,
+): Promise<RideRequest> {
   return request<RideRequest>(`/rides/${id}/cancel`, {
     method: "POST",
-    token
+    token,
   });
 }
 
-export async function getNearbyMatatus(token?: string | null): Promise<NearbyMatatu[]> {
+export async function getNearbyMatatus(
+  token?: string | null,
+): Promise<NearbyMatatu[]> {
   const matatus = await request<NearbyMatatu[]>("/matatu-system/live", {
     method: "GET",
-    token: token ?? null
+    token: token ?? null,
   });
 
   return Array.isArray(matatus) ? matatus : [];

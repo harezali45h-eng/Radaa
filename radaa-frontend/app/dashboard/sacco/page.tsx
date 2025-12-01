@@ -1,6 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState, ChangeEvent, FormEvent } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  ChangeEvent,
+  FormEvent,
+} from "react";
 import { useAuth } from "@/context/AuthContext";
 import {
   getSaccoOverview,
@@ -12,7 +19,7 @@ import {
   setMatatuApproval,
   type SaccoOverview,
   type SaccoDriver,
-  type SaccoMatatu
+  type SaccoMatatu,
 } from "@/lib/api/sacco";
 import { useIsFeatureEnabled } from "@/context/FeatureFlagContext";
 import MapContainer from "@/components/map/MapContainer";
@@ -44,7 +51,9 @@ export default function SaccoDashboardPage() {
   const { user, token } = useAuth();
 
   const saccoId = (user as any)?._id as string | undefined;
-  const saccoName = (user as any)?.saccoProfile?.saccoName as string | undefined;
+  const saccoName = (user as any)?.saccoProfile?.saccoName as
+    | string
+    | undefined;
 
   const [overview, setOverview] = useState<SaccoOverview | null>(null);
   const [drivers, setDrivers] = useState<SaccoDriver[]>([]);
@@ -52,14 +61,16 @@ export default function SaccoDashboardPage() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [docType, setDocType] = useState<"logo" | "permit" | "insurance" | "compliance">(
-    "permit"
-  );
+  const [docType, setDocType] = useState<
+    "logo" | "permit" | "insurance" | "compliance"
+  >("permit");
   const [docFile, setDocFile] = useState<File | null>(null);
   const [uploadingDoc, setUploadingDoc] = useState(false);
 
   const { matatus: realtimeMatatus } = useRealtime();
-  const [selectedFleetMatatuId, setSelectedFleetMatatuId] = useState<string | null>(null);
+  const [selectedFleetMatatuId, setSelectedFleetMatatuId] = useState<
+    string | null
+  >(null);
 
   const isAdmin = (user as any)?.role === "admin";
 
@@ -82,7 +93,7 @@ export default function SaccoDashboardPage() {
         const [ov, drv, mats] = await Promise.all([
           getSaccoOverview(saccoId, token),
           getSaccoDrivers(saccoId, token),
-          getSaccoMatatus(saccoId, {}, token)
+          getSaccoMatatus(saccoId, {}, token),
         ]);
 
         if (cancelled) return;
@@ -92,7 +103,8 @@ export default function SaccoDashboardPage() {
         setMatatus(mats);
       } catch (err) {
         if (cancelled) return;
-        const message = err instanceof Error ? err.message : "Failed to load SACCO data";
+        const message =
+          err instanceof Error ? err.message : "Failed to load SACCO data";
         setError(message);
       } finally {
         if (!cancelled) {
@@ -110,12 +122,12 @@ export default function SaccoDashboardPage() {
 
   const pendingDrivers = useMemo(
     () => drivers.filter((d) => d.driverVerificationStatus === "pending"),
-    [drivers]
+    [drivers],
   );
 
   const pendingMatatus = useMemo(
     () => matatus.filter((m) => m.approvalStatus === "pending"),
-    [matatus]
+    [matatus],
   );
 
   const fleetMatatus = useMemo<FleetMatatu[]>(() => {
@@ -131,40 +143,38 @@ export default function SaccoDashboardPage() {
       }
     });
 
-    return (
-      realtimeMatatus
-        .map((rt) => {
-          const rtAny = rt as any;
-          const primaryId = rt.id;
-          const matatuId = (rtAny.matatuId as string | undefined) || undefined;
-          const driverId = (rtAny.driverId as string | undefined) || undefined;
+    return realtimeMatatus
+      .map((rt) => {
+        const rtAny = rt as any;
+        const primaryId = rt.id;
+        const matatuId = (rtAny.matatuId as string | undefined) || undefined;
+        const driverId = (rtAny.driverId as string | undefined) || undefined;
 
-          let base: SaccoMatatu | undefined = undefined;
-          if (matatuId && byId.has(matatuId)) {
-            base = byId.get(matatuId) as SaccoMatatu;
-          } else if (primaryId && byId.has(primaryId)) {
-            base = byId.get(primaryId) as SaccoMatatu;
-          } else if (driverId && byDriver.has(driverId)) {
-            base = byDriver.get(driverId) as SaccoMatatu;
-          }
+        let base: SaccoMatatu | undefined = undefined;
+        if (matatuId && byId.has(matatuId)) {
+          base = byId.get(matatuId) as SaccoMatatu;
+        } else if (primaryId && byId.has(primaryId)) {
+          base = byId.get(primaryId) as SaccoMatatu;
+        } else if (driverId && byDriver.has(driverId)) {
+          base = byDriver.get(driverId) as SaccoMatatu;
+        }
 
-          if (!base) {
-            return null;
-          }
+        if (!base) {
+          return null;
+        }
 
-          const canonicalId = base._id;
+        const canonicalId = base._id;
 
-          return {
-            id: canonicalId,
-            plate: base.plate || base.numberPlate || rt.plate,
-            numberPlate: base.numberPlate || rt.numberPlate,
-            route: base.route || rt.route,
-            location: rt.location ?? null,
-            status: rt.status
-          };
-        })
-        .filter(Boolean) as FleetMatatu[]
-    );
+        return {
+          id: canonicalId,
+          plate: base.plate || base.numberPlate || rt.plate,
+          numberPlate: base.numberPlate || rt.numberPlate,
+          route: base.route || rt.route,
+          location: rt.location ?? null,
+          status: rt.status,
+        };
+      })
+      .filter(Boolean) as FleetMatatu[];
   }, [matatus, realtimeMatatus]);
 
   const fleetBounds = useMemo<FleetBounds | null>(() => {
@@ -196,7 +206,10 @@ export default function SaccoDashboardPage() {
     return { minLat, maxLat, minLng, maxLng };
   }, [fleetMatatus]);
 
-  const fleetHasAnyLocation = useMemo(() => fleetBounds !== null, [fleetBounds]);
+  const fleetHasAnyLocation = useMemo(
+    () => fleetBounds !== null,
+    [fleetBounds],
+  );
 
   const fleetProject = useCallback(
     (location: FleetLatLng | null | undefined) => {
@@ -204,18 +217,24 @@ export default function SaccoDashboardPage() {
         return { left: "50%", top: "50%" };
       }
 
-      const latRange = Math.max(fleetBounds.maxLat - fleetBounds.minLat, 0.0001);
-      const lngRange = Math.max(fleetBounds.maxLng - fleetBounds.minLng, 0.0001);
+      const latRange = Math.max(
+        fleetBounds.maxLat - fleetBounds.minLat,
+        0.0001,
+      );
+      const lngRange = Math.max(
+        fleetBounds.maxLng - fleetBounds.minLng,
+        0.0001,
+      );
 
       const x = ((location.lng - fleetBounds.minLng) / lngRange) * 100;
       const y = 100 - ((location.lat - fleetBounds.minLat) / latRange) * 100;
 
       return {
         left: `${Math.min(100, Math.max(0, x))}%`,
-        top: `${Math.min(100, Math.max(0, y))}%`
+        top: `${Math.min(100, Math.max(0, y))}%`,
       };
     },
-    [fleetBounds]
+    [fleetBounds],
   );
 
   const fleetDisplayPositions = useMemo(
@@ -226,7 +245,7 @@ export default function SaccoDashboardPage() {
         }
         return acc;
       }, {}),
-    [fleetMatatus]
+    [fleetMatatus],
   );
 
   const handleDocFileChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -243,7 +262,8 @@ export default function SaccoDashboardPage() {
     try {
       await uploadSaccoDoc(saccoId, docType, docFile, token);
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Document upload failed";
+      const message =
+        err instanceof Error ? err.message : "Document upload failed";
       setError(message);
     } finally {
       setUploadingDoc(false);
@@ -252,39 +272,56 @@ export default function SaccoDashboardPage() {
 
   const handleDriverVerification = async (
     driverId: string,
-    status: "approved" | "rejected"
+    status: "approved" | "rejected",
   ) => {
     if (!saccoId || !token) return;
     try {
-      const updated = await setDriverVerification(saccoId, driverId, status, token);
-      setDrivers((prev) => prev.map((d) => (d._id === updated._id ? updated : d)));
+      const updated = await setDriverVerification(
+        saccoId,
+        driverId,
+        status,
+        token,
+      );
+      setDrivers((prev) =>
+        prev.map((d) => (d._id === updated._id ? updated : d)),
+      );
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Unable to update driver";
+      const message =
+        err instanceof Error ? err.message : "Unable to update driver";
       setError(message);
     }
   };
 
-  const handleDriverEnabledToggle = async (driverId: string, enabled: boolean) => {
+  const handleDriverEnabledToggle = async (
+    driverId: string,
+    enabled: boolean,
+  ) => {
     if (!saccoId || !token) return;
     try {
       const updated = await setDriverEnabled(saccoId, driverId, enabled, token);
-      setDrivers((prev) => prev.map((d) => (d._id === updated._id ? updated : d)));
+      setDrivers((prev) =>
+        prev.map((d) => (d._id === updated._id ? updated : d)),
+      );
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Unable to update driver";
+      const message =
+        err instanceof Error ? err.message : "Unable to update driver";
       setError(message);
     }
   };
 
   const handleMatatuApproval = async (
     matatuId: string,
-    status: "approved" | "rejected"
+    status: "approved" | "rejected",
   ) => {
     if (!saccoId || !token) return;
     try {
       const updated = await setMatatuApproval(saccoId, matatuId, status, token);
-      setMatatus((prev) => prev.map((m) => (m._id === updated._id ? updated : m)));
+      setMatatus((prev) =>
+        prev.map((m) => (m._id === updated._id ? updated : m)),
+      );
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Unable to update matatu";
+      const message =
+        err instanceof Error ? err.message : "Unable to update matatu";
       setError(message);
     }
   };
@@ -293,7 +330,9 @@ export default function SaccoDashboardPage() {
     return (
       <div className="space-y-4">
         <header className="space-y-1">
-          <h1 className="text-2xl font-semibold tracking-tight">SACCO dashboard</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">
+            SACCO dashboard
+          </h1>
           <p className="text-xs text-slate-300">
             You must be signed in as a SACCO admin to view this dashboard.
           </p>
@@ -305,7 +344,9 @@ export default function SaccoDashboardPage() {
   return (
     <div className="space-y-4">
       <header className="space-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight">SACCO dashboard</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">
+          SACCO dashboard
+        </h1>
         <p className="text-xs text-slate-300">
           High-level overview of your SACCO performance, drivers, and fleet.
         </p>
@@ -364,7 +405,9 @@ export default function SaccoDashboardPage() {
                 <tr>
                   <th className="px-3 py-2 text-left font-medium">Driver</th>
                   <th className="px-3 py-2 text-left font-medium">Vehicle</th>
-                  <th className="px-3 py-2 text-left font-medium">Verification</th>
+                  <th className="px-3 py-2 text-left font-medium">
+                    Verification
+                  </th>
                   <th className="px-3 py-2 text-left font-medium">Enabled</th>
                   <th className="px-3 py-2 text-right font-medium">Actions</th>
                 </tr>
@@ -375,7 +418,9 @@ export default function SaccoDashboardPage() {
                     <td className="px-3 py-2 text-slate-100">
                       <div className="flex flex-col">
                         <span className="font-medium">{d.username}</span>
-                        <span className="text-[10px] text-slate-400">{d.email}</span>
+                        <span className="text-[10px] text-slate-400">
+                          {d.email}
+                        </span>
                       </div>
                     </td>
                     <td className="px-3 py-2 text-slate-300">
@@ -395,21 +440,27 @@ export default function SaccoDashboardPage() {
                       <div className="inline-flex gap-1">
                         <button
                           type="button"
-                          onClick={() => handleDriverVerification(d._id, "approved")}
+                          onClick={() =>
+                            handleDriverVerification(d._id, "approved")
+                          }
                           className="rounded-full bg-emerald-600/80 px-2 py-0.5 text-[10px] text-emerald-50 hover:bg-emerald-500/80"
                         >
                           Approve
                         </button>
                         <button
                           type="button"
-                          onClick={() => handleDriverVerification(d._id, "rejected")}
+                          onClick={() =>
+                            handleDriverVerification(d._id, "rejected")
+                          }
                           className="rounded-full bg-red-600/70 px-2 py-0.5 text-[10px] text-red-50 hover:bg-red-500/80"
                         >
                           Reject
                         </button>
                         <button
                           type="button"
-                          onClick={() => handleDriverEnabledToggle(d._id, !d.enabled)}
+                          onClick={() =>
+                            handleDriverEnabledToggle(d._id, !d.enabled)
+                          }
                           className="rounded-full bg-slate-800 px-2 py-0.5 text-[10px] text-slate-100 hover:bg-slate-700"
                         >
                           {d.enabled ? "Disable" : "Enable"}
@@ -424,10 +475,12 @@ export default function SaccoDashboardPage() {
         </div>
 
         <div className="space-y-3 rounded-xl border border-slate-800 bg-slate-900/80 p-4 text-xs">
-          <h2 className="text-sm font-semibold text-slate-100">Compliance documents</h2>
+          <h2 className="text-sm font-semibold text-slate-100">
+            Compliance documents
+          </h2>
           <p className="text-[11px] text-slate-400">
-            Upload core SACCO documents like permits and insurance. Files are stored securely on the
-            backend.
+            Upload core SACCO documents like permits and insurance. Files are
+            stored securely on the backend.
           </p>
 
           <form onSubmit={handleUploadDoc} className="space-y-2">
@@ -435,7 +488,13 @@ export default function SaccoDashboardPage() {
               <select
                 value={docType}
                 onChange={(event) =>
-                  setDocType(event.target.value as "logo" | "permit" | "insurance" | "compliance")
+                  setDocType(
+                    event.target.value as
+                      | "logo"
+                      | "permit"
+                      | "insurance"
+                      | "compliance",
+                  )
                 }
                 className="rounded-md border border-slate-700 bg-slate-900 px-2 py-1 text-[11px] text-slate-50 outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
               >
@@ -520,9 +579,13 @@ export default function SaccoDashboardPage() {
 
       <section className="grid gap-4 md:grid-cols-2">
         <div className={`space-y-2 ${cardSurfaceClass} p-4 text-xs`}>
-          <h3 className="text-sm font-semibold text-slate-100">Pending driver approvals</h3>
+          <h3 className="text-sm font-semibold text-slate-100">
+            Pending driver approvals
+          </h3>
           {pendingDrivers.length === 0 && (
-            <p className="text-[11px] text-slate-400">No pending drivers right now.</p>
+            <p className="text-[11px] text-slate-400">
+              No pending drivers right now.
+            </p>
           )}
           {pendingDrivers.length > 0 && (
             <ul className="space-y-1 text-[11px] text-slate-200">
@@ -532,14 +595,18 @@ export default function SaccoDashboardPage() {
                   <div className="inline-flex gap-1">
                     <button
                       type="button"
-                      onClick={() => handleDriverVerification(d._id, "approved")}
+                      onClick={() =>
+                        handleDriverVerification(d._id, "approved")
+                      }
                       className="rounded-full bg-emerald-600/80 px-2 py-0.5 text-[10px] text-emerald-50 hover:bg-emerald-500/80"
                     >
                       Approve
                     </button>
                     <button
                       type="button"
-                      onClick={() => handleDriverVerification(d._id, "rejected")}
+                      onClick={() =>
+                        handleDriverVerification(d._id, "rejected")
+                      }
                       className="rounded-full bg-red-600/70 px-2 py-0.5 text-[10px] text-red-50 hover:bg-red-500/80"
                     >
                       Reject
@@ -552,9 +619,13 @@ export default function SaccoDashboardPage() {
         </div>
 
         <div className="space-y-2 rounded-xl border border-slate-800 bg-slate-900/80 p-4 text-xs">
-          <h3 className="text-sm font-semibold text-slate-100">Pending matatu approvals</h3>
+          <h3 className="text-sm font-semibold text-slate-100">
+            Pending matatu approvals
+          </h3>
           {pendingMatatus.length === 0 && (
-            <p className="text-[11px] text-slate-400">No pending matatus right now.</p>
+            <p className="text-[11px] text-slate-400">
+              No pending matatus right now.
+            </p>
           )}
           {pendingMatatus.length > 0 && (
             <ul className="space-y-1 text-[11px] text-slate-200">

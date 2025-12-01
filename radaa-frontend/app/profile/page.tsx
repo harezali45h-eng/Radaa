@@ -21,7 +21,10 @@ export default function ProfilePage() {
   const [data, setData] = useState<LoyaltyStatus | null>(null);
 
   useEffect(() => {
-    const userId = typeof window !== "undefined" ? window.localStorage.getItem("radaa_user_id") : null;
+    const userId =
+      typeof window !== "undefined"
+        ? window.localStorage.getItem("radaa_user_id")
+        : null;
     if (!userId) return;
     getLoyaltyStatus(userId)
       .then((res) => setData(res))
@@ -37,8 +40,8 @@ export default function ProfilePage() {
       <section className="space-y-2">
         <h1 className="text-2xl font-semibold tracking-tight">Your Profile</h1>
         <p className="text-xs text-slate-300">
-          This screen focuses on your ride and loyalty stats. Hook it up to your auth profile data
-          later.
+          This screen focuses on your ride and loyalty stats. Hook it up to your
+          auth profile data later.
         </p>
       </section>
 
@@ -46,7 +49,9 @@ export default function ProfilePage() {
         <section className="space-y-3 radaa-card p-4 text-xs">
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-sm font-semibold text-slate-100">Driver profile</div>
+              <div className="text-sm font-semibold text-slate-100">
+                Driver profile
+              </div>
               <div className="text-[11px] text-slate-400">
                 Basic details for your driver account.
               </div>
@@ -61,11 +66,15 @@ export default function ProfilePage() {
           <div className="grid gap-3 md:grid-cols-2">
             <div>
               <div className="text-slate-400">Name</div>
-              <div className="mt-1 text-sm font-semibold text-slate-100">{user.username}</div>
+              <div className="mt-1 text-sm font-semibold text-slate-100">
+                {user.username}
+              </div>
             </div>
             <div>
               <div className="text-slate-400">Driver ID</div>
-              <div className="mt-1 text-sm font-semibold text-slate-100">{user._id}</div>
+              <div className="mt-1 text-sm font-semibold text-slate-100">
+                {user._id}
+              </div>
             </div>
             <div>
               <div className="text-slate-400">Phone</div>
@@ -104,7 +113,9 @@ export default function ProfilePage() {
         </div>
         <div className="rounded-xl border border-slate-800 bg-slate-900/80 p-4 text-xs">
           <div className="text-slate-400">Rides taken</div>
-          <div className="mt-1 text-lg font-semibold">{data?.ridesTaken ?? 0}</div>
+          <div className="mt-1 text-lg font-semibold">
+            {data?.ridesTaken ?? 0}
+          </div>
         </div>
         <div className="rounded-xl border border-slate-800 bg-slate-900/80 p-4 text-xs">
           <div className="text-slate-400">Free rides available</div>
@@ -118,7 +129,9 @@ export default function ProfilePage() {
         <div className="flex items-center justify-between">
           <div>
             <div className="font-medium">Loyalty progress</div>
-            <div className="text-slate-400">Complete 10 paid rides to unlock a free ride.</div>
+            <div className="text-slate-400">
+              Complete 10 paid rides to unlock a free ride.
+            </div>
           </div>
           <div className="text-right text-slate-300">
             {data?.loyalty.paidRidesCount ?? 0}/10 paid rides

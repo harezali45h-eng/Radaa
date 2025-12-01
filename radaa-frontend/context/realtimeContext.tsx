@@ -7,7 +7,7 @@ import {
   useEffect,
   useMemo,
   useState,
-  type ReactNode
+  type ReactNode,
 } from "react";
 import { useSocket } from "@/hooks/useSocket";
 import { useNotifications } from "@/context/NotificationContext";
@@ -65,7 +65,9 @@ interface RealtimeContextValue {
   activeMode: Mode;
 }
 
-const RealtimeContext = createContext<RealtimeContextValue | undefined>(undefined);
+const RealtimeContext = createContext<RealtimeContextValue | undefined>(
+  undefined,
+);
 
 export function RealtimeProvider({ children }: { children: ReactNode }) {
   const { connect, on, off, emit } = useSocket();
@@ -73,17 +75,22 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
   const { user, token } = useAuth();
 
   const [matatus, setMatatus] = useState<RealtimeMatatu[]>([]);
-  const [lastRideAssigned, setLastRideAssigned] = useState<RideAssignedPayload | null>(null);
-  const [activeMode, setActiveModeState] = useState<Mode>(() => getInitialMode());
+  const [lastRideAssigned, setLastRideAssigned] =
+    useState<RideAssignedPayload | null>(null);
+  const [activeMode, setActiveModeState] = useState<Mode>(() =>
+    getInitialMode(),
+  );
   const [driverOnline, setDriverOnlineState] = useState<boolean>(
-    () => getInitialMode() === "driver"
+    () => getInitialMode() === "driver",
   );
 
   useEffect(() => {
     connect(token);
 
     const handleMatatuUpdate = (payload: any) => {
-      const updates: RealtimeMatatu[] = Array.isArray(payload) ? payload : [payload];
+      const updates: RealtimeMatatu[] = Array.isArray(payload)
+        ? payload
+        : [payload];
 
       setMatatus((current) => {
         const map = new Map<string, RealtimeMatatu>();
@@ -107,14 +114,16 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
       setLastRideAssigned(payload);
 
       const matatuLabel =
-        payload.matatuPlate || (payload as any).matatuName || (payload as any).matatuNumberPlate;
+        payload.matatuPlate ||
+        (payload as any).matatuName ||
+        (payload as any).matatuNumberPlate;
 
       addNotification({
         type: "trip",
         title: "New ride assigned",
         message: matatuLabel
           ? `A new ride was assigned to ${matatuLabel}.`
-          : "A new ride was assigned."
+          : "A new ride was assigned.",
       });
     };
 
@@ -124,7 +133,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
       addNotification({
         type: "trip",
         title: "New ride created",
-        message: "A passenger just created a new ride request."
+        message: "A passenger just created a new ride request.",
       });
     };
 
@@ -133,7 +142,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
       addNotification({
         type: "system",
         title: "SACCO stats updated",
-        message: "Live SACCO metrics were updated."
+        message: "Live SACCO metrics were updated.",
       });
     };
 
@@ -177,7 +186,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
 
       console.log("[realtime] setDriverOnline", { online, mode: nextMode });
     },
-    [emit]
+    [emit],
   );
 
   useEffect(() => {
@@ -188,7 +197,10 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
     try {
       stored = window.localStorage.getItem(MODE_STORAGE_KEY);
     } catch (error) {
-      console.error("[realtime] failed to read mode from storage for role init", error);
+      console.error(
+        "[realtime] failed to read mode from storage for role init",
+        error,
+      );
     }
 
     if (stored === "driver" || stored === "passenger") {
@@ -204,11 +216,21 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
   }, [user, setDriverOnline]);
 
   const value: RealtimeContextValue = useMemo(
-    () => ({ matatus, lastRideAssigned, driverOnline, setDriverOnline, activeMode }),
-    [matatus, lastRideAssigned, driverOnline, setDriverOnline, activeMode]
+    () => ({
+      matatus,
+      lastRideAssigned,
+      driverOnline,
+      setDriverOnline,
+      activeMode,
+    }),
+    [matatus, lastRideAssigned, driverOnline, setDriverOnline, activeMode],
   );
 
-  return <RealtimeContext.Provider value={value}>{children}</RealtimeContext.Provider>;
+  return (
+    <RealtimeContext.Provider value={value}>
+      {children}
+    </RealtimeContext.Provider>
+  );
 }
 
 export function useRealtime(): RealtimeContextValue {

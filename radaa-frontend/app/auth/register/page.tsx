@@ -28,12 +28,13 @@ export default function RegisterPage() {
         email,
         password,
         phone: phone || undefined,
-        handle: handle || undefined
+        handle: handle || undefined,
       });
 
       router.push("/dashboard");
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Registration failed";
+      const message =
+        err instanceof Error ? err.message : "Registration failed";
       setError(message);
     } finally {
       setSubmitting(false);
@@ -45,9 +46,12 @@ export default function RegisterPage() {
   return (
     <div className="mx-auto max-w-md space-y-6">
       <div className="space-y-2">
-        <h1 className="text-2xl font-semibold tracking-tight">Create your account</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">
+          Create your account
+        </h1>
         <p className="text-sm text-slate-300">
-          Register to start managing matatus, trips, and payments in your Radaa dashboard.
+          Register to start managing matatus, trips, and payments in your Radaa
+          dashboard.
         </p>
       </div>
 
@@ -59,7 +63,10 @@ export default function RegisterPage() {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-1">
-          <label htmlFor="username" className="text-sm font-medium text-slate-100">
+          <label
+            htmlFor="username"
+            className="text-sm font-medium text-slate-100"
+          >
             Username
           </label>
           <input
@@ -74,8 +81,14 @@ export default function RegisterPage() {
         </div>
 
         <div className="space-y-1">
-          <label htmlFor="handle" className="text-sm font-medium text-slate-100">
-            Handle <span className="text-xs font-normal text-slate-400">(optional)</span>
+          <label
+            htmlFor="handle"
+            className="text-sm font-medium text-slate-100"
+          >
+            Handle{" "}
+            <span className="text-xs font-normal text-slate-400">
+              (optional)
+            </span>
           </label>
           <input
             id="handle"
@@ -105,7 +118,10 @@ export default function RegisterPage() {
 
         <div className="space-y-1">
           <label htmlFor="phone" className="text-sm font-medium text-slate-100">
-            Phone <span className="text-xs font-normal text-slate-400">(optional)</span>
+            Phone{" "}
+            <span className="text-xs font-normal text-slate-400">
+              (optional)
+            </span>
           </label>
           <input
             id="phone"
@@ -118,7 +134,10 @@ export default function RegisterPage() {
         </div>
 
         <div className="space-y-1">
-          <label htmlFor="password" className="text-sm font-medium text-slate-100">
+          <label
+            htmlFor="password"
+            className="text-sm font-medium text-slate-100"
+          >
             Password
           </label>
           <input
@@ -144,7 +163,10 @@ export default function RegisterPage() {
 
       <p className="text-center text-xs text-slate-400">
         Already have an account?{" "}
-        <Link href="/auth/login" className="font-medium text-sky-400 hover:text-sky-300">
+        <Link
+          href="/auth/login"
+          className="font-medium text-sky-400 hover:text-sky-300"
+        >
           Sign in
         </Link>
       </p>

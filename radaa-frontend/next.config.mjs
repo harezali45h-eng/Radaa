@@ -7,17 +7,19 @@ const nextConfig = {
   env: {
     NEXT_PUBLIC_API_URL:
       process.env.NEXT_PUBLIC_API_URL ||
-      (isProd ? "https://radaa-1.onrender.com/api" : "http://localhost:5001/api"),
+      (isProd
+        ? "https://radaa-1.onrender.com/api"
+        : "http://localhost:5001/api"),
     NEXT_PUBLIC_SOCKET_URL:
       process.env.NEXT_PUBLIC_SOCKET_URL ||
-      (isProd ? "wss://radaa-1.onrender.com" : "ws://localhost:5001")
+      (isProd ? "wss://radaa-1.onrender.com" : "ws://localhost:5001"),
   },
   eslint: {
-    ignoreDuringBuilds: true
+    ignoreDuringBuilds: true,
   },
   typescript: {
-    ignoreBuildErrors: true
-  }
+    ignoreBuildErrors: true,
+  },
 };
 
 export default nextConfig;

@@ -6,7 +6,10 @@ interface RequestOptions {
   token?: string | null;
 }
 
-async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
+async function request<T>(
+  path: string,
+  options: RequestOptions = {},
+): Promise<T> {
   const { method = "GET", body, token } = options;
 
   const headers: Record<string, string> = {};
@@ -24,7 +27,7 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
         url: path,
         method,
         data: body,
-        headers
+        headers,
       });
 
       const data: any = response.data;
@@ -52,7 +55,9 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
       const status = error?.response?.status as number | undefined;
       const data = error?.response?.data;
       const message =
-        (data && typeof data === "object" && ((data as any).message || (data as any).error)) ||
+        (data &&
+          typeof data === "object" &&
+          ((data as any).message || (data as any).error)) ||
         error?.message ||
         "Request failed";
 
@@ -97,11 +102,14 @@ export interface RideRequest {
   [key: string]: any;
 }
 
-export async function requestRide(payload: RequestRidePayload, token: string): Promise<RideRequest> {
+export async function requestRide(
+  payload: RequestRidePayload,
+  token: string,
+): Promise<RideRequest> {
   return request<RideRequest>("/rides/request", {
     method: "POST",
     body: payload,
-    token
+    token,
   });
 }
 
@@ -113,7 +121,7 @@ export interface NearbyRequestParams {
 
 export async function getNearbyRequests(
   params: NearbyRequestParams,
-  token: string
+  token: string,
 ): Promise<RideRequest[]> {
   const searchParams = new URLSearchParams();
   searchParams.set("lat", String(params.lat));
@@ -126,13 +134,16 @@ export async function getNearbyRequests(
 
   return request<RideRequest[]>(path, {
     method: "GET",
-    token
+    token,
   });
 }
 
-export async function acceptRide(id: string, token: string): Promise<RideRequest> {
+export async function acceptRide(
+  id: string,
+  token: string,
+): Promise<RideRequest> {
   return request<RideRequest>(`/rides/${id}/accept`, {
     method: "POST",
-    token
+    token,
   });
 }

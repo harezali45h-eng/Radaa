@@ -20,7 +20,9 @@ export default function CreateTripPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [autoLocationMessage, setAutoLocationMessage] = useState<string | null>(null);
+  const [autoLocationMessage, setAutoLocationMessage] = useState<string | null>(
+    null,
+  );
 
   const tripUiEnabled = useIsFeatureEnabled("trip_ui_v1", false);
 
@@ -41,15 +43,19 @@ export default function CreateTripPage() {
       (position) => {
         setLat(String(position.coords.latitude));
         setLng(String(position.coords.longitude));
-        setAutoLocationMessage("Location captured. You can adjust it before starting the trip.");
+        setAutoLocationMessage(
+          "Location captured. You can adjust it before starting the trip.",
+        );
       },
       (geoError) => {
-        setAutoLocationMessage(geoError?.message || "Unable to determine your current location.");
+        setAutoLocationMessage(
+          geoError?.message || "Unable to determine your current location.",
+        );
       },
       {
         enableHighAccuracy: true,
-        timeout: 10000
-      }
+        timeout: 10000,
+      },
     );
   };
 
@@ -65,14 +71,14 @@ export default function CreateTripPage() {
       const response = await fetch(`${BACKEND_URL}/trips/start`, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           userId,
           matatuId,
           lat,
-          lng
-        })
+          lng,
+        }),
       });
 
       const data = await response.json().catch(() => null);
@@ -90,7 +96,8 @@ export default function CreateTripPage() {
         router.push(`/dashboard/trips/${data._id}`);
       }
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to start trip";
+      const message =
+        err instanceof Error ? err.message : "Failed to start trip";
       setError(message);
     } finally {
       setSubmitting(false);
@@ -102,10 +109,13 @@ export default function CreateTripPage() {
   return (
     <div className="space-y-6">
       <header className="space-y-2">
-        <h1 className="text-2xl font-semibold tracking-tight">Start a new trip</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">
+          Start a new trip
+        </h1>
         <p className="text-xs text-slate-300">
-          Record a new trip by linking a user to a matatu and initial coordinates. You can stop the
-          trip later with the final fare and drop-off location.
+          Record a new trip by linking a user to a matatu and initial
+          coordinates. You can stop the trip later with the final fare and
+          drop-off location.
         </p>
       </header>
 
@@ -113,11 +123,15 @@ export default function CreateTripPage() {
         <section className="grid gap-2 text-[11px] text-slate-300 md:grid-cols-3">
           <div className="rounded-lg border border-slate-800 bg-slate-900/80 px-3 py-2">
             <div className="text-slate-400">Step 1</div>
-            <div className="mt-0.5 font-semibold text-slate-50">Pick a matatu</div>
+            <div className="mt-0.5 font-semibold text-slate-50">
+              Pick a matatu
+            </div>
           </div>
           <div className="rounded-lg border border-slate-800 bg-slate-900/80 px-3 py-2">
             <div className="text-slate-400">Step 2</div>
-            <div className="mt-0.5 font-semibold text-slate-50">Set start location</div>
+            <div className="mt-0.5 font-semibold text-slate-50">
+              Set start location
+            </div>
           </div>
           <div className="rounded-lg border border-slate-800 bg-slate-900/80 px-3 py-2">
             <div className="text-slate-400">Step 3</div>
@@ -128,7 +142,8 @@ export default function CreateTripPage() {
 
       {!userId && (
         <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-4 text-xs text-amber-100">
-          No user ID found. Make sure you are logged in via the auth screens before creating trips.
+          No user ID found. Make sure you are logged in via the auth screens
+          before creating trips.
         </div>
       )}
 
@@ -144,9 +159,15 @@ export default function CreateTripPage() {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-4 rounded-xl border border-slate-800 bg-slate-900/80 p-4 text-xs">
+      <form
+        onSubmit={handleSubmit}
+        className="space-y-4 rounded-xl border border-slate-800 bg-slate-900/80 p-4 text-xs"
+      >
         <div className="space-y-1">
-          <label htmlFor="matatuId" className="text-xs font-medium text-slate-100">
+          <label
+            htmlFor="matatuId"
+            className="text-xs font-medium text-slate-100"
+          >
             Matatu ID
           </label>
           <input
@@ -159,7 +180,8 @@ export default function CreateTripPage() {
             placeholder="Paste a matatu MongoDB ID"
           />
           <p className="text-[11px] text-slate-500">
-            Use the ID from the Matatus list or backend logs while wiring things up.
+            Use the ID from the Matatus list or backend logs while wiring things
+            up.
           </p>
         </div>
 
@@ -173,7 +195,9 @@ export default function CreateTripPage() {
               Use my current location
             </button>
             {autoLocationMessage && (
-              <p className="text-[11px] text-slate-400">{autoLocationMessage}</p>
+              <p className="text-[11px] text-slate-400">
+                {autoLocationMessage}
+              </p>
             )}
           </div>
         )}

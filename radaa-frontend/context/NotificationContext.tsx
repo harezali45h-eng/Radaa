@@ -7,7 +7,7 @@ import {
   useEffect,
   useMemo,
   useState,
-  type ReactNode
+  type ReactNode,
 } from "react";
 import { io, type Socket } from "socket.io-client";
 
@@ -34,7 +34,9 @@ interface NotificationContextValue {
   markAsRead: (id: string) => void;
 }
 
-const NotificationContext = createContext<NotificationContextValue | undefined>(undefined);
+const NotificationContext = createContext<NotificationContextValue | undefined>(
+  undefined,
+);
 
 export function NotificationProvider({ children }: { children: ReactNode }) {
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
@@ -48,12 +50,12 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
           title: input.title,
           message: input.message,
           createdAt: new Date().toISOString(),
-          read: false
+          read: false,
         },
-        ...current
+        ...current,
       ]);
     },
-    []
+    [],
   );
 
   const markAllAsRead = useCallback(() => {
@@ -61,17 +63,21 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const markAsRead = useCallback((id: string) => {
-    setNotifications((current) => current.map((n) => (n.id === id ? { ...n, read: true } : n)));
+    setNotifications((current) =>
+      current.map((n) => (n.id === id ? { ...n, read: true } : n)),
+    );
   }, []);
 
   const unreadCount = useMemo(
     () => notifications.filter((n) => !n.read).length,
-    [notifications]
+    [notifications],
   );
 
   useEffect(() => {
     const socketUrl =
-      process.env.NEXT_PUBLIC_SOCKET_URL || process.env.NEXT_PUBLIC_API_URL || "";
+      process.env.NEXT_PUBLIC_SOCKET_URL ||
+      process.env.NEXT_PUBLIC_API_URL ||
+      "";
 
     if (!socketUrl) {
       return undefined;
@@ -83,7 +89,8 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
 
     if (typeof window !== "undefined") {
       const storedToken =
-        window.localStorage.getItem("token") || window.sessionStorage.getItem("token");
+        window.localStorage.getItem("token") ||
+        window.sessionStorage.getItem("token");
 
       if (storedToken && typeof storedToken === "string") {
         auth = { token: storedToken };
@@ -97,7 +104,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     const socket: Socket = io(url, {
       transports: ["websocket"],
       path: "/socket.io",
-      auth
+      auth,
     });
 
     socket.on("matatu:update", (payload: any) => {
@@ -109,7 +116,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
         title: "Matatu location update",
         message: route
           ? `${plate} on route ${route} reported a new location.`
-          : `${plate} reported a new location.`
+          : `${plate} reported a new location.`,
       });
     });
 
@@ -117,7 +124,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       addNotification({
         type: "system",
         title: "Realtime temporarily unavailable",
-        message: "Socket connection failed. Live notifications may be delayed."
+        message: "Socket connection failed. Live notifications may be delayed.",
       });
     });
 
@@ -127,18 +134,30 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   }, [addNotification]);
 
   const value: NotificationContextValue = useMemo(
-    () => ({ notifications, unreadCount, addNotification, markAllAsRead, markAsRead }),
-    [notifications, unreadCount, addNotification, markAllAsRead, markAsRead]
+    () => ({
+      notifications,
+      unreadCount,
+      addNotification,
+      markAllAsRead,
+      markAsRead,
+    }),
+    [notifications, unreadCount, addNotification, markAllAsRead, markAsRead],
   );
 
-  return <NotificationContext.Provider value={value}>{children}</NotificationContext.Provider>;
+  return (
+    <NotificationContext.Provider value={value}>
+      {children}
+    </NotificationContext.Provider>
+  );
 }
 
 export function useNotifications(): NotificationContextValue {
   const ctx = useContext(NotificationContext);
 
   if (!ctx) {
-    throw new Error("useNotifications must be used within a NotificationProvider");
+    throw new Error(
+      "useNotifications must be used within a NotificationProvider",
+    );
   }
 
   return ctx;

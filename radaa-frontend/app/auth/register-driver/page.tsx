@@ -40,12 +40,13 @@ export default function RegisterDriverPage() {
         saccoName,
         vehicleRegistration,
         licenseNumber: licenseNumber || undefined,
-        profilePhoto: profilePhoto || undefined
+        profilePhoto: profilePhoto || undefined,
       });
 
       router.push("/dashboard/driver/live");
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Driver registration failed";
+      const message =
+        err instanceof Error ? err.message : "Driver registration failed";
       setError(message);
     } finally {
       setSubmitting(false);
@@ -57,9 +58,12 @@ export default function RegisterDriverPage() {
   return (
     <div className="mx-auto max-w-md space-y-6">
       <div className="space-y-2">
-        <h1 className="text-2xl font-semibold tracking-tight">Driver sign up</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">
+          Driver sign up
+        </h1>
         <p className="text-sm text-slate-300">
-          Create a driver account to access the live driver dashboard and accept nearby rides.
+          Create a driver account to access the live driver dashboard and accept
+          nearby rides.
         </p>
       </div>
 
@@ -67,15 +71,21 @@ export default function RegisterDriverPage() {
         <section className="grid gap-2 text-[11px] text-slate-300 md:grid-cols-3">
           <div className="rounded-lg border border-slate-800 bg-slate-900/80 px-3 py-2">
             <div className="text-slate-400">Step 1</div>
-            <div className="mt-0.5 font-semibold text-slate-50">Account basics</div>
+            <div className="mt-0.5 font-semibold text-slate-50">
+              Account basics
+            </div>
           </div>
           <div className="rounded-lg border border-slate-800 bg-slate-900/80 px-3 py-2">
             <div className="text-slate-400">Step 2</div>
-            <div className="mt-0.5 font-semibold text-slate-50">Vehicle details</div>
+            <div className="mt-0.5 font-semibold text-slate-50">
+              Vehicle details
+            </div>
           </div>
           <div className="rounded-lg border border-slate-800 bg-slate-900/80 px-3 py-2">
             <div className="text-slate-400">Step 3</div>
-            <div className="mt-0.5 font-semibold text-slate-50">Optional extras</div>
+            <div className="mt-0.5 font-semibold text-slate-50">
+              Optional extras
+            </div>
           </div>
         </section>
       )}
@@ -88,7 +98,10 @@ export default function RegisterDriverPage() {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-1">
-          <label htmlFor="username" className="text-sm font-medium text-slate-100">
+          <label
+            htmlFor="username"
+            className="text-sm font-medium text-slate-100"
+          >
             Full name
           </label>
           <input
@@ -103,8 +116,14 @@ export default function RegisterDriverPage() {
         </div>
 
         <div className="space-y-1">
-          <label htmlFor="handle" className="text-sm font-medium text-slate-100">
-            Handle <span className="text-xs font-normal text-slate-400">(optional)</span>
+          <label
+            htmlFor="handle"
+            className="text-sm font-medium text-slate-100"
+          >
+            Handle{" "}
+            <span className="text-xs font-normal text-slate-400">
+              (optional)
+            </span>
           </label>
           <input
             id="handle"
@@ -148,7 +167,10 @@ export default function RegisterDriverPage() {
         </div>
 
         <div className="space-y-1">
-          <label htmlFor="password" className="text-sm font-medium text-slate-100">
+          <label
+            htmlFor="password"
+            className="text-sm font-medium text-slate-100"
+          >
             Password
           </label>
           <input
@@ -164,7 +186,10 @@ export default function RegisterDriverPage() {
         </div>
 
         <div className="space-y-1">
-          <label htmlFor="saccoName" className="text-sm font-medium text-slate-100">
+          <label
+            htmlFor="saccoName"
+            className="text-sm font-medium text-slate-100"
+          >
             SACCO name
           </label>
           <input
@@ -179,7 +204,10 @@ export default function RegisterDriverPage() {
         </div>
 
         <div className="space-y-1">
-          <label htmlFor="vehicleRegistration" className="text-sm font-medium text-slate-100">
+          <label
+            htmlFor="vehicleRegistration"
+            className="text-sm font-medium text-slate-100"
+          >
             Vehicle registration
           </label>
           <input
@@ -194,8 +222,14 @@ export default function RegisterDriverPage() {
         </div>
 
         <div className="space-y-1">
-          <label htmlFor="licenseNumber" className="text-sm font-medium text-slate-100">
-            License number <span className="text-xs font-normal text-slate-400">(optional)</span>
+          <label
+            htmlFor="licenseNumber"
+            className="text-sm font-medium text-slate-100"
+          >
+            License number{" "}
+            <span className="text-xs font-normal text-slate-400">
+              (optional)
+            </span>
           </label>
           <input
             id="licenseNumber"
@@ -208,8 +242,14 @@ export default function RegisterDriverPage() {
         </div>
 
         <div className="space-y-1">
-          <label htmlFor="profilePhoto" className="text-sm font-medium text-slate-100">
-            Profile photo URL <span className="text-xs font-normal text-slate-400">(optional)</span>
+          <label
+            htmlFor="profilePhoto"
+            className="text-sm font-medium text-slate-100"
+          >
+            Profile photo URL{" "}
+            <span className="text-xs font-normal text-slate-400">
+              (optional)
+            </span>
           </label>
           <input
             id="profilePhoto"
@@ -232,7 +272,10 @@ export default function RegisterDriverPage() {
 
       <p className="text-center text-xs text-slate-400">
         Already have a driver account?{" "}
-        <Link href="/auth/login-driver" className="font-medium text-emerald-400 hover:text-emerald-300">
+        <Link
+          href="/auth/login-driver"
+          className="font-medium text-emerald-400 hover:text-emerald-300"
+        >
           Sign in
         </Link>
       </p>
