@@ -1,12 +1,19 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import RideRequestButton from "@/components/RideRequestButton";
 import { useAuth } from "@/context/AuthContext";
 import { useNotifications } from "@/context/NotificationContext";
 import { useSocket } from "@/hooks/useSocket";
 import { useRealtime } from "@/context/realtimeContext";
+import { useIsFeatureEnabled } from "@/context/FeatureFlagContext";
 import { getNearbyMatatus, type NearbyMatatu } from "@/lib/api/passenger";
+import MatatuSwipeDeck, { type SwipeMatatu } from "@/components/map/MatatuSwipeDeck";
+import {
+  createEphemeralRequest,
+  pingPassengerLocation,
+  type EphemeralRequestSummary
+} from "@/lib/api/requests";
 
 interface LatLng {
   lat: number;
@@ -37,11 +44,18 @@ export default function PassengerLiveDashboardPage() {
   const { on, off, emit } = useSocket();
   const { matatus: realtimeMatatus } = useRealtime();
 
+  const driverRequestsEnabled = useIsFeatureEnabled("DRIVER_REQUESTS_V1", false);
+  const autoCancelEnabled = useIsFeatureEnabled("AUTO_CANCEL_V1", false);
+  const uiRevampEnabled = useIsFeatureEnabled("ui_revamp_v1", false);
+
   const [userLocation, setUserLocation] = useState<LatLng | null>(null);
   const [nearby, setNearby] = useState<NearbyMatatu[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [rideStatus, setRideStatus] = useState<string>("Idle");
+  const [activeRequestId, setActiveRequestId] = useState<string | null>(null);
+  const [autoCancelMessage, setAutoCancelMessage] = useState<string | null>(null);
+  const pingTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (!token) {
@@ -106,6 +120,62 @@ export default function PassengerLiveDashboardPage() {
   }, [token]);
 
   useEffect(() => {
+    if (!token || !driverRequestsEnabled || !autoCancelEnabled) {
+      if (pingTimerRef.current != null) {
+        window.clearInterval(pingTimerRef.current);
+        pingTimerRef.current = null;
+      }
+      return;
+    }
+
+    if (!activeRequestId) {
+      if (pingTimerRef.current != null) {
+        window.clearInterval(pingTimerRef.current);
+        pingTimerRef.current = null;
+      }
+      return;
+    }
+
+    if (typeof window === "undefined" || !navigator.geolocation) {
+      return;
+    }
+
+    const intervalId = window.setInterval(() => {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          void pingPassengerLocation(
+            activeRequestId,
+            {
+              lat: position.coords.latitude,
+              lng: position.coords.longitude
+            },
+            token
+          ).catch(() => {
+            // errors are logged by the API helper and should not block UI
+          });
+        },
+        () => {
+          // ignore streaming errors; main flow already handles geolocation errors
+        },
+        {
+          enableHighAccuracy: true,
+          maximumAge: 5000,
+          timeout: 10000
+        }
+      );
+    }, 5000);
+
+    pingTimerRef.current = intervalId;
+
+    return () => {
+      if (pingTimerRef.current != null) {
+        window.clearInterval(pingTimerRef.current);
+        pingTimerRef.current = null;
+      }
+    };
+  }, [token, driverRequestsEnabled, autoCancelEnabled, activeRequestId]);
+
+  useEffect(() => {
     if (!token) {
       return;
     }
@@ -147,8 +217,13 @@ export default function PassengerLiveDashboardPage() {
 
   useEffect(() => {
     const handleRideAccepted = (payload: any) => {
-      void payload;
+      const id = payload?.id || payload?._id;
+      if (activeRequestId && id && String(id) !== activeRequestId) {
+        return;
+      }
+
       setRideStatus("Accepted");
+      setAutoCancelMessage(null);
       addNotification({
         type: "trip",
         title: "Driver on the way",
@@ -157,8 +232,14 @@ export default function PassengerLiveDashboardPage() {
     };
 
     const handleRideCancelled = (payload: any) => {
-      void payload;
+      const id = payload?.id || payload?._id || payload?.requestId;
+      if (activeRequestId && id && String(id) !== activeRequestId) {
+        return;
+      }
+
       setRideStatus("Cancelled");
+      setActiveRequestId(null);
+      setAutoCancelMessage(null);
       addNotification({
         type: "trip",
         title: "Ride cancelled",
@@ -166,14 +247,53 @@ export default function PassengerLiveDashboardPage() {
       });
     };
 
+    const handleAutoCancelWarning = (payload: any) => {
+      const requestId = payload?.requestId;
+      if (!requestId || !activeRequestId || String(requestId) !== activeRequestId) {
+        return;
+      }
+
+      setRideStatus("Auto-cancel warning");
+      setAutoCancelMessage(
+        "You have moved away from your pickup point. Stay nearby to avoid auto-cancel."
+      );
+
+      addNotification({
+        type: "trip",
+        title: "Stay near your pickup",
+        message: "You moved away from your pickup point. The request may auto-cancel soon."
+      });
+    };
+
+    const handleAutoCancelled = (payload: any) => {
+      const requestId = payload?.requestId;
+      if (!requestId || !activeRequestId || String(requestId) !== activeRequestId) {
+        return;
+      }
+
+      setRideStatus("Auto-cancelled");
+      setActiveRequestId(null);
+      setAutoCancelMessage("Your request was auto-cancelled because you moved too far away.");
+
+      addNotification({
+        type: "trip",
+        title: "Ride auto-cancelled",
+        message: "Your ride request was auto-cancelled after moving away from the pickup."
+      });
+    };
+
     on("ride:accepted", handleRideAccepted as any);
     on("ride:cancelled", handleRideCancelled as any);
+    on("ride:auto_cancel_warning", handleAutoCancelWarning as any);
+    on("ride:auto_cancelled", handleAutoCancelled as any);
 
     return () => {
       off("ride:accepted", handleRideAccepted as any);
       off("ride:cancelled", handleRideCancelled as any);
+      off("ride:auto_cancel_warning", handleAutoCancelWarning as any);
+      off("ride:auto_cancelled", handleAutoCancelled as any);
     };
-  }, [on, off, addNotification]);
+  }, [on, off, addNotification, activeRequestId]);
 
   const nearestMatatus = useMemo(() => {
     const source = nearby.length > 0 ? nearby : realtimeMatatus;
@@ -212,6 +332,109 @@ export default function PassengerLiveDashboardPage() {
 
   const hasMatatus = nearestMatatus.length > 0;
 
+  const swipeItems: SwipeMatatu[] = useMemo(
+    () =>
+      nearestMatatus.map((m) => ({
+        id: String(m.id || m._id || "-"),
+        plate: m.plate,
+        numberPlate: m.numberPlate,
+        route: m.route,
+        sacco: (m as any).sacco,
+        mainPhotoUrl: (m as any).mainPhotoUrl ?? null,
+        rating: (m as any).rating,
+        distanceMeters: m.distanceMeters,
+        etaMinutes: m.etaMinutes
+      })),
+    [nearestMatatus]
+  );
+
+  const handleSmartRequest = () => {
+    if (!token) {
+      addNotification({
+        type: "system",
+        title: "Sign in required",
+        message: "You need to be signed in to request a ride."
+      });
+      return;
+    }
+
+    if (!driverRequestsEnabled || !autoCancelEnabled) {
+      addNotification({
+        type: "system",
+        title: "Smart requests disabled",
+        message: "Smart auto-cancel requests are not enabled on this environment yet."
+      });
+      return;
+    }
+
+    if (typeof window === "undefined" || !navigator.geolocation) {
+      addNotification({
+        type: "system",
+        title: "Location unavailable",
+        message: "Geolocation is not available in this browser."
+      });
+      return;
+    }
+
+    setRideStatus("Requesting");
+    setAutoCancelMessage(null);
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        try {
+          const pickup = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          };
+
+          const summary: EphemeralRequestSummary = await createEphemeralRequest(
+            {
+              pickup,
+              partySize: 1,
+              meta: {}
+            },
+            token
+          );
+
+          setActiveRequestId(summary.id);
+          setUserLocation(pickup);
+          setRideStatus("Requested");
+
+          addNotification({
+            type: "trip",
+            title: "Ride requested",
+            message: "We are finding a nearby driver for you."
+          });
+        } catch (error: any) {
+          const message = error instanceof Error ? error.message : "Failed to request ride";
+          setRideStatus("Idle");
+          setActiveRequestId(null);
+          setAutoCancelMessage(null);
+          addNotification({
+            type: "system",
+            title: "Ride request failed",
+            message
+          });
+        }
+      },
+      (geoError) => {
+        const message = geoError?.message || "Unable to determine your current location.";
+        setRideStatus("Idle");
+        setActiveRequestId(null);
+        setAutoCancelMessage(null);
+        addNotification({
+          type: "system",
+          title: "Location error",
+          message
+        });
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000
+      }
+    );
+  };
+
   return (
     <div className="space-y-4">
       <header className="space-y-1">
@@ -235,6 +458,15 @@ export default function PassengerLiveDashboardPage() {
             Status: {rideStatus}
           </span>
           <RideRequestButton />
+          {driverRequestsEnabled && autoCancelEnabled && (
+            <button
+              type="button"
+              onClick={handleSmartRequest}
+              className="rounded-md border border-emerald-600/60 bg-emerald-600/15 px-3 py-2 text-[11px] font-medium text-emerald-100 shadow-sm transition hover:border-emerald-400 hover:bg-emerald-600/25"
+            >
+              Smart request
+            </button>
+          )}
         </div>
       </section>
 
@@ -250,6 +482,12 @@ export default function PassengerLiveDashboardPage() {
         </div>
       )}
 
+      {autoCancelMessage && !loading && (
+        <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-4 text-[11px] text-amber-100">
+          {autoCancelMessage}
+        </div>
+      )}
+
       {!loading && !error && (
         <section className="space-y-3 rounded-xl border border-slate-800 bg-slate-900/80 p-4 text-xs">
           <div className="flex items-center justify-between">
@@ -260,6 +498,19 @@ export default function PassengerLiveDashboardPage() {
               </p>
             </div>
           </div>
+
+          {uiRevampEnabled && hasMatatus && swipeItems.length > 0 && (
+            <MatatuSwipeDeck
+              items={swipeItems}
+              onSelect={(id) => {
+                addNotification({
+                  type: "system",
+                  title: "Matatu saved",
+                  message: "We highlighted this matatu in your nearby list."
+                });
+              }}
+            />
+          )}
 
           {!hasMatatus && (
             <p className="text-[11px] text-slate-400">

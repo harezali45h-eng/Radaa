@@ -11,6 +11,7 @@ import { sanitizeInput } from "./middleware/sanitizeMiddleware.js";
 import { openapiSpec } from "./utils/openapi.js";
 import { connectDB } from "./config/db.js";
 import { initSocket } from "./realtime/socket.js";
+import { getLiveMatatus } from "./controllers/matatuController.js";
 
 import userRoutes from "./routes/userRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
@@ -44,6 +45,7 @@ app.set("trust proxy", 1);
 -------------------------------------------- */
 const allowedOrigins = [
   process.env.FRONTEND_ORIGIN,
+  "https://radaa-frontend.vercel.app",
   "http://localhost:5173",
   "http://localhost:3000",
 ].filter(Boolean);
@@ -107,6 +109,7 @@ app.use("/api/map", mapRoutes);
 app.use("/api/feature-flags", featureFlagRoutes);
 app.use("/api/ratings", ratingRoutes);
 
+app.use("/api/matatus", matatuRoutes);
 app.use("/api/matatus", matatuApiRoutes);
 app.use("/api/sacco", saccoRoutes);
 
@@ -114,6 +117,7 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/trips", tripRoutes);
 
+app.get("/api/matatus/live", getLiveMatatus);
 app.use("/api/matatu-system", matatuRoutes);
 
 /* -------------------------------------------

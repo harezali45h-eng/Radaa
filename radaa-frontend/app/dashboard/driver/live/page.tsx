@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useNotifications } from "@/context/NotificationContext";
 import { useSocket } from "@/hooks/useSocket";
@@ -8,10 +8,29 @@ import { useRealtime } from "@/context/realtimeContext";
 import { acceptRide, getNearbyRequests, type RideRequest } from "@/lib/api/rides";
 import { getAssignedPassengers } from "@/lib/api/driver";
 import { useIsFeatureEnabled } from "@/context/FeatureFlagContext";
+import MapContainer from "@/components/map/MapContainer";
 
 interface LatLng {
   lat: number;
   lng: number;
+}
+
+function haversineDistanceMeters(a: LatLng, b: LatLng): number {
+  const R = 6371000;
+  const toRad = (deg: number) => (deg * Math.PI) / 180;
+
+  const dLat = toRad(b.lat - a.lat);
+  const dLng = toRad(b.lng - a.lng);
+  const lat1 = toRad(a.lat);
+  const lat2 = toRad(b.lat);
+
+  const sinDLat = Math.sin(dLat / 2);
+  const sinDLng = Math.sin(dLng / 2);
+
+  const h = sinDLat * sinDLat + Math.cos(lat1) * Math.cos(lat2) * sinDLng * sinDLng;
+  const c = 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
+
+  return R * c;
 }
 
 export default function DriverLiveDashboardPage() {
@@ -256,6 +275,88 @@ export default function DriverLiveDashboardPage() {
   const hasIncoming = incoming.length > 0;
   const hasAssigned = assigned.length > 0;
 
+  const passengerMarkers = useMemo(
+    () =>
+      incoming
+        .map((ride) => {
+          const pickup = (ride as any).pickup;
+          if (!pickup || !Array.isArray(pickup.coordinates) || pickup.coordinates.length !== 2) {
+            return null;
+          }
+
+          const [lng, lat] = pickup.coordinates as [number, number];
+
+          if (typeof lat !== "number" || typeof lng !== "number") {
+            return null;
+          }
+
+          const id = (ride._id as any) || (ride as any).id || `${lat},${lng}`;
+          return {
+            id: String(id),
+            location: { lat, lng }
+          };
+        })
+        .filter(Boolean) as { id: string; location: LatLng }[],
+    [incoming]
+  );
+
+  const bounds = useMemo(() => {
+    const locations: LatLng[] = [];
+
+    if (coords) {
+      locations.push(coords);
+    }
+
+    passengerMarkers.forEach((p) => {
+      if (
+        p.location &&
+        typeof p.location.lat === "number" &&
+        typeof p.location.lng === "number"
+      ) {
+        locations.push(p.location);
+      }
+    });
+
+    if (locations.length === 0) {
+      return null;
+    }
+
+    let minLat = locations[0].lat;
+    let maxLat = locations[0].lat;
+    let minLng = locations[0].lng;
+    let maxLng = locations[0].lng;
+
+    locations.forEach((loc) => {
+      if (loc.lat < minLat) minLat = loc.lat;
+      if (loc.lat > maxLat) maxLat = loc.lat;
+      if (loc.lng < minLng) minLng = loc.lng;
+      if (loc.lng > maxLng) maxLng = loc.lng;
+    });
+
+    return { minLat, maxLat, minLng, maxLng };
+  }, [coords, passengerMarkers]);
+
+  const hasAnyLocation = useMemo(() => bounds !== null, [bounds]);
+
+  const project = (location: LatLng | null | undefined) => {
+    if (!location || !bounds) {
+      return { left: "50%", top: "50%" };
+    }
+
+    const latRange = Math.max(bounds.maxLat - bounds.minLat, 0.0001);
+    const lngRange = Math.max(bounds.maxLng - bounds.minLng, 0.0001);
+
+    const x = ((location.lng - bounds.minLng) / lngRange) * 100;
+    const y = 100 - ((location.lat - bounds.minLat) / latRange) * 100;
+
+    return {
+      left: `${Math.min(100, Math.max(0, x))}%`,
+      top: `${Math.min(100, Math.max(0, y))}%`
+    };
+  };
+
+  const displayPositions: Record<string, LatLng> = {};
+
   if (loading || !user || !isDriver) {
     return (
       <div className="space-y-4">
@@ -279,7 +380,7 @@ export default function DriverLiveDashboardPage() {
         {driverOnboardEnabled && (
           <div className="mt-2 inline-flex items-center gap-2 rounded-full border border-emerald-600/60 bg-emerald-600/10 px-3 py-1 text-[10px] text-emerald-100">
             <span className={driverOnline ? "h-1.5 w-1.5 rounded-full bg-emerald-400" : "h-1.5 w-1.5 rounded-full bg-slate-500"} />
-            <span>{driverOnline ? "Youre visible to nearby riders" : "Go online to start seeing ride requests"}</span>
+            <span>{driverOnline ? "You're visible to nearby riders" : "Go online to start seeing ride requests"}</span>
           </div>
         )}
       </header>
@@ -308,6 +409,52 @@ export default function DriverLiveDashboardPage() {
         >
           {driverOnline ? "Go offline" : "Go online"}
         </button>
+      </section>
+
+      <section className="rounded-xl border border-slate-800 bg-slate-900/80 p-3 text-xs">
+        <div className="mb-2 flex items-center justify-between">
+          <div>
+            <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+              Nearby passenger map
+            </div>
+            <p className="text-[11px] text-slate-400">
+              Live preview of requests around your current location.
+            </p>
+          </div>
+        </div>
+        <MapContainer
+          matatus={[]}
+          passengers={passengerMarkers}
+          userLocation={coords}
+          displayPositions={displayPositions}
+          project={project}
+          onCenterOnMe={() => {
+            if (typeof window === "undefined" || !navigator.geolocation) {
+              return;
+            }
+
+            navigator.geolocation.getCurrentPosition(
+              (position) => {
+                const loc: LatLng = {
+                  lat: position.coords.latitude,
+                  lng: position.coords.longitude
+                };
+                setCoords(loc);
+              },
+              () => {
+                // ignore errors here; main flow already reports geo issues
+              },
+              {
+                enableHighAccuracy: true,
+                timeout: 10000
+              }
+            );
+          }}
+          onSelectMatatu={() => {}}
+          isLoading={loadingIncoming}
+          hasAnyLocation={hasAnyLocation}
+          driverMode
+        />
       </section>
 
       {error && (
@@ -348,6 +495,7 @@ export default function DriverLiveDashboardPage() {
                   <tr>
                     <th className="px-3 py-2 text-left font-medium">Pickup</th>
                     <th className="px-3 py-2 text-left font-medium">Requested at</th>
+                    <th className="px-3 py-2 text-left font-medium">Distance</th>
                     <th className="px-3 py-2 text-right font-medium">Actions</th>
                   </tr>
                 </thead>
@@ -363,12 +511,25 @@ export default function DriverLiveDashboardPage() {
                       pickupLabel = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
                     }
 
+                    let distanceLabel = "—";
+                    if (coords && pickup && Array.isArray(pickup.coordinates) && pickup.coordinates.length === 2) {
+                      const [lng, lat] = pickup.coordinates as [number, number];
+                      const distanceMeters = haversineDistanceMeters(coords, { lat, lng });
+                      if (Number.isFinite(distanceMeters)) {
+                        const km = distanceMeters / 1000;
+                        const speedKmh = 25;
+                        const etaMinutes = (distanceMeters / 1000 / speedKmh) * 60;
+                        distanceLabel = `${km.toFixed(1)} km · ~${Math.round(etaMinutes)} min`;
+                      }
+                    }
+
                     return (
                       <tr key={id} className="border-t border-slate-800/80">
                         <td className="px-3 py-2 text-slate-100">{pickupLabel}</td>
                         <td className="px-3 py-2 text-slate-300">
                           {createdAt ? createdAt.toLocaleString() : "Just now"}
                         </td>
+                        <td className="px-3 py-2 text-slate-300">{distanceLabel}</td>
                         <td className="px-3 py-2 text-right">
                           <button
                             type="button"
