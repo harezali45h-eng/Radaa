@@ -1,25 +1,11 @@
 import { Server } from "socket.io";
 import jwt from "jsonwebtoken";
 
-const DEV_FRONTEND_URL = process.env.DEV_FRONTEND_URL || "http://localhost:3000";
-const PROD_FRONTEND_URL =
-  process.env.PROD_FRONTEND_URL ||
-  "https://radaa.vercel.app";
-const RAW_CLIENT_ORIGIN = process.env.CLIENT_ORIGIN || "";
-
-const baseOrigins = [
-  PROD_FRONTEND_URL,
-  ...RAW_CLIENT_ORIGIN.split(",")
-    .map((value) => value.trim())
-    .filter((value) => value.length > 0)
-];
-
-const devOrigins =
-  process.env.NODE_ENV !== "production"
-    ? [DEV_FRONTEND_URL]
-    : [];
-
-const allowedOrigins = Array.from(new Set([...baseOrigins, ...devOrigins]));
+const allowedOrigins = [
+  process.env.FRONTEND_ORIGIN,
+  "http://localhost:5173",
+  "http://localhost:3000",
+].filter((value) => value && value.length > 0);
 
 const socketCors = {
   origin: allowedOrigins,

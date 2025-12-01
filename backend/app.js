@@ -42,23 +42,11 @@ app.set("trust proxy", 1);
 /* -------------------------------------------
    CORS
 -------------------------------------------- */
-const DEV_FRONTEND_URL = process.env.DEV_FRONTEND_URL || "http://localhost:3000";
-const PROD_FRONTEND_URL =
-  process.env.PROD_FRONTEND_URL ||
-  "https://radaa.vercel.app";
-const RAW_CLIENT_ORIGIN = process.env.CLIENT_ORIGIN || "";
-
-const baseOrigins = [
-  PROD_FRONTEND_URL,
-  ...RAW_CLIENT_ORIGIN.split(",").map(o => o.trim()).filter(Boolean)
-];
-
-const devOrigins =
-  process.env.NODE_ENV !== "production"
-    ? [DEV_FRONTEND_URL]
-    : [];
-
-const allowedOrigins = Array.from(new Set([...baseOrigins, ...devOrigins]));
+const allowedOrigins = [
+  process.env.FRONTEND_ORIGIN,
+  "http://localhost:5173",
+  "http://localhost:3000",
+].filter(Boolean);
 
 app.use(
   cors({
@@ -66,7 +54,7 @@ app.use(
       if (!origin || allowedOrigins.includes(origin)) {
         return callback(null, true);
       }
-      return callback(new Error("Origin not allowed by CORS"), false);
+      return callback(new Error("Not allowed by CORS"));
     },
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
