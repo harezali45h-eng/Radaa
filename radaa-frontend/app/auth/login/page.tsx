@@ -6,64 +6,119 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 
 export default function LoginPage() {
-  const { login, loading } = useAuth();
   const router = useRouter();
+  const { login } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [rememberMe, setRememberMe] = useState(false);
+  const [remember, setRemember] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [fieldError, setFieldError] = useState<string | null>(null);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     const storedEmail = window.localStorage.getItem("radaa_login_email");
     if (storedEmail) {
       setEmail(storedEmail);
-      setRememberMe(true);
+      setRemember(true);
     }
   }, []);
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setError(null);
-    setSubmitting(true);
+    setError("");
+    setFieldError(null);
+    setLoading(true);
 
     try {
-      await login({ email, password }, rememberMe);
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/auth/login`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        },
+      );
+
+      const data = await res.json().catch(() => null);
+      console.log("LOGIN RESPONSE --->", data);
+
+      const payload =
+        data && typeof data === "object" && "data" in (data as any)
+          ? (data as any).data
+          : data;
+
+      const token = (payload as any)?.token;
+
+      if (!payload || typeof token !== "string") {
+        const message =
+          (payload as any)?.message ||
+          (data as any)?.message ||
+          (!res.ok ? "Invalid credentials" : "Invalid login response");
+        throw new Error(message);
+      }
 
       if (typeof window !== "undefined") {
-        if (rememberMe) {
+        if (remember) {
           window.localStorage.setItem("radaa_login_email", email);
         } else {
           window.localStorage.removeItem("radaa_login_email");
         }
       }
 
-      router.push("/dashboard");
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Login failed";
-      setError(message);
-    } finally {
-      setSubmitting(false);
-    }
-  };
+      await login(payload as any, { remember });
 
-  const isDisabled = submitting || loading;
+      router.push("/dashboard");
+    } catch (err: any) {
+      console.error(err);
+      const message = err?.message || "Login failed";
+      setError(message);
+      setFieldError(message);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
-    <div className="mx-auto max-w-md space-y-6">
-      <div className="space-y-2">
-        <h1 className="text-2xl font-semibold tracking-tight">Sign in</h1>
-        <p className="text-sm text-slate-300">
-          Access your Radaa dashboard to manage matatus, trips, and payments.
-        </p>
-      </div>
+    <div className="relative mx-auto w-full max-w-md">
+      <noscript>
+        <div className="mb-4 rounded-md border border-yellow-500/40 bg-yellow-500/10 px-3 py-2 text-sm text-yellow-100">
+          JavaScript is disabled in your browser. Please enable JavaScript to
+          sign in to your Radaa account.
+        </div>
+      </noscript>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      {error && (
+        <div
+          role="alert"
+          aria-live="assertive"
+          className="mb-4 rounded-md border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm text-red-100 shadow-sm"
+        >
+          {error}
+        </div>
+      )}
+
+      <form
+        onSubmit={handleSubmit}
+        className="space-y-5 rounded-xl border border-slate-800 bg-slate-900/80 px-6 py-6 shadow-lg backdrop-blur"
+        aria-busy={loading}
+      >
         <div className="space-y-1">
-          <label htmlFor="email" className="text-sm font-medium text-slate-100">
+          <h1 className="text-2xl font-semibold tracking-tight text-slate-50">
+            Sign in
+          </h1>
+          <p className="text-sm text-slate-400">
+            Access your Radaa dashboard to manage matatus, trips, and payments.
+          </p>
+        </div>
+
+        <div className="space-y-1">
+          <label
+            htmlFor="email"
+            className="text-sm font-medium text-slate-100"
+          >
             Email
           </label>
           <input
@@ -73,8 +128,7 @@ export default function LoginPage() {
             required
             value={email}
             onChange={(event) => setEmail(event.target.value)}
-            className="w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-50 outline-none ring-0 placeholder:text-slate-500 focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
-            placeholder="you@example.com"
+            className="mt-1 block w-full rounded-md border border-slate-700 bg-slate-950/60 px-3 py-2 text-sm text-slate-50 placeholder:text-slate-500 outline-none ring-0 transition-colors focus:border-sky-500 focus:ring-2 focus:ring-sky-500/60"
           />
         </div>
 
@@ -93,54 +147,54 @@ export default function LoginPage() {
               required
               value={password}
               onChange={(event) => setPassword(event.target.value)}
-              className="w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 pr-10 text-sm text-slate-50 outline-none ring-0 placeholder:text-slate-500 focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
-              placeholder="••••••••"
-              aria-invalid={!!error}
-              aria-describedby={error ? "password-error" : undefined}
+              className="mt-1 block w-full rounded-md border border-slate-700 bg-slate-950/60 px-3 py-2 pr-10 text-sm text-slate-50 placeholder:text-slate-500 outline-none ring-0 transition-colors focus:border-sky-500 focus:ring-2 focus:ring-sky-500/60"
+              aria-invalid={!!fieldError}
+              aria-describedby={fieldError ? "password-error" : undefined}
             />
             <button
               type="button"
               onClick={() => setShowPassword((prev) => !prev)}
-              className="absolute inset-y-0 right-0 flex items-center pr-3 text-xs font-medium text-slate-400 hover:text-slate-200 focus:outline-none"
+              className="absolute inset-y-0 right-0 flex items-center pr-3 text-xs font-medium text-slate-400 hover:text-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
               aria-label={showPassword ? "Hide password" : "Show password"}
             >
               {showPassword ? "Hide" : "Show"}
             </button>
           </div>
-          {error && (
+          {fieldError && (
             <p
               id="password-error"
               className="text-xs text-red-400"
               role="alert"
             >
-              {error}
+              {fieldError}
             </p>
           )}
         </div>
 
-        <div className="flex items-center justify-between">
-          <label
-            htmlFor="rememberMe"
-            className="flex items-center space-x-2 text-xs text-slate-300"
-          >
+        <div className="flex items-center justify-between text-xs text-slate-300">
+          <label className="flex items-center gap-2">
             <input
-              id="rememberMe"
               type="checkbox"
-              checked={rememberMe}
-              onChange={(event) => setRememberMe(event.target.checked)}
-              className="h-4 w-4 rounded border-slate-700 bg-slate-900 text-sky-500 focus:ring-sky-500"
+              checked={remember}
+              onChange={(event) => setRemember(event.target.checked)}
+              className="h-4 w-4 rounded border-slate-700 bg-slate-950 text-sky-500 focus:ring-sky-500"
             />
             <span>Remember me on this device</span>
           </label>
+          <Link
+            href="/auth/forgot"
+            className="rounded text-sky-400 hover:text-sky-300 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
+          >
+            Forgot?
+          </Link>
         </div>
 
         <button
           type="submit"
-          disabled={isDisabled}
-          className="inline-flex w-full items-center justify-center rounded-md bg-sky-600 px-3 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-sky-500 disabled:cursor-not-allowed disabled:opacity-60"
-          aria-busy={isDisabled}
+          disabled={loading}
+          className="inline-flex w-full items-center justify-center rounded-md bg-sky-600 px-3 py-2 text-sm font-medium text-white shadow-sm transition-transform transition-colors hover:-translate-y-px hover:bg-sky-500 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {isDisabled && (
+          {loading && (
             <svg
               className="mr-2 h-4 w-4 animate-spin text-sky-100"
               viewBox="0 0 24 24"
@@ -162,37 +216,39 @@ export default function LoginPage() {
               />
             </svg>
           )}
-          <span>{isDisabled ? "Signing in..." : "Sign in"}</span>
+          <span>{loading ? "Signing in…" : "Sign in"}</span>
         </button>
-      </form>
 
-      <p className="text-center text-xs text-slate-400">
-        Don&apos;t have an account?{" "}
-        <Link
-          href="/auth/register"
-          className="font-medium text-sky-400 hover:text-sky-300"
-        >
-          Create one
-        </Link>
-      </p>
-      <p className="text-center text-xs text-slate-400">
-        Are you a SACCO admin?{" "}
-        <Link
-          href="/auth/login-sacco"
-          className="font-medium text-sky-400 hover:text-sky-300"
-        >
-          Sign in to SACCO dashboard
-        </Link>
-      </p>
-      <p className="text-center text-xs text-slate-400">
-        Are you a driver?{" "}
-        <Link
-          href="/auth/login-driver"
-          className="font-medium text-emerald-400 hover:text-emerald-300"
-        >
-          Sign in to driver dashboard
-        </Link>
-      </p>
+        <p className="pt-1 text-center text-xs text-slate-400">
+          Don&apos;t have an account?{" "}
+          <Link
+            href="/auth/register"
+            className="font-medium text-sky-400 hover:text-sky-300 hover:underline"
+          >
+            Create one
+          </Link>
+        </p>
+
+        <p className="text-center text-xs text-slate-400">
+          Are you a SACCO admin?{" "}
+          <Link
+            href="/auth/login-sacco"
+            className="font-medium text-sky-400 hover:text-sky-300 hover:underline"
+          >
+            Sign in to SACCO dashboard
+          </Link>
+        </p>
+
+        <p className="text-center text-xs text-slate-400">
+          Are you a driver?{" "}
+          <Link
+            href="/auth/login-driver"
+            className="font-medium text-emerald-400 hover:text-emerald-300 hover:underline"
+          >
+            Sign in to driver dashboard
+          </Link>
+        </p>
+      </form>
     </div>
   );
 }
