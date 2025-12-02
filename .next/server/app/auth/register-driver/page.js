@@ -1,0 +1,597 @@
+(() => {
+  var e = {};
+  ((e.id = 61),
+    (e.ids = [61]),
+    (e.modules = {
+      7849: (e) => {
+        "use strict";
+        e.exports = require("next/dist/client/components/action-async-storage.external");
+      },
+      2934: (e) => {
+        "use strict";
+        e.exports = require("next/dist/client/components/action-async-storage.external.js");
+      },
+      5403: (e) => {
+        "use strict";
+        e.exports = require("next/dist/client/components/request-async-storage.external");
+      },
+      4580: (e) => {
+        "use strict";
+        e.exports = require("next/dist/client/components/request-async-storage.external.js");
+      },
+      4749: (e) => {
+        "use strict";
+        e.exports = require("next/dist/client/components/static-generation-async-storage.external");
+      },
+      5869: (e) => {
+        "use strict";
+        e.exports = require("next/dist/client/components/static-generation-async-storage.external.js");
+      },
+      399: (e) => {
+        "use strict";
+        e.exports = require("next/dist/compiled/next-server/app-page.runtime.prod.js");
+      },
+      9491: (e) => {
+        "use strict";
+        e.exports = require("assert");
+      },
+      4300: (e) => {
+        "use strict";
+        e.exports = require("buffer");
+      },
+      2081: (e) => {
+        "use strict";
+        e.exports = require("child_process");
+      },
+      6113: (e) => {
+        "use strict";
+        e.exports = require("crypto");
+      },
+      2361: (e) => {
+        "use strict";
+        e.exports = require("events");
+      },
+      7147: (e) => {
+        "use strict";
+        e.exports = require("fs");
+      },
+      3685: (e) => {
+        "use strict";
+        e.exports = require("http");
+      },
+      5158: (e) => {
+        "use strict";
+        e.exports = require("http2");
+      },
+      5687: (e) => {
+        "use strict";
+        e.exports = require("https");
+      },
+      1808: (e) => {
+        "use strict";
+        e.exports = require("net");
+      },
+      2037: (e) => {
+        "use strict";
+        e.exports = require("os");
+      },
+      1017: (e) => {
+        "use strict";
+        e.exports = require("path");
+      },
+      2781: (e) => {
+        "use strict";
+        e.exports = require("stream");
+      },
+      4404: (e) => {
+        "use strict";
+        e.exports = require("tls");
+      },
+      6224: (e) => {
+        "use strict";
+        e.exports = require("tty");
+      },
+      7310: (e) => {
+        "use strict";
+        e.exports = require("url");
+      },
+      3837: (e) => {
+        "use strict";
+        e.exports = require("util");
+      },
+      9796: (e) => {
+        "use strict";
+        e.exports = require("zlib");
+      },
+      9001: (e, t, s) => {
+        "use strict";
+        (s.r(t),
+          s.d(t, {
+            GlobalError: () => i.a,
+            __next_app__: () => x,
+            originalPathname: () => u,
+            pages: () => c,
+            routeModule: () => p,
+            tree: () => d,
+          }),
+          s(6969),
+          s(3182),
+          s(1799),
+          s(6083),
+          s(9644),
+          s(5866));
+        var r = s(3191),
+          a = s(8716),
+          l = s(7922),
+          i = s.n(l),
+          o = s(5231),
+          n = {};
+        for (let e in o)
+          0 >
+            [
+              "default",
+              "tree",
+              "pages",
+              "GlobalError",
+              "originalPathname",
+              "__next_app__",
+              "routeModule",
+            ].indexOf(e) && (n[e] = () => o[e]);
+        s.d(t, n);
+        let d = [
+            "",
+            {
+              children: [
+                "auth",
+                {
+                  children: [
+                    "register-driver",
+                    {
+                      children: [
+                        "__PAGE__",
+                        {},
+                        {
+                          page: [
+                            () => Promise.resolve().then(s.bind(s, 6969)),
+                            "C:\\Users\\wesley\\Desktop\\Radaa\\radaa-frontend\\app\\auth\\register-driver\\page.tsx",
+                          ],
+                        },
+                      ],
+                    },
+                    {},
+                  ],
+                },
+                {
+                  layout: [
+                    () => Promise.resolve().then(s.bind(s, 3182)),
+                    "C:\\Users\\wesley\\Desktop\\Radaa\\radaa-frontend\\app\\auth\\layout.tsx",
+                  ],
+                },
+              ],
+            },
+            {
+              layout: [
+                () => Promise.resolve().then(s.bind(s, 1799)),
+                "C:\\Users\\wesley\\Desktop\\Radaa\\radaa-frontend\\app\\layout.tsx",
+              ],
+              error: [
+                () => Promise.resolve().then(s.bind(s, 6083)),
+                "C:\\Users\\wesley\\Desktop\\Radaa\\radaa-frontend\\app\\error.tsx",
+              ],
+              loading: [
+                () => Promise.resolve().then(s.bind(s, 9644)),
+                "C:\\Users\\wesley\\Desktop\\Radaa\\radaa-frontend\\app\\loading.tsx",
+              ],
+              "not-found": [
+                () => Promise.resolve().then(s.t.bind(s, 5866, 23)),
+                "next/dist/client/components/not-found-error",
+              ],
+            },
+          ],
+          c = [
+            "C:\\Users\\wesley\\Desktop\\Radaa\\radaa-frontend\\app\\auth\\register-driver\\page.tsx",
+          ],
+          u = "/auth/register-driver/page",
+          x = { require: s, loadChunk: () => Promise.resolve() },
+          p = new r.AppPageRouteModule({
+            definition: {
+              kind: a.x.APP_PAGE,
+              page: "/auth/register-driver/page",
+              pathname: "/auth/register-driver",
+              bundlePath: "",
+              filename: "",
+              appPaths: [],
+            },
+            userland: { loaderTree: d },
+          });
+      },
+      3850: (e, t, s) => {
+        Promise.resolve().then(s.bind(s, 4273));
+      },
+      4273: (e, t, s) => {
+        "use strict";
+        (s.r(t), s.d(t, { default: () => d }));
+        var r = s(326),
+          a = s(7577),
+          l = s(434),
+          i = s(5047),
+          o = s(732),
+          n = s(4545);
+        function d() {
+          let { register: e, loading: t } = (0, o.a)(),
+            s = (0, i.useRouter)(),
+            [d, c] = (0, a.useState)(""),
+            [u, x] = (0, a.useState)(""),
+            [p, m] = (0, a.useState)(""),
+            [h, g] = (0, a.useState)(""),
+            [f, b] = (0, a.useState)(""),
+            [v, y] = (0, a.useState)(""),
+            [j, N] = (0, a.useState)(""),
+            [w, q] = (0, a.useState)(""),
+            [k, C] = (0, a.useState)(""),
+            [P, S] = (0, a.useState)(null),
+            [_, R] = (0, a.useState)(!1),
+            A = (0, n.N3)("driver_onboard_v1", !1),
+            D = async (t) => {
+              (t.preventDefault(), S(null), R(!0));
+              try {
+                (await e({
+                  username: d,
+                  email: p,
+                  password: f,
+                  phone: h || void 0,
+                  handle: u || void 0,
+                  role: "driver",
+                  saccoName: v,
+                  vehicleRegistration: j,
+                  licenseNumber: w || void 0,
+                  profilePhoto: k || void 0,
+                }),
+                  s.push("/dashboard/driver/live"));
+              } catch (e) {
+                S(
+                  e instanceof Error ? e.message : "Driver registration failed",
+                );
+              } finally {
+                R(!1);
+              }
+            },
+            F = _ || t;
+          return (0, r.jsxs)("div", {
+            className: "mx-auto max-w-md space-y-6",
+            children: [
+              (0, r.jsxs)("div", {
+                className: "space-y-2",
+                children: [
+                  r.jsx("h1", {
+                    className: "text-2xl font-semibold tracking-tight",
+                    children: "Driver sign up",
+                  }),
+                  r.jsx("p", {
+                    className: "text-sm text-slate-300",
+                    children:
+                      "Create a driver account to access the live driver dashboard and accept nearby rides.",
+                  }),
+                ],
+              }),
+              A &&
+                (0, r.jsxs)("section", {
+                  className:
+                    "grid gap-2 text-[11px] text-slate-300 md:grid-cols-3",
+                  children: [
+                    (0, r.jsxs)("div", {
+                      className:
+                        "rounded-lg border border-slate-800 bg-slate-900/80 px-3 py-2",
+                      children: [
+                        r.jsx("div", {
+                          className: "text-slate-400",
+                          children: "Step 1",
+                        }),
+                        r.jsx("div", {
+                          className: "mt-0.5 font-semibold text-slate-50",
+                          children: "Account basics",
+                        }),
+                      ],
+                    }),
+                    (0, r.jsxs)("div", {
+                      className:
+                        "rounded-lg border border-slate-800 bg-slate-900/80 px-3 py-2",
+                      children: [
+                        r.jsx("div", {
+                          className: "text-slate-400",
+                          children: "Step 2",
+                        }),
+                        r.jsx("div", {
+                          className: "mt-0.5 font-semibold text-slate-50",
+                          children: "Vehicle details",
+                        }),
+                      ],
+                    }),
+                    (0, r.jsxs)("div", {
+                      className:
+                        "rounded-lg border border-slate-800 bg-slate-900/80 px-3 py-2",
+                      children: [
+                        r.jsx("div", {
+                          className: "text-slate-400",
+                          children: "Step 3",
+                        }),
+                        r.jsx("div", {
+                          className: "mt-0.5 font-semibold text-slate-50",
+                          children: "Optional extras",
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+              P &&
+                r.jsx("div", {
+                  className:
+                    "rounded-md border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm text-red-200",
+                  children: P,
+                }),
+              (0, r.jsxs)("form", {
+                onSubmit: D,
+                className: "space-y-4",
+                children: [
+                  (0, r.jsxs)("div", {
+                    className: "space-y-1",
+                    children: [
+                      r.jsx("label", {
+                        htmlFor: "username",
+                        className: "text-sm font-medium text-slate-100",
+                        children: "Full name",
+                      }),
+                      r.jsx("input", {
+                        id: "username",
+                        type: "text",
+                        required: !0,
+                        value: d,
+                        onChange: (e) => c(e.target.value),
+                        className:
+                          "w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-50 outline-none ring-0 placeholder:text-slate-500 focus:border-sky-500 focus:ring-1 focus:ring-sky-500",
+                        placeholder: "Jane Doe",
+                      }),
+                    ],
+                  }),
+                  (0, r.jsxs)("div", {
+                    className: "space-y-1",
+                    children: [
+                      (0, r.jsxs)("label", {
+                        htmlFor: "handle",
+                        className: "text-sm font-medium text-slate-100",
+                        children: [
+                          "Handle ",
+                          r.jsx("span", {
+                            className: "text-xs font-normal text-slate-400",
+                            children: "(optional)",
+                          }),
+                        ],
+                      }),
+                      r.jsx("input", {
+                        id: "handle",
+                        type: "text",
+                        value: u,
+                        onChange: (e) => x(e.target.value),
+                        className:
+                          "w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-50 outline-none ring-0 placeholder:text-slate-500 focus:border-sky-500 focus:ring-1 focus:ring-sky-500",
+                        placeholder: "@radaa-driver",
+                      }),
+                    ],
+                  }),
+                  (0, r.jsxs)("div", {
+                    className: "space-y-1",
+                    children: [
+                      r.jsx("label", {
+                        htmlFor: "email",
+                        className: "text-sm font-medium text-slate-100",
+                        children: "Email",
+                      }),
+                      r.jsx("input", {
+                        id: "email",
+                        type: "email",
+                        autoComplete: "email",
+                        required: !0,
+                        value: p,
+                        onChange: (e) => m(e.target.value),
+                        className:
+                          "w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-50 outline-none ring-0 placeholder:text-slate-500 focus:border-sky-500 focus:ring-1 focus:ring-sky-500",
+                        placeholder: "you@example.com",
+                      }),
+                    ],
+                  }),
+                  (0, r.jsxs)("div", {
+                    className: "space-y-1",
+                    children: [
+                      r.jsx("label", {
+                        htmlFor: "phone",
+                        className: "text-sm font-medium text-slate-100",
+                        children: "Phone",
+                      }),
+                      r.jsx("input", {
+                        id: "phone",
+                        type: "tel",
+                        required: !0,
+                        value: h,
+                        onChange: (e) => g(e.target.value),
+                        className:
+                          "w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-50 outline-none ring-0 placeholder:text-slate-500 focus:border-sky-500 focus:ring-1 focus:ring-sky-500",
+                        placeholder: "07xx xxx xxx",
+                      }),
+                    ],
+                  }),
+                  (0, r.jsxs)("div", {
+                    className: "space-y-1",
+                    children: [
+                      r.jsx("label", {
+                        htmlFor: "password",
+                        className: "text-sm font-medium text-slate-100",
+                        children: "Password",
+                      }),
+                      r.jsx("input", {
+                        id: "password",
+                        type: "password",
+                        autoComplete: "new-password",
+                        required: !0,
+                        value: f,
+                        onChange: (e) => b(e.target.value),
+                        className:
+                          "w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-50 outline-none ring-0 placeholder:text-slate-500 focus:border-sky-500 focus:ring-1 focus:ring-sky-500",
+                        placeholder: "At least 6 characters",
+                      }),
+                    ],
+                  }),
+                  (0, r.jsxs)("div", {
+                    className: "space-y-1",
+                    children: [
+                      r.jsx("label", {
+                        htmlFor: "saccoName",
+                        className: "text-sm font-medium text-slate-100",
+                        children: "SACCO name",
+                      }),
+                      r.jsx("input", {
+                        id: "saccoName",
+                        type: "text",
+                        required: !0,
+                        value: v,
+                        onChange: (e) => y(e.target.value),
+                        className:
+                          "w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-50 outline-none ring-0 placeholder:text-slate-500 focus:border-sky-500 focus:ring-1 focus:ring-sky-500",
+                        placeholder: "e.g. Radaa Express SACCO",
+                      }),
+                    ],
+                  }),
+                  (0, r.jsxs)("div", {
+                    className: "space-y-1",
+                    children: [
+                      r.jsx("label", {
+                        htmlFor: "vehicleRegistration",
+                        className: "text-sm font-medium text-slate-100",
+                        children: "Vehicle registration",
+                      }),
+                      r.jsx("input", {
+                        id: "vehicleRegistration",
+                        type: "text",
+                        required: !0,
+                        value: j,
+                        onChange: (e) => N(e.target.value),
+                        className:
+                          "w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-50 outline-none ring-0 placeholder:text-slate-500 focus:border-sky-500 focus:ring-1 focus:ring-sky-500",
+                        placeholder: "e.g. KAA 123A",
+                      }),
+                    ],
+                  }),
+                  (0, r.jsxs)("div", {
+                    className: "space-y-1",
+                    children: [
+                      (0, r.jsxs)("label", {
+                        htmlFor: "licenseNumber",
+                        className: "text-sm font-medium text-slate-100",
+                        children: [
+                          "License number ",
+                          r.jsx("span", {
+                            className: "text-xs font-normal text-slate-400",
+                            children: "(optional)",
+                          }),
+                        ],
+                      }),
+                      r.jsx("input", {
+                        id: "licenseNumber",
+                        type: "text",
+                        value: w,
+                        onChange: (e) => q(e.target.value),
+                        className:
+                          "w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-50 outline-none ring-0 placeholder:text-slate-500 focus:border-sky-500 focus:ring-1 focus:ring-sky-500",
+                        placeholder: "Your driver license number",
+                      }),
+                    ],
+                  }),
+                  (0, r.jsxs)("div", {
+                    className: "space-y-1",
+                    children: [
+                      (0, r.jsxs)("label", {
+                        htmlFor: "profilePhoto",
+                        className: "text-sm font-medium text-slate-100",
+                        children: [
+                          "Profile photo URL ",
+                          r.jsx("span", {
+                            className: "text-xs font-normal text-slate-400",
+                            children: "(optional)",
+                          }),
+                        ],
+                      }),
+                      r.jsx("input", {
+                        id: "profilePhoto",
+                        type: "url",
+                        value: k,
+                        onChange: (e) => C(e.target.value),
+                        className:
+                          "w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-50 outline-none ring-0 placeholder:text-slate-500 focus:border-sky-500 focus:ring-1 focus:ring-sky-500",
+                        placeholder: "https://...",
+                      }),
+                    ],
+                  }),
+                  r.jsx("button", {
+                    type: "submit",
+                    disabled: F,
+                    className:
+                      "inline-flex w-full items-center justify-center rounded-md bg-emerald-600 px-3 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-60",
+                    children: F
+                      ? "Creating driver account..."
+                      : "Create driver account",
+                  }),
+                ],
+              }),
+              (0, r.jsxs)("p", {
+                className: "text-center text-xs text-slate-400",
+                children: [
+                  "Already have a driver account?",
+                  " ",
+                  r.jsx(l.default, {
+                    href: "/auth/login-driver",
+                    className:
+                      "font-medium text-emerald-400 hover:text-emerald-300",
+                    children: "Sign in",
+                  }),
+                ],
+              }),
+            ],
+          });
+        }
+      },
+      3182: (e, t, s) => {
+        "use strict";
+        (s.r(t), s.d(t, { default: () => a }));
+        var r = s(9510);
+        function a({ children: e }) {
+          return r.jsx("div", {
+            className:
+              "flex min-h-screen items-center justify-center bg-slate-950 px-4 py-8 text-slate-50",
+            children: r.jsx("div", {
+              className:
+                "w-full max-w-md space-y-6 rounded-xl border border-slate-800 bg-slate-900/80 p-6 shadow-lg",
+              children: e,
+            }),
+          });
+        }
+      },
+      6969: (e, t, s) => {
+        "use strict";
+        (s.r(t),
+          s.d(t, { $$typeof: () => i, __esModule: () => l, default: () => o }));
+        var r = s(8570);
+        let a = (0, r.createProxy)(
+            String.raw`C:\Users\wesley\Desktop\Radaa\radaa-frontend\app\auth\register-driver\page.tsx`,
+          ),
+          { __esModule: l, $$typeof: i } = a;
+        a.default;
+        let o = (0, r.createProxy)(
+          String.raw`C:\Users\wesley\Desktop\Radaa\radaa-frontend\app\auth\register-driver\page.tsx#default`,
+        );
+      },
+    }));
+  var t = require("../../../webpack-runtime.js");
+  t.C(e);
+  var s = (e) => t((t.s = e)),
+    r = t.X(0, [489, 496, 462], () => s(9001));
+  module.exports = r;
+})();

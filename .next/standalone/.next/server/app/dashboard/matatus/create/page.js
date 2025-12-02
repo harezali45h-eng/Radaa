@@ -1,0 +1,460 @@
+(() => {
+  var e = {};
+  ((e.id = 611),
+    (e.ids = [611]),
+    (e.modules = {
+      7849: (e) => {
+        "use strict";
+        e.exports = require("next/dist/client/components/action-async-storage.external");
+      },
+      2934: (e) => {
+        "use strict";
+        e.exports = require("next/dist/client/components/action-async-storage.external.js");
+      },
+      5403: (e) => {
+        "use strict";
+        e.exports = require("next/dist/client/components/request-async-storage.external");
+      },
+      4580: (e) => {
+        "use strict";
+        e.exports = require("next/dist/client/components/request-async-storage.external.js");
+      },
+      4749: (e) => {
+        "use strict";
+        e.exports = require("next/dist/client/components/static-generation-async-storage.external");
+      },
+      5869: (e) => {
+        "use strict";
+        e.exports = require("next/dist/client/components/static-generation-async-storage.external.js");
+      },
+      399: (e) => {
+        "use strict";
+        e.exports = require("next/dist/compiled/next-server/app-page.runtime.prod.js");
+      },
+      9491: (e) => {
+        "use strict";
+        e.exports = require("assert");
+      },
+      4300: (e) => {
+        "use strict";
+        e.exports = require("buffer");
+      },
+      2081: (e) => {
+        "use strict";
+        e.exports = require("child_process");
+      },
+      6113: (e) => {
+        "use strict";
+        e.exports = require("crypto");
+      },
+      2361: (e) => {
+        "use strict";
+        e.exports = require("events");
+      },
+      7147: (e) => {
+        "use strict";
+        e.exports = require("fs");
+      },
+      3685: (e) => {
+        "use strict";
+        e.exports = require("http");
+      },
+      5158: (e) => {
+        "use strict";
+        e.exports = require("http2");
+      },
+      5687: (e) => {
+        "use strict";
+        e.exports = require("https");
+      },
+      1808: (e) => {
+        "use strict";
+        e.exports = require("net");
+      },
+      2037: (e) => {
+        "use strict";
+        e.exports = require("os");
+      },
+      1017: (e) => {
+        "use strict";
+        e.exports = require("path");
+      },
+      2781: (e) => {
+        "use strict";
+        e.exports = require("stream");
+      },
+      4404: (e) => {
+        "use strict";
+        e.exports = require("tls");
+      },
+      6224: (e) => {
+        "use strict";
+        e.exports = require("tty");
+      },
+      7310: (e) => {
+        "use strict";
+        e.exports = require("url");
+      },
+      3837: (e) => {
+        "use strict";
+        e.exports = require("util");
+      },
+      9796: (e) => {
+        "use strict";
+        e.exports = require("zlib");
+      },
+      8468: (e, t, s) => {
+        "use strict";
+        (s.r(t),
+          s.d(t, {
+            GlobalError: () => l.a,
+            __next_app__: () => p,
+            originalPathname: () => c,
+            pages: () => u,
+            routeModule: () => x,
+            tree: () => i,
+          }),
+          s(4298),
+          s(3321),
+          s(4481),
+          s(1799),
+          s(6083),
+          s(9644),
+          s(5866));
+        var r = s(3191),
+          a = s(8716),
+          o = s(7922),
+          l = s.n(o),
+          n = s(5231),
+          d = {};
+        for (let e in n)
+          0 >
+            [
+              "default",
+              "tree",
+              "pages",
+              "GlobalError",
+              "originalPathname",
+              "__next_app__",
+              "routeModule",
+            ].indexOf(e) && (d[e] = () => n[e]);
+        s.d(t, d);
+        let i = [
+            "",
+            {
+              children: [
+                "dashboard",
+                {
+                  children: [
+                    "matatus",
+                    {
+                      children: [
+                        "create",
+                        {
+                          children: [
+                            "__PAGE__",
+                            {},
+                            {
+                              page: [
+                                () => Promise.resolve().then(s.bind(s, 4298)),
+                                "C:\\Users\\wesley\\Desktop\\Radaa\\radaa-frontend\\app\\dashboard\\matatus\\create\\page.tsx",
+                              ],
+                            },
+                          ],
+                        },
+                        {},
+                      ],
+                    },
+                    {},
+                  ],
+                },
+                {
+                  layout: [
+                    () => Promise.resolve().then(s.bind(s, 3321)),
+                    "C:\\Users\\wesley\\Desktop\\Radaa\\radaa-frontend\\app\\dashboard\\layout.tsx",
+                  ],
+                  loading: [
+                    () => Promise.resolve().then(s.bind(s, 4481)),
+                    "C:\\Users\\wesley\\Desktop\\Radaa\\radaa-frontend\\app\\dashboard\\loading.tsx",
+                  ],
+                },
+              ],
+            },
+            {
+              layout: [
+                () => Promise.resolve().then(s.bind(s, 1799)),
+                "C:\\Users\\wesley\\Desktop\\Radaa\\radaa-frontend\\app\\layout.tsx",
+              ],
+              error: [
+                () => Promise.resolve().then(s.bind(s, 6083)),
+                "C:\\Users\\wesley\\Desktop\\Radaa\\radaa-frontend\\app\\error.tsx",
+              ],
+              loading: [
+                () => Promise.resolve().then(s.bind(s, 9644)),
+                "C:\\Users\\wesley\\Desktop\\Radaa\\radaa-frontend\\app\\loading.tsx",
+              ],
+              "not-found": [
+                () => Promise.resolve().then(s.t.bind(s, 5866, 23)),
+                "next/dist/client/components/not-found-error",
+              ],
+            },
+          ],
+          u = [
+            "C:\\Users\\wesley\\Desktop\\Radaa\\radaa-frontend\\app\\dashboard\\matatus\\create\\page.tsx",
+          ],
+          c = "/dashboard/matatus/create/page",
+          p = { require: s, loadChunk: () => Promise.resolve() },
+          x = new r.AppPageRouteModule({
+            definition: {
+              kind: a.x.APP_PAGE,
+              page: "/dashboard/matatus/create/page",
+              pathname: "/dashboard/matatus/create",
+              bundlePath: "",
+              filename: "",
+              appPaths: [],
+            },
+            userland: { loaderTree: i },
+          });
+      },
+      8705: (e, t, s) => {
+        Promise.resolve().then(s.bind(s, 8881));
+      },
+      8881: (e, t, s) => {
+        "use strict";
+        (s.r(t), s.d(t, { default: () => n }));
+        var r = s(326),
+          a = s(7577),
+          o = s(5047);
+        let l =
+          process.env.NEXT_PUBLIC_API_BASE_URL ||
+          "https://radaa-1.onrender.com/api";
+        function n() {
+          let e = (0, o.useRouter)(),
+            [t, s] = (0, a.useState)(""),
+            [n, d] = (0, a.useState)(""),
+            [i, u] = (0, a.useState)(""),
+            [c, p] = (0, a.useState)(""),
+            [x, m] = (0, a.useState)(""),
+            [h, g] = (0, a.useState)(!1),
+            [b, y] = (0, a.useState)(null),
+            [f, v] = (0, a.useState)(null),
+            j = async (s) => {
+              (s.preventDefault(), y(null), v(null), g(!0));
+              try {
+                let s = await fetch(`${l}/matatus`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      plate: t,
+                      route: n,
+                      sacco: i || void 0,
+                      driverName: c || void 0,
+                      driverPhone: x || void 0,
+                    }),
+                  }),
+                  r = await s.json().catch(() => null);
+                if (!s.ok) {
+                  let e =
+                    (r && "object" == typeof r && (r.message || r.error)) ||
+                    "Failed to register matatu";
+                  throw Error(e);
+                }
+                (v("Matatu registered successfully"),
+                  r && r._id && e.push(`/dashboard/matatus/${r._id}`));
+              } catch (e) {
+                y(e instanceof Error ? e.message : "Failed to register matatu");
+              } finally {
+                g(!1);
+              }
+            };
+          return (0, r.jsxs)("div", {
+            className: "space-y-6",
+            children: [
+              (0, r.jsxs)("header", {
+                className: "space-y-2",
+                children: [
+                  r.jsx("h1", {
+                    className: "text-2xl font-semibold tracking-tight",
+                    children: "Register matatu",
+                  }),
+                  r.jsx("p", {
+                    className: "text-xs text-slate-300",
+                    children:
+                      "Create a new matatu record that can later be tracked live on the map and in trip logs.",
+                  }),
+                ],
+              }),
+              b &&
+                r.jsx("div", {
+                  className:
+                    "rounded-md border border-red-500/40 bg-red-500/10 px-3 py-2 text-xs text-red-200",
+                  children: b,
+                }),
+              f &&
+                r.jsx("div", {
+                  className:
+                    "rounded-md border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-200",
+                  children: f,
+                }),
+              (0, r.jsxs)("form", {
+                onSubmit: j,
+                className:
+                  "space-y-4 rounded-xl border border-slate-800 bg-slate-900/80 p-4 text-xs",
+                children: [
+                  (0, r.jsxs)("div", {
+                    className: "grid gap-4 md:grid-cols-2",
+                    children: [
+                      (0, r.jsxs)("div", {
+                        className: "space-y-1",
+                        children: [
+                          r.jsx("label", {
+                            htmlFor: "plate",
+                            className: "text-xs font-medium text-slate-100",
+                            children: "Number plate",
+                          }),
+                          r.jsx("input", {
+                            id: "plate",
+                            type: "text",
+                            required: !0,
+                            value: t,
+                            onChange: (e) => s(e.target.value),
+                            className:
+                              "w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-xs text-slate-50 outline-none placeholder:text-slate-500 focus:border-sky-500 focus:ring-1 focus:ring-sky-500",
+                            placeholder: "KAA 123A",
+                          }),
+                        ],
+                      }),
+                      (0, r.jsxs)("div", {
+                        className: "space-y-1",
+                        children: [
+                          r.jsx("label", {
+                            htmlFor: "route",
+                            className: "text-xs font-medium text-slate-100",
+                            children: "Route",
+                          }),
+                          r.jsx("input", {
+                            id: "route",
+                            type: "text",
+                            required: !0,
+                            value: n,
+                            onChange: (e) => d(e.target.value),
+                            className:
+                              "w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-xs text-slate-50 outline-none placeholder:text-slate-500 focus:border-sky-500 focus:ring-1 focus:ring-sky-500",
+                            placeholder: "CBD - Rongai",
+                          }),
+                        ],
+                      }),
+                      (0, r.jsxs)("div", {
+                        className: "space-y-1",
+                        children: [
+                          (0, r.jsxs)("label", {
+                            htmlFor: "sacco",
+                            className: "text-xs font-medium text-slate-100",
+                            children: [
+                              "Sacco ",
+                              r.jsx("span", {
+                                className:
+                                  "text-[10px] font-normal text-slate-400",
+                                children: "(optional)",
+                              }),
+                            ],
+                          }),
+                          r.jsx("input", {
+                            id: "sacco",
+                            type: "text",
+                            value: i,
+                            onChange: (e) => u(e.target.value),
+                            className:
+                              "w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-xs text-slate-50 outline-none placeholder:text-slate-500 focus:border-sky-500 focus:ring-1 focus:ring-sky-500",
+                            placeholder: "Super Metro",
+                          }),
+                        ],
+                      }),
+                      (0, r.jsxs)("div", {
+                        className: "space-y-1",
+                        children: [
+                          (0, r.jsxs)("label", {
+                            htmlFor: "driverName",
+                            className: "text-xs font-medium text-slate-100",
+                            children: [
+                              "Driver name ",
+                              r.jsx("span", {
+                                className:
+                                  "text-[10px] font-normal text-slate-400",
+                                children: "(optional)",
+                              }),
+                            ],
+                          }),
+                          r.jsx("input", {
+                            id: "driverName",
+                            type: "text",
+                            value: c,
+                            onChange: (e) => p(e.target.value),
+                            className:
+                              "w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-xs text-slate-50 outline-none placeholder:text-slate-500 focus:border-sky-500 focus:ring-1 focus:ring-sky-500",
+                            placeholder: "John Doe",
+                          }),
+                        ],
+                      }),
+                      (0, r.jsxs)("div", {
+                        className: "space-y-1 md:col-span-2",
+                        children: [
+                          (0, r.jsxs)("label", {
+                            htmlFor: "driverPhone",
+                            className: "text-xs font-medium text-slate-100",
+                            children: [
+                              "Driver phone ",
+                              r.jsx("span", {
+                                className:
+                                  "text-[10px] font-normal text-slate-400",
+                                children: "(optional)",
+                              }),
+                            ],
+                          }),
+                          r.jsx("input", {
+                            id: "driverPhone",
+                            type: "tel",
+                            value: x,
+                            onChange: (e) => m(e.target.value),
+                            className:
+                              "w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-xs text-slate-50 outline-none placeholder:text-slate-500 focus:border-sky-500 focus:ring-1 focus:ring-sky-500",
+                            placeholder: "07xx xxx xxx",
+                          }),
+                        ],
+                      }),
+                    ],
+                  }),
+                  r.jsx("button", {
+                    type: "submit",
+                    disabled: h,
+                    className:
+                      "inline-flex items-center justify-center rounded-md bg-sky-600 px-3 py-2 text-xs font-medium text-white shadow-sm transition hover:bg-sky-500 disabled:cursor-not-allowed disabled:opacity-60",
+                    children: h ? "Registering..." : "Register matatu",
+                  }),
+                ],
+              }),
+            ],
+          });
+        }
+      },
+      4298: (e, t, s) => {
+        "use strict";
+        (s.r(t),
+          s.d(t, { $$typeof: () => l, __esModule: () => o, default: () => n }));
+        var r = s(8570);
+        let a = (0, r.createProxy)(
+            String.raw`C:\Users\wesley\Desktop\Radaa\radaa-frontend\app\dashboard\matatus\create\page.tsx`,
+          ),
+          { __esModule: o, $$typeof: l } = a;
+        a.default;
+        let n = (0, r.createProxy)(
+          String.raw`C:\Users\wesley\Desktop\Radaa\radaa-frontend\app\dashboard\matatus\create\page.tsx#default`,
+        );
+      },
+    }));
+  var t = require("../../../../webpack-runtime.js");
+  t.C(e);
+  var s = (e) => t((t.s = e)),
+    r = t.X(0, [489, 496, 462, 754], () => s(8468));
+  module.exports = r;
+})();

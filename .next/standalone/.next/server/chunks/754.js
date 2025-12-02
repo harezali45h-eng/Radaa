@@ -1,0 +1,507 @@
+((exports.id = 754),
+  (exports.ids = [754]),
+  (exports.modules = {
+    6002: (e, s, a) => {
+      Promise.resolve().then(a.bind(a, 8767));
+    },
+    8767: (e, s, a) => {
+      "use strict";
+      (a.r(s), a.d(s, { default: () => n }));
+      var t = a(326),
+        l = a(434),
+        r = a(8333),
+        d = a(732),
+        i = a(457),
+        x = a(676);
+      function n({ children: e }) {
+        let { user: s } = (0, d.a)(),
+          a = s?.role,
+          n = "admin" === a,
+          c = "driver" === a,
+          { activeMode: o } = (0, i.r)(),
+          { cardSurfaceClass: h } = (0, x.F)(),
+          m = n
+            ? "/dashboard/sacco"
+            : c && "driver" === o
+              ? "/dashboard/driver/live"
+              : "/dashboard",
+          p =
+            c && "driver" === o
+              ? "/dashboard/driver/live"
+              : "/dashboard/passenger/live";
+        return t.jsx(r.AppShell, {
+          children: (0, t.jsxs)("div", {
+            className: "grid gap-6 md:grid-cols-[210px,1fr]",
+            children: [
+              t.jsx("aside", {
+                className: `${h} p-4 text-xs`,
+                children: t.jsx("nav", {
+                  className: "space-y-4",
+                  children: (0, t.jsxs)("div", {
+                    children: [
+                      t.jsx("div", {
+                        className:
+                          "text-[10px] font-semibold uppercase tracking-wide text-slate-400",
+                        children: "Menu",
+                      }),
+                      (0, t.jsxs)("div", {
+                        className: "mt-1 space-y-1",
+                        children: [
+                          t.jsx(l.default, {
+                            href: m,
+                            className:
+                              "block rounded-md px-3 py-2 text-slate-300 transition hover:bg-slate-800/80 hover:text-white",
+                            children: "Home",
+                          }),
+                          t.jsx(l.default, {
+                            href: p,
+                            className:
+                              "block rounded-md px-3 py-2 text-slate-300 transition hover:bg-slate-800/80 hover:text-white",
+                            children: "Live",
+                          }),
+                          c &&
+                            t.jsx(l.default, {
+                              href: "/dashboard/driver/live",
+                              className:
+                                "block rounded-md px-3 py-2 text-slate-300 transition hover:bg-slate-800/80 hover:text-white",
+                              children: "Driver live",
+                            }),
+                          t.jsx(l.default, {
+                            href: "/dashboard/trips/list",
+                            className:
+                              "block rounded-md px-3 py-2 text-slate-300 transition hover:bg-slate-800/80 hover:text-white",
+                            children: "Trips",
+                          }),
+                          t.jsx(l.default, {
+                            href: "/profile",
+                            className:
+                              "block rounded-md px-3 py-2 text-slate-300 transition hover:bg-slate-800/80 hover:text-white",
+                            children: "Profile",
+                          }),
+                          n &&
+                            t.jsx(l.default, {
+                              href: "/dashboard/sacco",
+                              className:
+                                "block rounded-md px-3 py-2 text-slate-300 transition hover:bg-slate-800/80 hover:text-white",
+                              children: "SACCO",
+                            }),
+                        ],
+                      }),
+                    ],
+                  }),
+                }),
+              }),
+              (0, t.jsxs)("section", {
+                className: "space-y-4",
+                children: [
+                  (0, t.jsxs)("div", {
+                    className: "flex items-center justify-between",
+                    children: [
+                      t.jsx("div", {
+                        className: "text-sm font-semibold md:hidden",
+                        children: "Dashboard",
+                      }),
+                      (0, t.jsxs)("div", {
+                        className:
+                          "hidden gap-2 text-[11px] text-slate-300 md:flex",
+                        children: [
+                          t.jsx("span", {
+                            className: "font-medium text-slate-100",
+                            children: "Home",
+                          }),
+                          t.jsx("span", {
+                            className: "text-slate-600",
+                            children: "/",
+                          }),
+                          t.jsx("span", {
+                            className: "text-slate-400",
+                            children: "Live",
+                          }),
+                          t.jsx("span", {
+                            className: "text-slate-600",
+                            children: "/",
+                          }),
+                          t.jsx("span", {
+                            className: "text-slate-400",
+                            children: "Trips",
+                          }),
+                          t.jsx("span", {
+                            className: "text-slate-600",
+                            children: "/",
+                          }),
+                          t.jsx("span", {
+                            className: "text-slate-400",
+                            children: "Profile",
+                          }),
+                          n &&
+                            (0, t.jsxs)(t.Fragment, {
+                              children: [
+                                t.jsx("span", {
+                                  className: "text-slate-600",
+                                  children: "/",
+                                }),
+                                t.jsx("span", {
+                                  className: "text-slate-400",
+                                  children: "SACCO",
+                                }),
+                              ],
+                            }),
+                        ],
+                      }),
+                    ],
+                  }),
+                  e,
+                ],
+              }),
+            ],
+          }),
+        });
+      }
+    },
+    8333: (e, s, a) => {
+      "use strict";
+      a.d(s, { AppShell: () => m });
+      var t = a(326),
+        l = a(7577),
+        r = a(434),
+        d = a(5047),
+        i = a(732),
+        x = a(7772),
+        n = a(457),
+        c = a(676);
+      function o() {
+        let e = (0, d.useRouter)(),
+          { activeMode: s } = (0, n.r)(),
+          { primaryButtonClass: a } = (0, c.F)();
+        return (0, t.jsxs)("button", {
+          type: "button",
+          onClick: () => {
+            let a = "driver" === s ? "/dashboard/driver/live" : "/dashboard";
+            (console.log("[mode] back-to-dashboard", {
+              activeMode: s,
+              target: a,
+            }),
+              e.push(a));
+          },
+          className: `${a} gap-1 text-xs`,
+          children: [
+            t.jsx("span", { className: "mr-1", children: "←" }),
+            "Back to Dashboard",
+          ],
+        });
+      }
+      var h = a(1264);
+      function m({ children: e }) {
+        let s = (0, d.usePathname)(),
+          { user: a, token: m, logout: p } = (0, i.a)(),
+          { notifications: f, unreadCount: u, markAllAsRead: v } = (0, x.z)(),
+          [b, j] = (0, l.useState)(!1),
+          { connect: N } = (0, h.s)(),
+          { driverOnline: g, setDriverOnline: y, activeMode: w } = (0, n.r)(),
+          { headerBgClass: k } = (0, c.F)(),
+          C = "/dashboard" === s,
+          S = s.startsWith("/dashboard/"),
+          P = s.startsWith("/auth"),
+          A = "/" !== s && !P && !C,
+          D = a?.role,
+          L = "admin" === D,
+          $ = "driver" === D,
+          T = L
+            ? "/dashboard/sacco"
+            : $ && "driver" === w
+              ? "/dashboard/driver/live"
+              : "/dashboard",
+          F =
+            $ && "driver" === w
+              ? "/dashboard/driver/live"
+              : "/dashboard/passenger/live";
+        return (0, t.jsxs)("div", {
+          className: "flex min-h-screen flex-col",
+          children: [
+            t.jsx("header", {
+              className: k,
+              children: (0, t.jsxs)("div", {
+                className: "radaa-shell flex items-center justify-between py-3",
+                children: [
+                  t.jsx(r.default, {
+                    href: T,
+                    className: "text-lg font-semibold tracking-tight",
+                    children: "Radaa",
+                  }),
+                  (0, t.jsxs)("nav", {
+                    className: "flex items-center gap-4 text-sm text-slate-300",
+                    children: [
+                      (0, t.jsxs)("div", {
+                        className: "hidden items-center gap-3 md:flex",
+                        children: [
+                          t.jsx(r.default, {
+                            href: T,
+                            className: "hover:text-white",
+                            children: "Home",
+                          }),
+                          t.jsx(r.default, {
+                            href: F,
+                            className: "hover:text-white",
+                            children: "Live",
+                          }),
+                          t.jsx(r.default, {
+                            href: "/dashboard/trips/list",
+                            className: "hover:text-white",
+                            children: "Trips",
+                          }),
+                          t.jsx(r.default, {
+                            href: "/profile",
+                            className: "hover:text-white",
+                            children: "Profile",
+                          }),
+                          L &&
+                            t.jsx(r.default, {
+                              href: "/dashboard/sacco",
+                              className: "hover:text-white",
+                              children: "SACCO",
+                            }),
+                        ],
+                      }),
+                      (C || S) &&
+                        $ &&
+                        (0, t.jsxs)("button", {
+                          type: "button",
+                          onClick: () => {
+                            let e = !g;
+                            (console.log(
+                              "[mode] header toggle ->",
+                              e ? "driver" : "passenger",
+                            ),
+                              y(e));
+                          },
+                          className: `inline-flex items-center rounded-md border px-2 py-1 text-[11px] font-medium shadow-sm transition ${g ? "border-emerald-500/80 bg-emerald-600/20 text-emerald-200" : "border-slate-700 bg-slate-900 text-slate-200 hover:border-slate-500"}`,
+                          children: [
+                            t.jsx("span", {
+                              className: `mr-1 h-1.5 w-1.5 rounded-full ${g ? "bg-emerald-400" : "bg-slate-500"}`,
+                            }),
+                            "Driver Mode",
+                          ],
+                        }),
+                      (0, t.jsxs)("div", {
+                        className: "relative",
+                        children: [
+                          (0, t.jsxs)("button", {
+                            type: "button",
+                            onClick: () => {
+                              let e = !b;
+                              (j(e), e && v());
+                            },
+                            className:
+                              "relative inline-flex items-center rounded-md border border-slate-700 bg-slate-900 px-2 py-1 text-[11px] font-medium text-slate-200 shadow-sm transition hover:border-sky-500/70 hover:text-sky-200",
+                            children: [
+                              t.jsx("span", {
+                                className:
+                                  "mr-1 h-1.5 w-1.5 rounded-full bg-sky-400",
+                              }),
+                              "Notifications",
+                              u > 0 &&
+                                t.jsx("span", {
+                                  className:
+                                    "ml-2 inline-flex min-w-[1.25rem] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-semibold text-white",
+                                  children: u,
+                                }),
+                            ],
+                          }),
+                          b &&
+                            (0, t.jsxs)("div", {
+                              className:
+                                "absolute right-0 top-full z-20 mt-2 w-72 overflow-hidden rounded-md border border-slate-800 bg-slate-950 text-[11px] shadow-lg",
+                              children: [
+                                t.jsx("div", {
+                                  className:
+                                    "border-b border-slate-800 px-3 py-2 text-xs font-semibold text-slate-200",
+                                  children: "Notifications",
+                                }),
+                                0 === f.length
+                                  ? t.jsx("div", {
+                                      className: "px-3 py-3 text-slate-400",
+                                      children: "No notifications yet.",
+                                    })
+                                  : t.jsx("ul", {
+                                      className:
+                                        "max-h-64 divide-y divide-slate-800 overflow-auto",
+                                      children: f.map((e) =>
+                                        (0, t.jsxs)(
+                                          "li",
+                                          {
+                                            className:
+                                              "px-3 py-2 hover:bg-slate-900/80",
+                                            children: [
+                                              (0, t.jsxs)("div", {
+                                                className:
+                                                  "flex items-start justify-between gap-2",
+                                                children: [
+                                                  (0, t.jsxs)("div", {
+                                                    children: [
+                                                      t.jsx("div", {
+                                                        className:
+                                                          "text-[11px] font-semibold text-slate-100",
+                                                        children: e.title,
+                                                      }),
+                                                      t.jsx("div", {
+                                                        className:
+                                                          "mt-0.5 text-[11px] text-slate-300",
+                                                        children: e.message,
+                                                      }),
+                                                    ],
+                                                  }),
+                                                  !e.read &&
+                                                    t.jsx("span", {
+                                                      className:
+                                                        "mt-1 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-sky-400",
+                                                    }),
+                                                ],
+                                              }),
+                                              t.jsx("div", {
+                                                className:
+                                                  "mt-1 text-[10px] text-slate-500",
+                                                children: new Date(
+                                                  e.createdAt,
+                                                ).toLocaleTimeString(),
+                                              }),
+                                            ],
+                                          },
+                                          e.id,
+                                        ),
+                                      ),
+                                    }),
+                              ],
+                            }),
+                        ],
+                      }),
+                      t.jsx("button", {
+                        type: "button",
+                        onClick: p,
+                        className:
+                          "text-xs font-medium text-slate-300 hover:text-red-300",
+                        children: "Logout",
+                      }),
+                    ],
+                  }),
+                ],
+              }),
+            }),
+            t.jsx("main", {
+              className: "flex-1",
+              children: (0, t.jsxs)("div", {
+                className: "mx-auto max-w-6xl px-4 py-6",
+                children: [
+                  A &&
+                    t.jsx("div", {
+                      className: "mb-4 flex justify-end",
+                      children: t.jsx(o, {}),
+                    }),
+                  e,
+                ],
+              }),
+            }),
+            (C || S) &&
+              $ &&
+              t.jsx("nav", {
+                className:
+                  "fixed bottom-0 left-0 right-0 z-30 border-t border-slate-800 bg-slate-950/90 px-4 py-2 text-[11px] text-slate-200 md:hidden",
+                children: (0, t.jsxs)("div", {
+                  className:
+                    "mx-auto flex max-w-md items-center justify-between",
+                  children: [
+                    t.jsx(r.default, {
+                      href: T,
+                      className: "flex flex-1 flex-col items-center px-2 py-1",
+                      children: t.jsx("span", {
+                        className: "text-[11px]",
+                        children: "Home",
+                      }),
+                    }),
+                    t.jsx(r.default, {
+                      href: F,
+                      className: "flex flex-1 flex-col items-center px-2 py-1",
+                      children: t.jsx("span", {
+                        className: "text-[11px]",
+                        children: "Live",
+                      }),
+                    }),
+                    t.jsx(r.default, {
+                      href: "/dashboard/trips/list",
+                      className: "flex flex-1 flex-col items-center px-2 py-1",
+                      children: t.jsx("span", {
+                        className: "text-[11px]",
+                        children: "Trips",
+                      }),
+                    }),
+                    t.jsx(r.default, {
+                      href: "/profile",
+                      className: "flex flex-1 flex-col items-center px-2 py-1",
+                      children: t.jsx("span", {
+                        className: "text-[11px]",
+                        children: "Profile",
+                      }),
+                    }),
+                    L &&
+                      t.jsx(r.default, {
+                        href: "/dashboard/sacco",
+                        className:
+                          "flex flex-1 flex-col items-center px-2 py-1",
+                        children: t.jsx("span", {
+                          className: "text-[11px]",
+                          children: "SACCO",
+                        }),
+                      }),
+                  ],
+                }),
+              }),
+          ],
+        });
+      }
+    },
+    3321: (e, s, a) => {
+      "use strict";
+      (a.r(s),
+        a.d(s, { $$typeof: () => d, __esModule: () => r, default: () => i }));
+      var t = a(8570);
+      let l = (0, t.createProxy)(
+          String.raw`C:\Users\wesley\Desktop\Radaa\radaa-frontend\app\dashboard\layout.tsx`,
+        ),
+        { __esModule: r, $$typeof: d } = l;
+      l.default;
+      let i = (0, t.createProxy)(
+        String.raw`C:\Users\wesley\Desktop\Radaa\radaa-frontend\app\dashboard\layout.tsx#default`,
+      );
+    },
+    4481: (e, s, a) => {
+      "use strict";
+      (a.r(s), a.d(s, { default: () => l }));
+      var t = a(9510);
+      function l() {
+        return (0, t.jsxs)("div", {
+          className: "space-y-4",
+          children: [
+            t.jsx("div", {
+              className: "h-6 w-40 animate-pulse rounded bg-slate-800/80",
+            }),
+            (0, t.jsxs)("div", {
+              className: "grid gap-4 md:grid-cols-3",
+              children: [
+                t.jsx("div", {
+                  className: "h-24 animate-pulse rounded-xl bg-slate-800/80",
+                }),
+                t.jsx("div", {
+                  className: "h-24 animate-pulse rounded-xl bg-slate-800/80",
+                }),
+                t.jsx("div", {
+                  className: "h-24 animate-pulse rounded-xl bg-slate-800/80",
+                }),
+              ],
+            }),
+            t.jsx("div", {
+              className: "h-64 animate-pulse rounded-xl bg-slate-800/80",
+            }),
+          ],
+        });
+      }
+    },
+  }));

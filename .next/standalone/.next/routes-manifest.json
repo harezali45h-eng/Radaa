@@ -1,0 +1,193 @@
+{
+  "version": 3,
+  "pages404": true,
+  "caseSensitive": false,
+  "basePath": "",
+  "redirects": [
+    {
+      "source": "/:path+/",
+      "destination": "/:path+",
+      "internal": true,
+      "statusCode": 308,
+      "regex": "^(?:/((?:[^/]+?)(?:/(?:[^/]+?))*))/$"
+    }
+  ],
+  "headers": [],
+  "dynamicRoutes": [
+    {
+      "page": "/dashboard/matatus/[id]",
+      "regex": "^/dashboard/matatus/([^/]+?)(?:/)?$",
+      "routeKeys": { "nxtPid": "nxtPid" },
+      "namedRegex": "^/dashboard/matatus/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/dashboard/payments/[id]",
+      "regex": "^/dashboard/payments/([^/]+?)(?:/)?$",
+      "routeKeys": { "nxtPid": "nxtPid" },
+      "namedRegex": "^/dashboard/payments/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/dashboard/trips/[id]",
+      "regex": "^/dashboard/trips/([^/]+?)(?:/)?$",
+      "routeKeys": { "nxtPid": "nxtPid" },
+      "namedRegex": "^/dashboard/trips/(?<nxtPid>[^/]+?)(?:/)?$"
+    }
+  ],
+  "staticRoutes": [
+    {
+      "page": "/",
+      "regex": "^/(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/(?:/)?$"
+    },
+    {
+      "page": "/_not-found",
+      "regex": "^/_not\\-found(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/_not\\-found(?:/)?$"
+    },
+    {
+      "page": "/auth/login",
+      "regex": "^/auth/login(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/auth/login(?:/)?$"
+    },
+    {
+      "page": "/auth/login-driver",
+      "regex": "^/auth/login\\-driver(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/auth/login\\-driver(?:/)?$"
+    },
+    {
+      "page": "/auth/login-sacco",
+      "regex": "^/auth/login\\-sacco(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/auth/login\\-sacco(?:/)?$"
+    },
+    {
+      "page": "/auth/register",
+      "regex": "^/auth/register(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/auth/register(?:/)?$"
+    },
+    {
+      "page": "/auth/register-driver",
+      "regex": "^/auth/register\\-driver(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/auth/register\\-driver(?:/)?$"
+    },
+    {
+      "page": "/auth/register-sacco",
+      "regex": "^/auth/register\\-sacco(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/auth/register\\-sacco(?:/)?$"
+    },
+    {
+      "page": "/dashboard",
+      "regex": "^/dashboard(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard(?:/)?$"
+    },
+    {
+      "page": "/dashboard/driver/live",
+      "regex": "^/dashboard/driver/live(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/driver/live(?:/)?$"
+    },
+    {
+      "page": "/dashboard/drivers/requests",
+      "regex": "^/dashboard/drivers/requests(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/drivers/requests(?:/)?$"
+    },
+    {
+      "page": "/dashboard/matatus/create",
+      "regex": "^/dashboard/matatus/create(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/matatus/create(?:/)?$"
+    },
+    {
+      "page": "/dashboard/matatus/list",
+      "regex": "^/dashboard/matatus/list(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/matatus/list(?:/)?$"
+    },
+    {
+      "page": "/dashboard/passenger/live",
+      "regex": "^/dashboard/passenger/live(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/passenger/live(?:/)?$"
+    },
+    {
+      "page": "/dashboard/payments/list",
+      "regex": "^/dashboard/payments/list(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/payments/list(?:/)?$"
+    },
+    {
+      "page": "/dashboard/sacco",
+      "regex": "^/dashboard/sacco(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/sacco(?:/)?$"
+    },
+    {
+      "page": "/dashboard/sacco/analytics",
+      "regex": "^/dashboard/sacco/analytics(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/sacco/analytics(?:/)?$"
+    },
+    {
+      "page": "/dashboard/sacco/matatus",
+      "regex": "^/dashboard/sacco/matatus(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/sacco/matatus(?:/)?$"
+    },
+    {
+      "page": "/dashboard/trips/create",
+      "regex": "^/dashboard/trips/create(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/trips/create(?:/)?$"
+    },
+    {
+      "page": "/dashboard/trips/list",
+      "regex": "^/dashboard/trips/list(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/trips/list(?:/)?$"
+    },
+    {
+      "page": "/free-ride",
+      "regex": "^/free\\-ride(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/free\\-ride(?:/)?$"
+    },
+    {
+      "page": "/map",
+      "regex": "^/map(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/map(?:/)?$"
+    },
+    {
+      "page": "/payments",
+      "regex": "^/payments(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/payments(?:/)?$"
+    },
+    {
+      "page": "/profile",
+      "regex": "^/profile(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/profile(?:/)?$"
+    }
+  ],
+  "dataRoutes": [],
+  "rsc": {
+    "header": "RSC",
+    "varyHeader": "RSC, Next-Router-State-Tree, Next-Router-Prefetch",
+    "prefetchHeader": "Next-Router-Prefetch",
+    "didPostponeHeader": "x-nextjs-postponed",
+    "contentTypeHeader": "text/x-component",
+    "suffix": ".rsc",
+    "prefetchSuffix": ".prefetch.rsc"
+  },
+  "rewrites": []
+}

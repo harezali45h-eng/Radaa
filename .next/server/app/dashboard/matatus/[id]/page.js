@@ -1,0 +1,636 @@
+(() => {
+  var e = {};
+  ((e.id = 812),
+    (e.ids = [812]),
+    (e.modules = {
+      7849: (e) => {
+        "use strict";
+        e.exports = require("next/dist/client/components/action-async-storage.external");
+      },
+      2934: (e) => {
+        "use strict";
+        e.exports = require("next/dist/client/components/action-async-storage.external.js");
+      },
+      5403: (e) => {
+        "use strict";
+        e.exports = require("next/dist/client/components/request-async-storage.external");
+      },
+      4580: (e) => {
+        "use strict";
+        e.exports = require("next/dist/client/components/request-async-storage.external.js");
+      },
+      4749: (e) => {
+        "use strict";
+        e.exports = require("next/dist/client/components/static-generation-async-storage.external");
+      },
+      5869: (e) => {
+        "use strict";
+        e.exports = require("next/dist/client/components/static-generation-async-storage.external.js");
+      },
+      399: (e) => {
+        "use strict";
+        e.exports = require("next/dist/compiled/next-server/app-page.runtime.prod.js");
+      },
+      9491: (e) => {
+        "use strict";
+        e.exports = require("assert");
+      },
+      4300: (e) => {
+        "use strict";
+        e.exports = require("buffer");
+      },
+      2081: (e) => {
+        "use strict";
+        e.exports = require("child_process");
+      },
+      6113: (e) => {
+        "use strict";
+        e.exports = require("crypto");
+      },
+      2361: (e) => {
+        "use strict";
+        e.exports = require("events");
+      },
+      7147: (e) => {
+        "use strict";
+        e.exports = require("fs");
+      },
+      3685: (e) => {
+        "use strict";
+        e.exports = require("http");
+      },
+      5158: (e) => {
+        "use strict";
+        e.exports = require("http2");
+      },
+      5687: (e) => {
+        "use strict";
+        e.exports = require("https");
+      },
+      1808: (e) => {
+        "use strict";
+        e.exports = require("net");
+      },
+      2037: (e) => {
+        "use strict";
+        e.exports = require("os");
+      },
+      1017: (e) => {
+        "use strict";
+        e.exports = require("path");
+      },
+      2781: (e) => {
+        "use strict";
+        e.exports = require("stream");
+      },
+      4404: (e) => {
+        "use strict";
+        e.exports = require("tls");
+      },
+      6224: (e) => {
+        "use strict";
+        e.exports = require("tty");
+      },
+      7310: (e) => {
+        "use strict";
+        e.exports = require("url");
+      },
+      3837: (e) => {
+        "use strict";
+        e.exports = require("util");
+      },
+      9796: (e) => {
+        "use strict";
+        e.exports = require("zlib");
+      },
+      1270: (e, t, s) => {
+        "use strict";
+        (s.r(t),
+          s.d(t, {
+            GlobalError: () => o.a,
+            __next_app__: () => p,
+            originalPathname: () => u,
+            pages: () => c,
+            routeModule: () => x,
+            tree: () => n,
+          }),
+          s(5993),
+          s(3321),
+          s(4481),
+          s(1799),
+          s(6083),
+          s(9644),
+          s(5866));
+        var a = s(3191),
+          r = s(8716),
+          l = s(7922),
+          o = s.n(l),
+          i = s(5231),
+          d = {};
+        for (let e in i)
+          0 >
+            [
+              "default",
+              "tree",
+              "pages",
+              "GlobalError",
+              "originalPathname",
+              "__next_app__",
+              "routeModule",
+            ].indexOf(e) && (d[e] = () => i[e]);
+        s.d(t, d);
+        let n = [
+            "",
+            {
+              children: [
+                "dashboard",
+                {
+                  children: [
+                    "matatus",
+                    {
+                      children: [
+                        "[id]",
+                        {
+                          children: [
+                            "__PAGE__",
+                            {},
+                            {
+                              page: [
+                                () => Promise.resolve().then(s.bind(s, 5993)),
+                                "C:\\Users\\wesley\\Desktop\\Radaa\\radaa-frontend\\app\\dashboard\\matatus\\[id]\\page.tsx",
+                              ],
+                            },
+                          ],
+                        },
+                        {},
+                      ],
+                    },
+                    {},
+                  ],
+                },
+                {
+                  layout: [
+                    () => Promise.resolve().then(s.bind(s, 3321)),
+                    "C:\\Users\\wesley\\Desktop\\Radaa\\radaa-frontend\\app\\dashboard\\layout.tsx",
+                  ],
+                  loading: [
+                    () => Promise.resolve().then(s.bind(s, 4481)),
+                    "C:\\Users\\wesley\\Desktop\\Radaa\\radaa-frontend\\app\\dashboard\\loading.tsx",
+                  ],
+                },
+              ],
+            },
+            {
+              layout: [
+                () => Promise.resolve().then(s.bind(s, 1799)),
+                "C:\\Users\\wesley\\Desktop\\Radaa\\radaa-frontend\\app\\layout.tsx",
+              ],
+              error: [
+                () => Promise.resolve().then(s.bind(s, 6083)),
+                "C:\\Users\\wesley\\Desktop\\Radaa\\radaa-frontend\\app\\error.tsx",
+              ],
+              loading: [
+                () => Promise.resolve().then(s.bind(s, 9644)),
+                "C:\\Users\\wesley\\Desktop\\Radaa\\radaa-frontend\\app\\loading.tsx",
+              ],
+              "not-found": [
+                () => Promise.resolve().then(s.t.bind(s, 5866, 23)),
+                "next/dist/client/components/not-found-error",
+              ],
+            },
+          ],
+          c = [
+            "C:\\Users\\wesley\\Desktop\\Radaa\\radaa-frontend\\app\\dashboard\\matatus\\[id]\\page.tsx",
+          ],
+          u = "/dashboard/matatus/[id]/page",
+          p = { require: s, loadChunk: () => Promise.resolve() },
+          x = new a.AppPageRouteModule({
+            definition: {
+              kind: r.x.APP_PAGE,
+              page: "/dashboard/matatus/[id]/page",
+              pathname: "/dashboard/matatus/[id]",
+              bundlePath: "",
+              filename: "",
+              appPaths: [],
+            },
+            userland: { loaderTree: n },
+          });
+      },
+      2866: (e, t, s) => {
+        Promise.resolve().then(s.bind(s, 9887));
+      },
+      9887: (e, t, s) => {
+        "use strict";
+        (s.r(t), s.d(t, { default: () => u }));
+        var a = s(326),
+          r = s(7577),
+          l = s(5047),
+          o = s(732),
+          i = s(6334);
+        async function d(e, t = {}) {
+          let { method: s = "GET", body: a, token: r } = t,
+            l = {};
+          r && (l.Authorization = `Bearer ${r}`);
+          try {
+            let t = (
+              await i.ZP.request({ url: e, method: s, data: a, headers: l })
+            ).data;
+            if (
+              null != t &&
+              t &&
+              "object" == typeof t &&
+              "success" in t &&
+              !0 === t.success &&
+              "data" in t
+            )
+              return t.data;
+            return t;
+          } catch (t) {
+            let e = t?.response?.data;
+            throw Error(
+              (e && "object" == typeof e && (e.message || e.error)) ||
+                t?.message ||
+                "Request failed",
+            );
+          }
+        }
+        async function n(e, t, s = {}, a) {
+          let r = new FormData();
+          (r.append("photo", t), s.caption && r.append("caption", s.caption));
+          let l = await d(`/matatus/${e}/photos`, {
+            method: "POST",
+            body: r,
+            token: a ?? null,
+          });
+          return Array.isArray(l) ? l : [];
+        }
+        let c = "https://radaa-1.onrender.com/api";
+        function u() {
+          let e = (0, l.useParams)(),
+            t = e?.id,
+            { token: s } = (0, o.a)(),
+            [i, d] = (0, r.useState)(null),
+            [u, p] = (0, r.useState)(!0),
+            [x, m] = (0, r.useState)(null),
+            [h, b] = (0, r.useState)(""),
+            [f, g] = (0, r.useState)(""),
+            [y, j] = (0, r.useState)(!1),
+            [v, N] = (0, r.useState)(null),
+            [w, q] = (0, r.useState)([]),
+            [P, k] = (0, r.useState)(!1),
+            [S, C] = (0, r.useState)(null),
+            [_, U] = (0, r.useState)(null),
+            [D, R] = (0, r.useState)(""),
+            [$, A] = (0, r.useState)(!1),
+            E = async (e) => {
+              if ((e.preventDefault(), t)) {
+                (j(!0), N(null));
+                try {
+                  let e = await fetch(`${c}/matatus/${t}/location`, {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ lat: h, lng: f }),
+                    }),
+                    s = await e.json().catch(() => null);
+                  if (!e.ok) {
+                    let e =
+                      (s && "object" == typeof s && (s.message || s.error)) ||
+                      "Failed to update location";
+                    throw Error(e);
+                  }
+                  N("Location updated successfully");
+                } catch (e) {
+                  N(
+                    e instanceof Error
+                      ? e.message
+                      : "Failed to update location",
+                  );
+                } finally {
+                  j(!1);
+                }
+              }
+            },
+            F = async (e) => {
+              if ((e.preventDefault(), t && _)) {
+                (A(!0), C(null));
+                try {
+                  let e = await n(t, _, { caption: D || void 0 }, s);
+                  (q(e), U(null), R(""));
+                } catch (e) {
+                  C(e instanceof Error ? e.message : "Failed to upload photo");
+                } finally {
+                  A(!1);
+                }
+              }
+            };
+          return (0, a.jsxs)("div", {
+            className: "space-y-6",
+            children: [
+              u &&
+                a.jsx("div", {
+                  className:
+                    "rounded-xl border border-slate-800 bg-slate-900/80 p-4 text-xs text-slate-300",
+                  children: "Loading matatu details...",
+                }),
+              x &&
+                !u &&
+                a.jsx("div", {
+                  className:
+                    "rounded-xl border border-red-500/40 bg-red-500/10 p-4 text-xs text-red-200",
+                  children: x,
+                }),
+              !u &&
+                !x &&
+                i &&
+                (0, a.jsxs)(a.Fragment, {
+                  children: [
+                    (0, a.jsxs)("header", {
+                      className: "space-y-1",
+                      children: [
+                        a.jsx("h1", {
+                          className: "text-2xl font-semibold tracking-tight",
+                          children: i.plate,
+                        }),
+                        (0, a.jsxs)("p", {
+                          className: "text-xs text-slate-300",
+                          children: ["Route: ", i.route],
+                        }),
+                        i.sacco &&
+                          (0, a.jsxs)("p", {
+                            className: "text-xs text-slate-400",
+                            children: ["Sacco: ", i.sacco],
+                          }),
+                      ],
+                    }),
+                    (0, a.jsxs)("section", {
+                      className: "grid gap-4 md:grid-cols-3 text-xs",
+                      children: [
+                        (0, a.jsxs)("div", {
+                          className:
+                            "rounded-xl border border-slate-800 bg-slate-900/80 p-4",
+                          children: [
+                            a.jsx("div", {
+                              className: "text-slate-400",
+                              children: "Driver",
+                            }),
+                            (0, a.jsxs)("div", {
+                              className: "mt-1 text-slate-100",
+                              children: [
+                                i.driverName || "Not set",
+                                i.driverPhone &&
+                                  (0, a.jsxs)("span", {
+                                    className: "text-slate-500",
+                                    children: [" \xb7 ", i.driverPhone],
+                                  }),
+                              ],
+                            }),
+                          ],
+                        }),
+                        (0, a.jsxs)("div", {
+                          className:
+                            "rounded-xl border border-slate-800 bg-slate-900/80 p-4",
+                          children: [
+                            a.jsx("div", {
+                              className: "text-slate-400",
+                              children: "Status",
+                            }),
+                            a.jsx("div", {
+                              className: "mt-1 text-slate-100",
+                              children: i.isOnline ? "Online" : "Offline",
+                            }),
+                          ],
+                        }),
+                        (0, a.jsxs)("div", {
+                          className:
+                            "rounded-xl border border-slate-800 bg-slate-900/80 p-4",
+                          children: [
+                            a.jsx("div", {
+                              className: "text-slate-400",
+                              children: "Last location",
+                            }),
+                            a.jsx("div", {
+                              className: "mt-1 text-slate-100",
+                              children:
+                                i.location?.lat != null &&
+                                i.location?.lng != null
+                                  ? `${i.location.lat.toFixed(4)}, ${i.location.lng.toFixed(4)}`
+                                  : "Not set",
+                            }),
+                          ],
+                        }),
+                      ],
+                    }),
+                    (0, a.jsxs)("section", {
+                      className:
+                        "space-y-3 rounded-xl border border-slate-800 bg-slate-900/80 p-4 text-xs",
+                      children: [
+                        a.jsx("div", {
+                          className: "flex items-center justify-between",
+                          children: (0, a.jsxs)("div", {
+                            children: [
+                              a.jsx("h2", {
+                                className:
+                                  "text-sm font-semibold text-slate-100",
+                                children: "Update live location",
+                              }),
+                              a.jsx("p", {
+                                className: "text-[11px] text-slate-400",
+                                children:
+                                  "Send a one-off location update for this matatu. This will also broadcast over Socket.IO to any live map subscribers.",
+                              }),
+                            ],
+                          }),
+                        }),
+                        v &&
+                          a.jsx("div", {
+                            className:
+                              "rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-[11px] text-slate-200",
+                            children: v,
+                          }),
+                        (0, a.jsxs)("form", {
+                          onSubmit: E,
+                          className: "grid gap-3 md:grid-cols-[1fr,1fr,auto]",
+                          children: [
+                            (0, a.jsxs)("div", {
+                              className: "space-y-1",
+                              children: [
+                                a.jsx("label", {
+                                  htmlFor: "lat",
+                                  className:
+                                    "text-[11px] font-medium text-slate-100",
+                                  children: "Latitude",
+                                }),
+                                a.jsx("input", {
+                                  id: "lat",
+                                  type: "number",
+                                  step: "0.0001",
+                                  required: !0,
+                                  value: h,
+                                  onChange: (e) => b(e.target.value),
+                                  className:
+                                    "w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-[11px] text-slate-50 outline-none placeholder:text-slate-500 focus:border-sky-500 focus:ring-1 focus:ring-sky-500",
+                                  placeholder: "-1.2864",
+                                }),
+                              ],
+                            }),
+                            (0, a.jsxs)("div", {
+                              className: "space-y-1",
+                              children: [
+                                a.jsx("label", {
+                                  htmlFor: "lng",
+                                  className:
+                                    "text-[11px] font-medium text-slate-100",
+                                  children: "Longitude",
+                                }),
+                                a.jsx("input", {
+                                  id: "lng",
+                                  type: "number",
+                                  step: "0.0001",
+                                  required: !0,
+                                  value: f,
+                                  onChange: (e) => g(e.target.value),
+                                  className:
+                                    "w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-[11px] text-slate-50 outline-none placeholder:text-slate-500 focus:border-sky-500 focus:ring-1 focus:ring-sky-500",
+                                  placeholder: "36.8219",
+                                }),
+                              ],
+                            }),
+                            a.jsx("div", {
+                              className: "flex items-end",
+                              children: a.jsx("button", {
+                                type: "submit",
+                                disabled: y,
+                                className:
+                                  "inline-flex w-full items-center justify-center rounded-md bg-sky-600 px-3 py-2 text-[11px] font-medium text-white shadow-sm transition hover:bg-sky-500 disabled:cursor-not-allowed disabled:opacity-60",
+                                children: y ? "Updating..." : "Update location",
+                              }),
+                            }),
+                          ],
+                        }),
+                      ],
+                    }),
+                    (0, a.jsxs)("section", {
+                      className:
+                        "space-y-3 rounded-xl border border-slate-800 bg-slate-900/80 p-4 text-xs",
+                      children: [
+                        a.jsx("div", {
+                          className: "flex items-center justify-between",
+                          children: (0, a.jsxs)("div", {
+                            children: [
+                              a.jsx("h2", {
+                                className:
+                                  "text-sm font-semibold text-slate-100",
+                                children: "Photos",
+                              }),
+                              a.jsx("p", {
+                                className: "text-[11px] text-slate-400",
+                                children:
+                                  "Upload photos of this matatu. Approved photos will be used on the global map and in SACCO dashboards.",
+                              }),
+                            ],
+                          }),
+                        }),
+                        S &&
+                          a.jsx("div", {
+                            className:
+                              "rounded-md border border-red-500/40 bg-red-500/10 px-3 py-2 text-[11px] text-red-200",
+                            children: S,
+                          }),
+                        P &&
+                          a.jsx("div", {
+                            className: "text-[11px] text-slate-300",
+                            children: "Loading photos…",
+                          }),
+                        !P &&
+                          w.length > 0 &&
+                          a.jsx("div", {
+                            className: "grid grid-cols-2 gap-3 md:grid-cols-4",
+                            children: w.map((e) => {
+                              let t = e.url.startsWith("http")
+                                ? e.url
+                                : `${c}${e.url}`;
+                              return (0, a.jsxs)(
+                                "figure",
+                                {
+                                  className: "space-y-1",
+                                  children: [
+                                    a.jsx("img", {
+                                      src: t,
+                                      alt: e.caption || "Matatu photo",
+                                      className:
+                                        "h-24 w-full rounded-md object-cover",
+                                    }),
+                                    (0, a.jsxs)("figcaption", {
+                                      className: "text-[10px] text-slate-400",
+                                      children: [
+                                        e.caption || "Matatu",
+                                        " \xb7 ",
+                                        e.status || "pending",
+                                      ],
+                                    }),
+                                  ],
+                                },
+                                e._id,
+                              );
+                            }),
+                          }),
+                        (0, a.jsxs)("form", {
+                          onSubmit: F,
+                          className:
+                            "mt-2 grid gap-2 md:grid-cols-[1.4fr,1.6fr,auto]",
+                          children: [
+                            a.jsx("input", {
+                              type: "file",
+                              accept: "image/*",
+                              onChange: (e) => {
+                                U(e.target.files?.[0] ?? null);
+                              },
+                              className:
+                                "block w-full cursor-pointer text-[11px] text-slate-300 file:mr-3 file:rounded-md file:border-0 file:bg-slate-800 file:px-2 file:py-1 file:text-[11px] file:font-medium file:text-slate-100 hover:file:bg-slate-700",
+                            }),
+                            a.jsx("input", {
+                              type: "text",
+                              value: D,
+                              onChange: (e) => R(e.target.value),
+                              className:
+                                "w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-[11px] text-slate-50 outline-none placeholder:text-slate-500 focus:border-sky-500 focus:ring-1 focus:ring-sky-500",
+                              placeholder: "Caption (optional)",
+                            }),
+                            a.jsx("button", {
+                              type: "submit",
+                              disabled: $ || !_,
+                              className:
+                                "inline-flex items-center justify-center rounded-md bg-emerald-600 px-3 py-2 text-[11px] font-medium text-white shadow-sm transition hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-60",
+                              children: $ ? "Uploading..." : "Upload photo",
+                            }),
+                          ],
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+            ],
+          });
+        }
+      },
+      5993: (e, t, s) => {
+        "use strict";
+        (s.r(t),
+          s.d(t, { $$typeof: () => o, __esModule: () => l, default: () => i }));
+        var a = s(8570);
+        let r = (0, a.createProxy)(
+            String.raw`C:\Users\wesley\Desktop\Radaa\radaa-frontend\app\dashboard\matatus\[id]\page.tsx`,
+          ),
+          { __esModule: l, $$typeof: o } = r;
+        r.default;
+        let i = (0, a.createProxy)(
+          String.raw`C:\Users\wesley\Desktop\Radaa\radaa-frontend\app\dashboard\matatus\[id]\page.tsx#default`,
+        );
+      },
+    }));
+  var t = require("../../../../webpack-runtime.js");
+  t.C(e);
+  var s = (e) => t((t.s = e)),
+    a = t.X(0, [489, 496, 462, 754], () => s(1270));
+  module.exports = a;
+})();
