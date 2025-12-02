@@ -159,6 +159,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             window.sessionStorage.removeItem(TOKEN_STORAGE_KEY);
             window.localStorage.removeItem("radaa_user_id");
             document.cookie = `${TOKEN_COOKIE_NAME}=; Path=/; Max-Age=0; SameSite=Lax`;
+            router.push("/auth/login");
           }
         } else if (result.user) {
           setUser((prev) => {
@@ -199,7 +200,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         });
       }
 
-      console.log("AUTH LOGIN RESPONSE", loginResult);
+      if (process.env.NODE_ENV !== "production") {
+        // eslint-disable-next-line no-console
+        console.log("AUTH LOGIN RESPONSE", loginResult);
+      }
 
       const tokenValue = (loginResult as any)?.token;
 
@@ -268,6 +272,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
 
         document.cookie = cookieParts.join("; ");
+        // TODO: Replace client-managed token cookie with an HttpOnly, secure cookie set by the backend plus a refresh-token flow.
       }
     } finally {
       setLoading(false);

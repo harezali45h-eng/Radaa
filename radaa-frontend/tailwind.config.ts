@@ -16,6 +16,11 @@ const config: Config = {
         "radaa-teal": "#0D9488",
         "radaa-gold": "#FBBF24",
         "radaa-orange": "#F97316",
+        kenyanGreen: "#00B050",
+        sunYellow: "#FFD400",
+        safariOrange: "#FF6A00",
+        twilightPurple: "#A855F7",
+        deepIndigo: "#1D4ED8",
       },
       borderRadius: {
         card: "18px",
@@ -27,6 +32,10 @@ const config: Config = {
           "0 0 0 1px rgba(59,130,246,0.35), 0 18px 45px -24px rgba(59,130,246,0.75)",
         "glow-mint":
           "0 0 0 1px rgba(16,185,129,0.35), 0 18px 45px -24px rgba(16,185,129,0.75)",
+        "glow-kenya":
+          "0 0 0 1px rgba(0,176,80,0.4), 0 24px 60px -30px rgba(0,176,80,0.9)",
+        "glass-elevated":
+          "0 24px 80px -40px rgba(15,23,42,0.95), 0 0 0 1px rgba(148,163,184,0.15)",
       },
       backgroundImage: {
         "gradient-blue-purple":
@@ -35,6 +44,10 @@ const config: Config = {
           "linear-gradient(135deg, #10B981 0%, #0D9488 100%)",
         "gradient-gold-orange":
           "linear-gradient(135deg, #FBBF24 0%, #F97316 100%)",
+        "gradient-kenya-sun":
+          "linear-gradient(135deg, #00B050 0%, #FFD400 50%, #FF6A00 100%)",
+        "gradient-kenya-night":
+          "radial-gradient(circle at top left, rgba(0,176,80,0.55), transparent 55%), radial-gradient(circle at bottom right, rgba(88,28,135,0.7), rgba(15,23,42,1))",
       },
       transitionTimingFunction: {
         snappy: "cubic-bezier(0.16, 1, 0.3, 1)",

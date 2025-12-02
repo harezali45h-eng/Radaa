@@ -4,6 +4,8 @@ import { FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { Card } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -43,7 +45,11 @@ export default function LoginPage() {
       );
 
       const data = await res.json().catch(() => null);
-      console.log("LOGIN RESPONSE --->", data);
+
+      if (process.env.NODE_ENV !== "production") {
+        // eslint-disable-next-line no-console
+        console.log("LOGIN RESPONSE --->", data);
+      }
 
       const payload =
         data && typeof data === "object" && "data" in (data as any)
@@ -82,7 +88,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="relative mx-auto w-full max-w-md">
+    <div className="relative mx-auto flex min-h-[70vh] w-full max-w-md flex-col justify-center">
       <noscript>
         <div className="mb-4 rounded-md border border-yellow-500/40 bg-yellow-500/10 px-3 py-2 text-sm text-yellow-100">
           JavaScript is disabled in your browser. Please enable JavaScript to
@@ -100,21 +106,22 @@ export default function LoginPage() {
         </div>
       )}
 
-      <form
-        onSubmit={handleSubmit}
-        className="space-y-5 rounded-xl border border-slate-800 bg-slate-900/80 px-6 py-6 shadow-lg backdrop-blur"
-        aria-busy={loading}
-      >
-        <div className="space-y-1">
+      <Card className="bg-slate-950/40 p-6 shadow-glass-elevated">
+        <form onSubmit={handleSubmit} className="space-y-5" aria-busy={loading}>
+          <div className="space-y-2">
+          <p className="radaa-glass-pill text-[11px] uppercase tracking-[0.18em] text-sunYellow">
+            Karibu Radaa
+          </p>
           <h1 className="text-2xl font-semibold tracking-tight text-slate-50">
             Sign in
           </h1>
-          <p className="text-sm text-slate-400">
-            Access your Radaa dashboard to manage matatus, trips, and payments.
+          <p className="text-sm text-slate-300">
+            Access live matatu tracking, driver perks, and SACCO controls — all
+            in one dashboard.
           </p>
-        </div>
+          </div>
 
-        <div className="space-y-1">
+          <div className="space-y-1">
           <label
             htmlFor="email"
             className="text-sm font-medium text-slate-100"
@@ -169,9 +176,9 @@ export default function LoginPage() {
               {fieldError}
             </p>
           )}
-        </div>
+          </div>
 
-        <div className="flex items-center justify-between text-xs text-slate-300">
+          <div className="flex items-center justify-between text-xs text-slate-300">
           <label className="flex items-center gap-2">
             <input
               type="checkbox"
@@ -187,13 +194,13 @@ export default function LoginPage() {
           >
             Forgot?
           </Link>
-        </div>
+          </div>
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="inline-flex w-full items-center justify-center rounded-md bg-sky-600 px-3 py-2 text-sm font-medium text-white shadow-sm transition-transform transition-colors hover:-translate-y-px hover:bg-sky-500 disabled:cursor-not-allowed disabled:opacity-60"
-        >
+          <Button
+            type="submit"
+            disabled={loading}
+            fullWidth
+          >
           {loading && (
             <svg
               className="mr-2 h-4 w-4 animate-spin text-sky-100"
@@ -216,10 +223,10 @@ export default function LoginPage() {
               />
             </svg>
           )}
-          <span>{loading ? "Signing in…" : "Sign in"}</span>
-        </button>
+            <span>{loading ? "Signing in…" : "Sign in"}</span>
+          </Button>
 
-        <p className="pt-1 text-center text-xs text-slate-400">
+          <p className="pt-1 text-center text-xs text-slate-300">
           Don&apos;t have an account?{" "}
           <Link
             href="/auth/register"
@@ -227,9 +234,9 @@ export default function LoginPage() {
           >
             Create one
           </Link>
-        </p>
+          </p>
 
-        <p className="text-center text-xs text-slate-400">
+          <p className="text-center text-xs text-slate-300">
           Are you a SACCO admin?{" "}
           <Link
             href="/auth/login-sacco"
@@ -237,9 +244,9 @@ export default function LoginPage() {
           >
             Sign in to SACCO dashboard
           </Link>
-        </p>
+          </p>
 
-        <p className="text-center text-xs text-slate-400">
+          <p className="text-center text-xs text-slate-400">
           Are you a driver?{" "}
           <Link
             href="/auth/login-driver"
@@ -248,7 +255,8 @@ export default function LoginPage() {
             Sign in to driver dashboard
           </Link>
         </p>
-      </form>
+        </form>
+      </Card>
     </div>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 export interface SwipeMatatu {
   id: string;
@@ -24,6 +24,13 @@ interface MatatuSwipeDeckProps {
 
 export function MatatuSwipeDeck({ items, onSelect }: MatatuSwipeDeckProps) {
   const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    setIndex((prev) => {
+      if (items.length === 0) return 0;
+      return prev >= items.length ? 0 : prev;
+    });
+  }, [items.length]);
 
   const active = items[index] ?? null;
   const remainingCount = Math.max(0, items.length - index - (active ? 1 : 0));

@@ -25,6 +25,7 @@ import { useIsFeatureEnabled } from "@/context/FeatureFlagContext";
 import MapContainer from "@/components/map/MapContainer";
 import { useRealtime } from "@/context/realtimeContext";
 import { useTheme } from "@/context/ThemeContext";
+import { Badge } from "@/components/ui/Badge";
 
 interface FleetLatLng {
   lat: number;
@@ -427,14 +428,23 @@ export default function SaccoDashboardPage() {
                       {d.driverProfile?.vehicleRegistration ?? "—"}
                     </td>
                     <td className="px-3 py-2">
-                      <span className="rounded-full bg-slate-800 px-2 py-0.5 text-[10px] text-slate-100">
+                      <Badge
+                        tone={
+                          d.driverVerificationStatus === "approved"
+                            ? "success"
+                            : d.driverVerificationStatus === "rejected"
+                              ? "danger"
+                              : "warning"
+                        }
+                        soft
+                      >
                         {d.driverVerificationStatus ?? "pending"}
-                      </span>
+                      </Badge>
                     </td>
                     <td className="px-3 py-2">
-                      <span className="rounded-full bg-slate-800 px-2 py-0.5 text-[10px] text-slate-100">
-                        {d.enabled ? "Yes" : "No"}
-                      </span>
+                      <Badge tone={d.enabled ? "success" : "muted"} soft>
+                        {d.enabled ? "Enabled" : "Disabled"}
+                      </Badge>
                     </td>
                     <td className="px-3 py-2 text-right">
                       <div className="inline-flex gap-1">
@@ -548,9 +558,18 @@ export default function SaccoDashboardPage() {
                   </td>
                   <td className="px-3 py-2 text-slate-300">{m.route ?? "—"}</td>
                   <td className="px-3 py-2">
-                    <span className="rounded-full bg-slate-800 px-2 py-0.5 text-[10px] text-slate-100">
+                    <Badge
+                      tone={
+                        m.approvalStatus === "approved"
+                          ? "success"
+                          : m.approvalStatus === "rejected"
+                            ? "danger"
+                            : "warning"
+                      }
+                      soft
+                    >
                       {m.approvalStatus ?? "pending"}
-                    </span>
+                    </Badge>
                   </td>
                   <td className="px-3 py-2 text-right">
                     <div className="inline-flex gap-1">

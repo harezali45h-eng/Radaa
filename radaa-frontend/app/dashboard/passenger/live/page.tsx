@@ -16,30 +16,11 @@ import {
   pingPassengerLocation,
   type EphemeralRequestSummary,
 } from "@/lib/api/requests";
-
-interface LatLng {
-  lat: number;
-  lng: number;
-}
-
-function haversineDistanceMeters(a: LatLng, b: LatLng): number {
-  const R = 6371000;
-  const toRad = (deg: number) => (deg * Math.PI) / 180;
-
-  const dLat = toRad(b.lat - a.lat);
-  const dLng = toRad(b.lng - a.lng);
-  const lat1 = toRad(a.lat);
-  const lat2 = toRad(b.lat);
-
-  const sinDLat = Math.sin(dLat / 2);
-  const sinDLng = Math.sin(dLng / 2);
-
-  const h =
-    sinDLat * sinDLat + Math.cos(lat1) * Math.cos(lat2) * sinDLng * sinDLng;
-  const c = 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
-
-  return R * c;
-}
+import {
+  haversineDistanceMeters,
+  type LatLng,
+} from "@/lib/location/distance";
+import { ActiveRequestWatcher } from "@/components/requests/ActiveRequestWatcher";
 
 export default function PassengerLiveDashboardPage() {
   const { token } = useAuth();
@@ -607,6 +588,13 @@ export default function PassengerLiveDashboardPage() {
             </div>
           )}
         </section>
+      )}
+
+      {autoCancelEnabled && activeRequestId && userLocation && (
+        <ActiveRequestWatcher
+          requestId={activeRequestId}
+          pickupLocation={userLocation}
+        />
       )}
     </div>
   );

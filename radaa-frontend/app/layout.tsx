@@ -5,6 +5,7 @@ import { NotificationProvider } from "@/context/NotificationContext";
 import { RealtimeProvider } from "@/context/realtimeContext";
 import { FeatureFlagProvider } from "@/context/FeatureFlagContext";
 import { ThemeProvider } from "@/context/ThemeContext";
+import { AppRootClient } from "@/components/layout/AppRootClient";
 
 export const metadata: Metadata = {
   title: "Radaa",
@@ -23,7 +24,9 @@ export default function RootLayout({
           <NotificationProvider>
             <AuthProvider>
               <RealtimeProvider>
-                <ThemeProvider>{children}</ThemeProvider>
+                <ThemeProvider>
+                  <AppRootClient>{children}</AppRootClient>
+                </ThemeProvider>
               </RealtimeProvider>
             </AuthProvider>
           </NotificationProvider>
