@@ -43,23 +43,70 @@ app.set("trust proxy", 1);
 /* -------------------------------------------
    CORS
 -------------------------------------------- */
-const allowedOrigins = [
+const rawCorsOrigins = [
   process.env.FRONTEND_ORIGIN,
+  process.env.CLIENT_ORIGIN,
+  process.env.CORS_ORIGIN,
   "https://radaa-frontend.vercel.app",
+  "https://radaa-dvpr.vercel.app",
   "http://localhost:5173",
   "http://localhost:3000",
 ].filter(Boolean);
 
+const explicitOrigins = new Set();
+const wildcardOrigins = [];
+
+for (const value of rawCorsOrigins) {
+  const parts = value.split(",").map(part => part.trim()).filter(Boolean);
+  for (const part of parts) {
+    if (part.startsWith("*.") || part.startsWith("http://*.") || part.startsWith("https://*.")) {
+      wildcardOrigins.push(part.replace(/^https?:\/\//, ""));
+    } else {
+      explicitOrigins.add(part);
+    }
+  }
+}
+
+const isOriginAllowed = origin => {
+  if (!origin) {
+    // Non-browser or same-origin requests
+    return true;
+  }
+
+  if (explicitOrigins.has(origin)) {
+    return true;
+  }
+
+  try {
+    const { hostname } = new URL(origin);
+
+    for (const pattern of wildcardOrigins) {
+      // pattern will look like "*.vercel.app" after normalization
+      if (pattern.startsWith("*.")) {
+        const suffix = pattern.slice(1); // e.g. ".vercel.app"
+        if (hostname.endsWith(suffix)) {
+          return true;
+        }
+      }
+    }
+  } catch (error) {
+    // Ignore invalid origin values
+    void error;
+  }
+
+  return false;
+};
+
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
+      if (isOriginAllowed(origin)) {
         return callback(null, true);
       }
       return callback(new Error("Not allowed by CORS"));
     },
     credentials: true,
-    methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
