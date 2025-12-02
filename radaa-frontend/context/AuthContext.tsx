@@ -7,9 +7,11 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { useRouter } from "next/navigation";
 import {
   login as apiLogin,
   register as apiRegister,
+  checkAuth,
   type RegisterPayload,
 } from "@/lib/api/auth";
 
@@ -39,13 +41,23 @@ interface User {
   };
 }
 
+type LoginCredentialsPayload = {
+  email: string;
+  password: string;
+};
+
+type LoginResponsePayload = User & {
+  token: string;
+};
+
 interface AuthContextType {
   user: User | null;
   token: string | null;
   loading: boolean;
+  isAuthenticated: boolean;
   login: (
-    payload: { email: string; password: string },
-    rememberMe?: boolean,
+    payload: LoginCredentialsPayload | LoginResponsePayload,
+    rememberOrOptions?: boolean | { remember?: boolean },
   ) => Promise<void>;
   register: (payload: RegisterPayload) => Promise<void>;
   logout: () => void;
@@ -63,6 +75,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const router = useRouter();
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -119,33 +132,114 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false);
     }
   }, []);
+
+  useEffect(() => {
+    if (!token) {
+      return;
+    }
+
+    let cancelled = false;
+
+    const validate = async () => {
+      try {
+        const result = await checkAuth(token);
+
+        if (cancelled) {
+          return;
+        }
+
+        if (!result.authenticated) {
+          setUser(null);
+          setToken(null);
+
+          if (typeof window !== "undefined") {
+            window.localStorage.removeItem(USER_STORAGE_KEY);
+            window.localStorage.removeItem(TOKEN_STORAGE_KEY);
+            window.sessionStorage.removeItem(USER_STORAGE_KEY);
+            window.sessionStorage.removeItem(TOKEN_STORAGE_KEY);
+            window.localStorage.removeItem("radaa_user_id");
+            document.cookie = `${TOKEN_COOKIE_NAME}=; Path=/; Max-Age=0; SameSite=Lax`;
+          }
+        } else if (result.user) {
+          setUser((prev) => {
+            const merged = {
+              ...(prev || {}),
+              ...result.user,
+            } as User;
+
+            return merged;
+          });
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    };
+
+    validate();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [token]);
+
   const login = async (
-    payload: { email: string; password: string },
-    rememberMe: boolean = false,
+    payload: LoginCredentialsPayload | LoginResponsePayload,
+    rememberOrOptions?: boolean | { remember?: boolean },
   ) => {
     setLoading(true);
     try {
-      const result = await apiLogin(payload);
+      let loginResult: any = payload;
+
+      if (!("token" in payload)) {
+        loginResult = await apiLogin({
+          email: payload.email,
+          password: payload.password,
+        });
+      }
+
+      console.log("AUTH LOGIN RESPONSE", loginResult);
+
+      const tokenValue = (loginResult as any)?.token;
+
+      if (!loginResult || typeof tokenValue !== "string") {
+        const message = (loginResult as any)?.message || "Invalid login response";
+        throw new Error(message);
+      }
+
       const userData: User = {
-        _id: result._id,
-        email: result.email,
-        token: result.token,
-        username: result.username,
-        handle: result.handle,
-        phone: result.phone,
-        createdAt: result.createdAt,
-        role: (result as any).role,
-        enabled: (result as any).enabled,
-        driverProfile: (result as any).driverProfile,
-        driverVerificationStatus: (result as any).driverVerificationStatus,
-        saccoProfile: (result as any).saccoProfile,
+        _id: loginResult._id,
+        email: loginResult.email,
+        token: tokenValue,
+        username: loginResult.username,
+        handle: loginResult.handle,
+        phone: loginResult.phone,
+        createdAt: loginResult.createdAt,
+        role: (loginResult as any).role,
+        enabled: (loginResult as any).enabled,
+        driverProfile: (loginResult as any).driverProfile,
+        driverVerificationStatus: (loginResult as any).driverVerificationStatus,
+        saccoProfile: (loginResult as any).saccoProfile,
       };
 
       setUser(userData);
       setToken(userData.token);
 
       if (typeof window !== "undefined") {
-        const storage = rememberMe
+        let remember = false;
+
+        if (typeof rememberOrOptions === "boolean") {
+          remember = rememberOrOptions;
+        } else if (
+          rememberOrOptions &&
+          typeof rememberOrOptions === "object" &&
+          "remember" in rememberOrOptions
+        ) {
+          remember = Boolean(rememberOrOptions.remember);
+        }
+
+        const storage = remember
           ? window.localStorage
           : window.sessionStorage;
 
@@ -153,7 +247,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         storage.setItem(TOKEN_STORAGE_KEY, userData.token);
         window.localStorage.setItem("radaa_user_id", userData._id);
 
-        if (rememberMe) {
+        if (remember) {
           window.sessionStorage.removeItem(USER_STORAGE_KEY);
           window.sessionStorage.removeItem(TOKEN_STORAGE_KEY);
         } else {
@@ -236,12 +330,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       window.sessionStorage.removeItem(TOKEN_STORAGE_KEY);
       window.localStorage.removeItem("radaa_user_id");
       document.cookie = `${TOKEN_COOKIE_NAME}=; Path=/; Max-Age=0; SameSite=Lax`;
+      router.push("/auth/login");
     }
   };
 
   return (
     <AuthContext.Provider
-      value={{ user, token, loading, login, register, logout }}
+      value={{
+        user,
+        token,
+        loading,
+        isAuthenticated: Boolean(token),
+        login,
+        register,
+        logout,
+      }}
     >
       {children}
     </AuthContext.Provider>
