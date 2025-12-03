@@ -35,16 +35,14 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const loginBaseUrl =
-        process.env.NEXT_PUBLIC_API_BASE_URL ||
-        process.env.NEXT_PUBLIC_API_URL ||
-        "";
-
-      const res = await fetch(`${loginBaseUrl}/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/auth/login`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        },
+      );
 
       const data = await res.json().catch(() => null);
 
@@ -90,7 +88,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="relative mx-auto flex w-full max-w-md flex-col justify-center py-6 sm:min-h-[70vh]">
+    <div className="relative mx-auto flex min-h-[70vh] w-full max-w-md flex-col justify-center">
       <noscript>
         <div className="mb-4 rounded-md border border-yellow-500/40 bg-yellow-500/10 px-3 py-2 text-sm text-yellow-100">
           JavaScript is disabled in your browser. Please enable JavaScript to

@@ -49,7 +49,7 @@
   }
 
   .radaa-glass-card {
-    @apply rounded-card border border-white/20 bg-slate-900/40 shadow-glass-elevated backdrop-blur-xl;
+    @apply rounded-card border border-white/8 bg-slate-900/40 shadow-glass-elevated backdrop-blur-xl;
   }
 
   .radaa-glass-pill {

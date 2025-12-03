@@ -13,11 +13,7 @@ export default function HomePage() {
 
   useEffect(() => {
     if (loading) return;
-
-    if (!user && !token) {
-      router.replace("/auth/login");
-      return;
-    }
+    if (!user && !token) return;
 
     const role = (user as any)?.role as string | undefined;
     let target = "/dashboard";
