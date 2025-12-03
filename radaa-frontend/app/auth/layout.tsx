@@ -4,20 +4,20 @@ export default function AuthLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-slate-950 bg-[radial-gradient(ellipse_at_top,_#0f172a,_transparent_55%),radial-gradient(ellipse_at_bottom,_#020617,_transparent_55%)] px-4 py-8 text-slate-50">
-      <div className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-5xl items-center justify-center">
-        <div className="grid w-full gap-10 md:grid-cols-[1.2fr,1fr] items-center">
+    <div className="min-h-screen bg-slate-950 bg-[radial-gradient(ellipse_at_top,_#0f172a,_transparent_55%),radial-gradient(ellipse_at_bottom,_#020617,_transparent_55%)] px-4 py-6 text-slate-50 md:py-10">
+      <div className="mx-auto flex min-h-[calc(100vh-3.5rem)] max-w-5xl items-start justify-center md:items-center">
+        <div className="grid w-full gap-8 items-start md:grid-cols-[1.2fr,1fr] md:gap-10 md:items-center">
           <div className="space-y-4">
             <p className="text-xs font-semibold uppercase tracking-[0.3em] text-sky-400/90">
               Radaa
             </p>
             <h1 className="text-3xl font-semibold leading-tight md:text-4xl">
-              Move the city with
-              <span className="text-sky-400"> live matatu intelligence</span>.
+              <span className="text-sky-400">Kaa Radaa</span>{" "}
+              as you move in the city.
             </h1>
             <p className="max-w-md text-sm text-slate-300">
               Sign in to manage fleets, track rides in real time, and reward loyal
-              commutersall from a single dashboard.
+              commuters  all from a single dashboard.
             </p>
           </div>
 

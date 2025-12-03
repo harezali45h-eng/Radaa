@@ -20,6 +20,7 @@ export function AppShell({ children }: AppShellProps) {
   const { user, token, logout } = useAuth();
   const { notifications, unreadCount, markAllAsRead } = useNotifications();
   const [open, setOpen] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const { connect } = useSocket();
   const { driverOnline, setDriverOnline, activeMode } = useRealtime();
   const { headerBgClass } = useTheme();
@@ -36,6 +37,8 @@ export function AppShell({ children }: AppShellProps) {
   const isDashboardSub = pathname.startsWith("/dashboard/");
   const isAuthRoute = pathname.startsWith("/auth");
   const isMarketingHome = pathname === "/";
+
+  const isDashboard = isDashboardRoot || isDashboardSub;
 
   const showBackToDashboard =
     !isMarketingHome && !isAuthRoute && !isDashboardRoot;
@@ -66,12 +69,26 @@ export function AppShell({ children }: AppShellProps) {
     <div className="flex min-h-screen flex-col">
       <header className={headerBgClass}>
         <div className="radaa-shell flex items-center justify-between py-3">
-          <Link
-            href={homeHref}
-            className="text-lg font-semibold tracking-tight"
-          >
-            Radaa
-          </Link>
+          <div className="flex items-center gap-3">
+            {isDashboard && (
+              <button
+                type="button"
+                onClick={() => setMobileNavOpen(true)}
+                className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-slate-700 text-slate-200 hover:border-sky-500 hover:text-sky-200 md:hidden"
+                aria-label="Open navigation menu"
+              >
+                <span className="block h-0.5 w-4 rounded bg-slate-200" />
+                <span className="mt-1 block h-0.5 w-4 rounded bg-slate-200" />
+                <span className="mt-1 block h-0.5 w-4 rounded bg-slate-200" />
+              </button>
+            )}
+            <Link
+              href={homeHref}
+              className="text-lg font-semibold tracking-tight"
+            >
+              Radaa
+            </Link>
+          </div>
           <nav className="flex items-center gap-4 text-sm text-slate-300">
             <div className="hidden items-center gap-3 md:flex">
               <Link href={homeHref} className="hover:text-white">
@@ -174,7 +191,7 @@ export function AppShell({ children }: AppShellProps) {
             <button
               type="button"
               onClick={logout}
-              className="text-xs font-medium text-slate-300 hover:text-red-300"
+              className="hidden text-xs font-medium text-slate-300 hover:text-red-300 md:inline-flex"
             >
               Logout
             </button>
@@ -192,43 +209,70 @@ export function AppShell({ children }: AppShellProps) {
           {children}
         </div>
       </main>
-      {(isDashboardRoot || isDashboardSub) && isDriver && (
-        <nav className="fixed bottom-0 left-0 right-0 z-30 border-t border-slate-800 bg-slate-950/90 px-4 py-2 text-[11px] text-slate-200 md:hidden">
-          <div className="mx-auto flex max-w-md items-center justify-between">
-            <Link
-              href={homeHref}
-              className="flex flex-1 flex-col items-center px-2 py-1"
-            >
-              <span className="text-[11px]">Home</span>
-            </Link>
-            <Link
-              href={liveHref}
-              className="flex flex-1 flex-col items-center px-2 py-1"
-            >
-              <span className="text-[11px]">Live</span>
-            </Link>
-            <Link
-              href="/dashboard/trips/list"
-              className="flex flex-1 flex-col items-center px-2 py-1"
-            >
-              <span className="text-[11px]">Trips</span>
-            </Link>
-            <Link
-              href="/profile"
-              className="flex flex-1 flex-col items-center px-2 py-1"
-            >
-              <span className="text-[11px]">Profile</span>
-            </Link>
-            {isAdmin && (
-              <Link
-                href="/dashboard/sacco"
-                className="flex flex-1 flex-col items-center px-2 py-1"
+      {isDashboard && mobileNavOpen && (
+        <div className="fixed inset-0 z-40 bg-black/60 md:hidden">
+          <div className="absolute left-0 top-0 flex h-full w-72 max-w-xs flex-col border-r border-slate-800 bg-slate-950 px-4 py-4">
+            <div className="mb-4 flex items-center justify-between">
+              <span className="text-sm font-semibold text-slate-100">Menu</span>
+              <button
+                type="button"
+                onClick={() => setMobileNavOpen(false)}
+                className="rounded-md border border-slate-700 px-2 py-1 text-[11px] text-slate-300 hover:border-slate-500 hover:text-slate-100"
               >
-                <span className="text-[11px]">SACCO</span>
+                Close
+              </button>
+            </div>
+            <nav className="flex flex-1 flex-col gap-1 text-sm">
+              <Link
+                href={homeHref}
+                onClick={() => setMobileNavOpen(false)}
+                className="rounded-md px-3 py-2 text-slate-200 hover:bg-slate-800"
+              >
+                Home
               </Link>
-            )}
+              <Link
+                href={liveHref}
+                onClick={() => setMobileNavOpen(false)}
+                className="rounded-md px-3 py-2 text-slate-200 hover:bg-slate-800"
+              >
+                Live
+              </Link>
+              <Link
+                href="/dashboard/trips/list"
+                onClick={() => setMobileNavOpen(false)}
+                className="rounded-md px-3 py-2 text-slate-200 hover:bg-slate-800"
+              >
+                Trips
+              </Link>
+              <Link
+                href="/profile"
+                onClick={() => setMobileNavOpen(false)}
+                className="rounded-md px-3 py-2 text-slate-200 hover:bg-slate-800"
+              >
+                Profile
+              </Link>
+              {isAdmin && (
+                <Link
+                  href="/dashboard/sacco"
+                  onClick={() => setMobileNavOpen(false)}
+                  className="rounded-md px-3 py-2 text-slate-200 hover:bg-slate-800"
+                >
+                  SACCO
+                </Link>
+              )}
+            </nav>
+            <button
+              type="button"
+              onClick={() => {
+                setMobileNavOpen(false);
+                logout();
+              }}
+              className="mt-4 rounded-md border border-red-500/60 px-3 py-2 text-sm font-medium text-red-200 hover:border-red-400 hover:bg-red-500/10"
+            >
+              Logout
+            </button>
           </div>
-        </nav>
+        </div>
       )}
     </div>
   );

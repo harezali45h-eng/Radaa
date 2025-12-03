@@ -29,7 +29,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   return (
     <AppShell>
       <div className="grid gap-6 md:grid-cols-[210px,1fr]">
-        <aside className={`${cardSurfaceClass} p-4 text-xs`}>
+        <aside className={`${cardSurfaceClass} hidden p-4 text-xs md:block`}>
           <nav className="space-y-4">
             <div>
               <div className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
