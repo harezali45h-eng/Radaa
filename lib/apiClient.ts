@@ -1,9 +1,14 @@
 import axios from "axios";
 
-const API = (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/+$/, "");
+// Prefer the canonical NEXT_PUBLIC_API_BASE_URL but keep support for the
+// legacy NEXT_PUBLIC_API_URL name so existing environments continue to work.
+const RAW_API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || "";
 
-if (API) {
-  axios.defaults.baseURL = API;
+const API_BASE_URL = RAW_API_BASE_URL.replace(/\/+$/, "");
+
+if (API_BASE_URL) {
+  axios.defaults.baseURL = API_BASE_URL;
 }
 
 axios.defaults.withCredentials = true;
