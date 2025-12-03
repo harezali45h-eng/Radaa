@@ -49,7 +49,7 @@
   }
 
   .radaa-glass-card {
-    @apply rounded-card border border-white/8 bg-slate-900/40 shadow-glass-elevated backdrop-blur-xl;
+    @apply rounded-card border border-white/20 bg-slate-900/40 shadow-glass-elevated backdrop-blur-xl;
   }
 
   .radaa-glass-pill {
@@ -58,5 +58,33 @@
 
   .radaa-glass-nav {
     @apply flex items-center justify-between rounded-pill border border-white/10 bg-slate-900/40 px-3 py-1.5 text-xs text-slate-100 shadow-soft backdrop-blur-xl;
+  }
+
+  .radaa-login-bg {
+    @apply relative flex min-h-screen items-center justify-center px-4;
+    background-image:
+      radial-gradient(circle at top left, rgba(0, 176, 80, 0.7), transparent 60%),
+      radial-gradient(circle at bottom right, rgba(148, 63, 246, 0.7), transparent 60%),
+      linear-gradient(145deg, #020617 0%, #020617 55%, #020617 100%);
+  }
+
+  .radaa-login-bg::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(to bottom, rgba(2, 6, 23, 0.2), rgba(2, 6, 23, 0.92));
+    pointer-events: none;
+  }
+
+  .radaa-dashboard-bg {
+    @apply space-y-6;
+    background-image:
+      radial-gradient(circle at top left, rgba(0, 176, 80, 0.6), transparent 55%),
+      radial-gradient(circle at top right, rgba(248, 113, 113, 0.35), transparent 55%),
+      radial-gradient(circle at bottom, rgba(37, 99, 235, 0.55), transparent 55%),
+      linear-gradient(145deg, #020617 0%, #020617 50%, #020617 100%);
+    background-size: cover;
+    background-position: center;
   }
 }

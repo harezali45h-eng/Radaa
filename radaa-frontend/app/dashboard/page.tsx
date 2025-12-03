@@ -123,10 +123,36 @@ export default function DashboardHomePage() {
 
   const activeTripsCount = 0; // placeholder until trips API is wired
 
+  const fallbackSwiperMatatus: LiveMatatuPreview[] = [
+    {
+      id: "placeholder-1",
+      plate: "Discover matatus",
+      route: "Swipe through routes",
+    },
+    {
+      id: "placeholder-2",
+      plate: "Save favourites",
+      route: "Pin your daily rides",
+    },
+    {
+      id: "placeholder-3",
+      plate: "See what is live",
+      route: "Live matatus near you",
+    },
+  ];
+
+  const swiperMatatus =
+    stats && stats.liveSample && stats.liveSample.length > 0
+      ? stats.liveSample
+      : fallbackSwiperMatatus;
+
   return (
-    <div className="space-y-6">
-      <header className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-        <div>
+    <div className="radaa-dashboard-bg">
+      <header className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div className="space-y-1.5">
+          <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-sunYellow">
+            Karibu back
+          </p>
           <h1 className="text-2xl font-bold tracking-tight">
             Welcome back{effectiveUser ? ", " : ""}
             {effectiveUser?.username}
@@ -135,14 +161,56 @@ export default function DashboardHomePage() {
             Your central hub for matatus, trips, loyalty, and payments.
           </p>
         </div>
-        <button
-          type="button"
-          onClick={logout}
-          className="inline-flex items-center justify-center rounded-md border border-slate-700 bg-slate-900 px-3 py-1.5 text-xs font-medium text-slate-100 shadow-sm transition hover:border-red-500/60 hover:bg-red-600/10 hover:text-red-200"
-        >
-          Log out
-        </button>
+        <div className="mt-2 flex flex-col items-end gap-2 text-[11px] text-slate-300 md:mt-0">
+          <div className="inline-flex items-center rounded-full border border-slate-700/70 bg-slate-900/70 px-3 py-1">
+            <span className="mr-2 h-1.5 w-1.5 rounded-full bg-emerald-400" />
+            <span className="font-medium">
+              {statsLoading
+                ? "Loading loyalty"
+                : `Loyalty pts: ${stats?.loyalty?.loyaltyPoints ?? 0}`}
+            </span>
+          </div>
+          <span className="text-[10px] text-slate-400">
+            Rides taken: {stats?.loyalty?.ridesTaken ?? 0}
+          </span>
+        </div>
       </header>
+
+      <section className="space-y-2">
+        <div className="flex items-center justify-between text-[11px] text-slate-300">
+          <div className="font-semibold text-slate-100">Matatus around you</div>
+          <Link
+            href="/map"
+            className="text-sky-400 hover:text-sky-300"
+          >
+            Open full map
+          </Link>
+        </div>
+        <div className="flex gap-3 overflow-x-auto pb-2 pt-1 snap-x snap-mandatory">
+          {swiperMatatus.map((m) => (
+            <Link
+              key={m.id}
+              href="/map"
+              className="snap-center min-w-[72%] max-w-[320px] rounded-2xl border border-slate-800 bg-slate-950/90 p-3 text-xs shadow-soft hover:border-sky-500/70"
+            >
+              <div className="mb-2 h-24 rounded-xl bg-gradient-kenya-night" />
+              <div className="flex items-center justify-between gap-2">
+                <div>
+                  <div className="text-[12px] font-semibold text-slate-100">
+                    {m.plate || m.numberPlate || m.id.slice(0, 4)}
+                  </div>
+                  <div className="text-[10px] text-slate-400">
+                    {m.route ?? "Route TBD"}
+                  </div>
+                </div>
+                <span className="rounded-full bg-slate-800 px-2 py-0.5 text-[10px] text-slate-200">
+                  View on map
+                </span>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </section>
 
       <section className="radaa-card space-y-2 p-3 text-xs">
         <div className="flex items-center justify-between gap-2">

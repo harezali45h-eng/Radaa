@@ -99,13 +99,24 @@ export function useIsFeatureEnabled(
 ): boolean {
   const { flags, loading } = useFeatureFlags();
 
+  const flagsLoaded = !loading && Boolean(flags);
+
+  if (key === "ui_revamp_v1" && !flagsLoaded) {
+    return true;
+  }
+
   if (loading || !flags) {
     return fallbackEnabled;
   }
 
   const entry = flags[key];
 
-  if (!entry) return false;
+  if (!entry) {
+    if (key === "ui_revamp_v1") {
+      return true;
+    }
+    return false;
+  }
 
   return Boolean(entry.enabled);
 }
