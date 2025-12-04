@@ -54,7 +54,11 @@ const BACKEND_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL ||
   "";
 
-const hasGoogleMapsKey = Boolean(process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY);
+const rawGoogleKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? "";
+const hasGoogleMapsKey = Boolean(
+  rawGoogleKey &&
+    !rawGoogleKey.toLowerCase().includes("your-google-maps-api-key"),
+);
 
 function haversineDistanceMeters(a: LatLng, b: LatLng): number {
   const R = 6371000;
@@ -664,6 +668,13 @@ export default function MapPage() {
             />
           )}
 
+          {!hasGoogleMapsKey && (
+            <p className="mt-2 text-[11px] text-slate-400">
+              Google Maps API key is not configured. Showing simplified map
+              view instead.
+            </p>
+          )}
+
           {geoError && (
             <p className="mt-2 text-[11px] text-amber-300">{geoError}</p>
           )}
@@ -837,6 +848,12 @@ export default function MapPage() {
             />
           )}
         </div>
+        {!hasGoogleMapsKey && (
+          <div className="px-4 pb-3 text-[11px] text-slate-400">
+            Google Maps API key is not configured. Showing simplified map view
+            instead.
+          </div>
+        )}
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-slate-950 to-transparent" />
       </section>
 

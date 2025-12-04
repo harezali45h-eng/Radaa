@@ -57,7 +57,11 @@ export default function GoogleMapContainer({
   hasAnyLocation,
   showCenterOnMe = true,
 }: GoogleMapContainerProps) {
-  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? "";
+  const rawKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? "";
+  const apiKey =
+    rawKey && rawKey.toLowerCase().includes("your-google-maps-api-key")
+      ? ""
+      : rawKey;
 
   const { isLoaded, loadError } = useLoadScript({
     googleMapsApiKey: apiKey,
@@ -82,20 +86,20 @@ export default function GoogleMapContainer({
 
   return (
     <div className="relative mt-4 min-h-[320px] h-[55vh] md:h-[65vh] overflow-hidden rounded-lg bg-slate-950">
-      {(!isLoaded || isLoading) && !loadError && (
+      {(!isLoaded || isLoading) && !loadError && apiKey && (
         <div className="absolute inset-0 animate-pulse bg-gradient-to-br from-slate-900 via-slate-950 to-slate-900">
           <div className="absolute inset-4 rounded-lg border border-slate-800/60" />
         </div>
       )}
 
-      {loadError && (
+      {(!apiKey || loadError) && (
         <div className="flex h-full items-center justify-center px-4 text-center text-xs text-amber-200">
-          Google Maps failed to load. Please check your API key and network
-          connection.
+          Google Maps failed to load. Please check that your API key is set
+          correctly and that the Maps JavaScript API is enabled.
         </div>
       )}
 
-      {isLoaded && !loadError && (
+      {isLoaded && !loadError && apiKey && (
         <GoogleMap
           mapContainerStyle={containerStyle}
           center={center}

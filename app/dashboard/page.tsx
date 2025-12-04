@@ -176,24 +176,31 @@ export default function DashboardHomePage() {
         </div>
       </header>
 
-      <section className="space-y-2">
-        <div className="flex items-center justify-between text-[11px] text-slate-300">
-          <div className="font-semibold text-slate-100">Matatus around you</div>
+      <section className="mt-4 space-y-3">
+        <div className="flex items-center justify-between gap-3 text-[11px] text-slate-300">
+          <div>
+            <div className="font-semibold text-slate-100">Matatus around you</div>
+            <p className="mt-0.5 text-[10px] text-slate-400">
+              Swipe through matatus and tap a card to jump into the live map.
+            </p>
+          </div>
           <Link
             href="/map"
-            className="text-sky-400 hover:text-sky-300"
+            className="whitespace-nowrap rounded-full border border-sky-500/60 bg-sky-600/10 px-3 py-1 text-[10px] font-medium text-sky-200 shadow-sm hover:border-sky-400 hover:bg-sky-600/20"
           >
             Open full map
           </Link>
         </div>
-        <div className="flex gap-3 overflow-x-auto pb-2 pt-1 snap-x snap-mandatory">
+        <div className="flex gap-4 overflow-x-auto pb-4 pt-1 snap-x snap-mandatory">
           {swiperMatatus.map((m) => (
             <Link
               key={m.id}
               href="/map"
-              className="snap-center min-w-[72%] max-w-[320px] rounded-2xl border border-slate-800 bg-slate-950/90 p-3 text-xs shadow-soft hover:border-sky-500/70"
+              className="group relative min-w-[78%] max-w-[320px] snap-center rounded-2xl border border-slate-800/80 bg-slate-950/80 p-3 text-xs shadow-soft transition-transform duration-200 ease-snappy hover:-translate-y-1 hover:border-sky-500/70"
             >
-              <div className="mb-2 h-24 rounded-xl bg-gradient-kenya-night" />
+              <div className="relative mb-3 h-32 overflow-hidden rounded-xl bg-gradient-kenya-night">
+                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_0%_0%,rgba(0,176,80,0.6),transparent_55%),radial-gradient(circle_at_100%_100%,rgba(248,113,113,0.45),transparent_55%)] opacity-80 transition-opacity duration-200 group-hover:opacity-100" />
+              </div>
               <div className="flex items-center justify-between gap-2">
                 <div>
                   <div className="text-[12px] font-semibold text-slate-100">
@@ -203,9 +210,14 @@ export default function DashboardHomePage() {
                     {m.route ?? "Route TBD"}
                   </div>
                 </div>
-                <span className="rounded-full bg-slate-800 px-2 py-0.5 text-[10px] text-slate-200">
-                  View on map
-                </span>
+                <div className="flex flex-col items-end gap-1">
+                  <span className="rounded-full bg-slate-800 px-2 py-0.5 text-[10px] text-slate-200">
+                    View on map
+                  </span>
+                  <span className="hidden text-[9px] text-sky-300 md:inline">
+                    Swipe to see more
+                  </span>
+                </div>
               </div>
             </Link>
           ))}

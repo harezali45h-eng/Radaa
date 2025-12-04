@@ -74,12 +74,12 @@ export function AppShell({ children }: AppShellProps) {
               <button
                 type="button"
                 onClick={() => setMobileNavOpen(true)}
-                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-sky-500/70 bg-slate-950/80 text-slate-50 shadow-glow-kenya hover:border-sky-400 hover:text-sky-100 md:hidden"
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-kenyanGreen/80 bg-gradient-kenya-sun text-slate-50 shadow-glow-kenya ring-1 ring-white/10 hover:border-sunYellow hover:ring-2 hover:ring-sunYellow/70 md:hidden"
                 aria-label="Open navigation menu"
               >
-                <span className="block h-0.5 w-4 rounded bg-slate-200" />
-                <span className="mt-1 block h-0.5 w-4 rounded bg-slate-200" />
-                <span className="mt-1 block h-0.5 w-4 rounded bg-slate-200" />
+                <span className="block h-0.5 w-4 rounded bg-slate-950/90" />
+                <span className="mt-1 block h-0.5 w-4 rounded bg-slate-950/90" />
+                <span className="mt-1 block h-0.5 w-4 rounded bg-slate-950/90" />
               </button>
             )}
             <Link
@@ -192,9 +192,10 @@ export function AppShell({ children }: AppShellProps) {
               <button
                 type="button"
                 onClick={logout}
-                className="hidden text-xs font-medium text-slate-300 hover:text-red-300 md:inline-flex"
+                className="hidden items-center gap-1 rounded-full border border-slate-700 bg-slate-900/80 px-3 py-1 text-[11px] font-medium text-slate-300 shadow-soft hover:border-red-400 hover:bg-red-500/20 hover:text-red-100 md:inline-flex"
               >
-                Logout
+                <span className="h-1.5 w-1.5 rounded-full bg-red-400" />
+                <span>Logout</span>
               </button>
             )}
           </nav>
