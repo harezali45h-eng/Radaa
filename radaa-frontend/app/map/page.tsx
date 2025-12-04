@@ -4,7 +4,6 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSocket } from "@/hooks/useSocket";
 import { getLiveMatatus, getMapMarkers } from "@/lib/api";
 import MapContainer from "@/components/map/MapContainer";
-import GoogleMapContainer from "@/components/map/GoogleMapContainer";
 import { useRealtime } from "@/context/realtimeContext";
 import { useIsFeatureEnabled } from "@/context/FeatureFlagContext";
 import {
@@ -53,8 +52,6 @@ const BACKEND_URL =
   process.env.NEXT_PUBLIC_BACKEND_URL ||
   process.env.NEXT_PUBLIC_API_BASE_URL ||
   "";
-
-const hasGoogleMapsKey = Boolean(process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY);
 
 function haversineDistanceMeters(a: LatLng, b: LatLng): number {
   const R = 6371000;
@@ -638,31 +635,18 @@ export default function MapPage() {
             </div>
           )}
 
-          {hasGoogleMapsKey ? (
-            <GoogleMapContainer
-              matatus={matatusWithFlags}
-              passengers={passengers}
-              userLocation={userLocation}
-              onCenterOnMe={handleCenterOnMe}
-              onSelectMatatu={handleSelectMatatu}
-              isLoading={loading}
-              hasAnyLocation={hasAnyLocation}
-              driverMode={driverOnline}
-            />
-          ) : (
-            <MapContainer
-              matatus={matatusWithFlags}
-              passengers={passengers}
-              userLocation={userLocation}
-              displayPositions={displayPositions}
-              project={project}
-              onCenterOnMe={handleCenterOnMe}
-              onSelectMatatu={handleSelectMatatu}
-              isLoading={loading}
-              hasAnyLocation={hasAnyLocation}
-              driverMode={driverOnline}
-            />
-          )}
+          <MapContainer
+            matatus={matatusWithFlags}
+            passengers={passengers}
+            userLocation={userLocation}
+            displayPositions={displayPositions}
+            project={project}
+            onCenterOnMe={handleCenterOnMe}
+            onSelectMatatu={handleSelectMatatu}
+            isLoading={loading}
+            hasAnyLocation={hasAnyLocation}
+            driverMode={driverOnline}
+          />
 
           {geoError && (
             <p className="mt-2 text-[11px] text-amber-300">{geoError}</p>
@@ -811,31 +795,18 @@ export default function MapPage() {
 
       <section className="relative overflow-hidden rounded-2xl border border-slate-800 bg-slate-950">
         <div className="p-4 pb-3">
-          {hasGoogleMapsKey ? (
-            <GoogleMapContainer
-              matatus={matatusWithFlags}
-              passengers={passengers}
-              userLocation={userLocation}
-              onCenterOnMe={handleCenterOnMe}
-              onSelectMatatu={handleSelectMatatu}
-              isLoading={loading}
-              hasAnyLocation={hasAnyLocation}
-              driverMode={driverOnline}
-            />
-          ) : (
-            <MapContainer
-              matatus={matatusWithFlags}
-              passengers={passengers}
-              userLocation={userLocation}
-              displayPositions={displayPositions}
-              project={project}
-              onCenterOnMe={handleCenterOnMe}
-              onSelectMatatu={handleSelectMatatu}
-              isLoading={loading}
-              hasAnyLocation={hasAnyLocation}
-              driverMode={driverOnline}
-            />
-          )}
+          <MapContainer
+            matatus={matatusWithFlags}
+            passengers={passengers}
+            userLocation={userLocation}
+            displayPositions={displayPositions}
+            project={project}
+            onCenterOnMe={handleCenterOnMe}
+            onSelectMatatu={handleSelectMatatu}
+            isLoading={loading}
+            hasAnyLocation={hasAnyLocation}
+            driverMode={driverOnline}
+          />
         </div>
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-slate-950 to-transparent" />
       </section>

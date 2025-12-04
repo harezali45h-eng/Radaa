@@ -8,7 +8,7 @@ import { useRealtime } from "@/context/realtimeContext";
 import { useTheme } from "@/context/ThemeContext";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const role = (user as any)?.role as string | undefined;
   const isAdmin = role === "admin";
   const isDriver = role === "driver";
@@ -29,7 +29,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   return (
     <AppShell>
       <div className="grid gap-6 md:grid-cols-[210px,1fr]">
-        <aside className={`${cardSurfaceClass} hidden h-full p-4 text-xs md:flex md:flex-col`}>
+        <aside className={`${cardSurfaceClass} hidden p-4 text-xs md:block`}>
           <nav className="space-y-4">
             <div>
               <div className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
@@ -79,16 +79,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
               </div>
             </div>
           </nav>
-          <div className="mt-auto pt-4 text-[11px] text-slate-400">
-            <button
-              type="button"
-              onClick={logout}
-              className="flex w-full items-center justify-between rounded-md border border-red-500/70 bg-red-500/5 px-3 py-2 font-medium text-red-100 transition hover:border-red-400 hover:bg-red-500/15"
-            >
-              <span>Logout</span>
-              <span className="text-[9px] opacity-80">Sign out</span>
-            </button>
-          </div>
         </aside>
 
         <section className="space-y-4">

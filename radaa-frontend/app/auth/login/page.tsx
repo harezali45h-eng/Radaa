@@ -92,13 +92,22 @@ export default function LoginPage() {
   return (
     <div className="radaa-login-bg">
       <div className="relative mx-auto flex w-full max-w-md flex-col justify-center py-6 sm:min-h-[70vh]">
-      <noscript>
-        <div className="mb-4 rounded-md border border-yellow-500/40 bg-yellow-500/10 px-3 py-2 text-sm text-yellow-100">
-          JavaScript is disabled in your browser. Please enable JavaScript to
-          sign in to your Radaa account.
-        </div>
-      </noscript>
+        <noscript>
+          <div className="mb-4 rounded-md border border-yellow-500/40 bg-yellow-500/10 px-3 py-2 text-sm text-yellow-100">
+            JavaScript is disabled in your browser. Please enable JavaScript to
+            sign in to your Radaa account.
+          </div>
+        </noscript>
 
+        {error && (
+          <div
+            role="alert"
+            aria-live="assertive"
+            className="mb-4 rounded-md border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm text-red-100 shadow-sm"
+          >
+            {error}
+          </div>
+        )}
       {error && (
         <div
           role="alert"
@@ -109,8 +118,8 @@ export default function LoginPage() {
         </div>
       )}
 
-      <Card className="bg-slate-950/40 p-6 shadow-glass-elevated">
-        <form onSubmit={handleSubmit} className="space-y-5" aria-busy={loading}>
+        <Card className="bg-slate-950/40 p-6 shadow-glass-elevated">
+          <form onSubmit={handleSubmit} className="space-y-5" aria-busy={loading}>
           <div className="space-y-2">
           <p className="radaa-glass-pill text-[11px] uppercase tracking-[0.18em] text-sunYellow">
             Karibu Radaa
@@ -257,9 +266,9 @@ export default function LoginPage() {
           >
             Sign in to driver dashboard
           </Link>
-          </p>
-        </form>
-      </Card>
+        </p>
+          </form>
+        </Card>
       </div>
     </div>
   );
