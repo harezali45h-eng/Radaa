@@ -50,7 +50,7 @@ export default function RegisterSaccoPage() {
   const isDisabled = submitting || loading;
 
   return (
-    <div className="mx-auto max-w-md space-y-6">
+    <>
       <div className="space-y-2">
         <h1 className="text-2xl font-semibold tracking-tight">SACCO sign up</h1>
         <p className="text-sm text-slate-300">
@@ -215,6 +215,6 @@ export default function RegisterSaccoPage() {
           Sign in
         </Link>
       </p>
-    </div>
+    </>
   );
 }

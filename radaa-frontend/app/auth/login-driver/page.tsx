@@ -36,7 +36,7 @@ export default function LoginDriverPage() {
   const isDisabled = submitting || loading;
 
   return (
-    <div className="mx-auto max-w-md space-y-6">
+    <>
       <div className="space-y-2">
         <h1 className="text-2xl font-semibold tracking-tight">
           Driver sign in
@@ -127,6 +127,6 @@ export default function LoginDriverPage() {
           Go to passenger/admin login
         </Link>
       </p>
-    </div>
+    </>
   );
 }

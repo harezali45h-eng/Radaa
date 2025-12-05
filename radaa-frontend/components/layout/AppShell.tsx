@@ -74,7 +74,7 @@ export function AppShell({ children }: AppShellProps) {
               <button
                 type="button"
                 onClick={() => setMobileNavOpen(true)}
-                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-sky-500/70 bg-slate-950/80 text-slate-50 shadow-glow-kenya hover:border-sky-400 hover:text-sky-100 md:hidden"
+                className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-slate-700 text-slate-200 hover:border-sky-500 hover:text-sky-200 md:hidden"
                 aria-label="Open navigation menu"
               >
                 <span className="block h-0.5 w-4 rounded bg-slate-200" />
@@ -188,15 +188,13 @@ export function AppShell({ children }: AppShellProps) {
                 </div>
               )}
             </div>
-            {!isDashboard && (
-              <button
-                type="button"
-                onClick={logout}
-                className="hidden text-xs font-medium text-slate-300 hover:text-red-300 md:inline-flex"
-              >
-                Logout
-              </button>
-            )}
+            <button
+              type="button"
+              onClick={logout}
+              className="hidden text-xs font-medium text-slate-300 hover:text-red-300 md:inline-flex"
+            >
+              Logout
+            </button>
           </nav>
         </div>
       </header>

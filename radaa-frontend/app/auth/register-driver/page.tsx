@@ -56,7 +56,7 @@ export default function RegisterDriverPage() {
   const isDisabled = submitting || loading;
 
   return (
-    <div className="mx-auto max-w-md space-y-6">
+    <>
       <div className="space-y-2">
         <h1 className="text-2xl font-semibold tracking-tight">
           Driver sign up
@@ -279,6 +279,6 @@ export default function RegisterDriverPage() {
           Sign in
         </Link>
       </p>
-    </div>
+    </>
   );
 }

@@ -1,10 +1,12 @@
+import type { ReactNode } from "react";
+
 export default function AuthLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-slate-950 bg-[radial-gradient(ellipse_at_top,_#0f172a,_transparent_55%),radial-gradient(ellipse_at_bottom,_#020617,_transparent_55%)] px-4 py-6 text-slate-50 md:py-10">
+    <div className="radaa-login-bg py-6 md:py-10 text-slate-50">
       <div className="mx-auto flex min-h-[calc(100vh-3.5rem)] max-w-5xl items-start justify-center md:items-center">
         <div className="grid w-full gap-8 items-start md:grid-cols-[1.2fr,1fr] md:gap-10 md:items-center">
           <div className="space-y-4">
@@ -22,7 +24,7 @@ export default function AuthLayout({
           </div>
 
           <div className="w-full max-w-md justify-self-end">
-            <div className="space-y-6 rounded-xl border border-slate-800/80 bg-slate-900/80 p-6 shadow-2xl shadow-sky-900/40 backdrop-blur">
+            <div className="radaa-glass-card space-y-6 p-6">
               {children}
             </div>
           </div>

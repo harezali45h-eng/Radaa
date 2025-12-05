@@ -4,7 +4,6 @@ import { FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
-import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 
 export default function LoginPage() {
@@ -90,24 +89,14 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="radaa-login-bg">
-      <div className="relative mx-auto flex w-full max-w-md flex-col justify-center py-6 sm:min-h-[70vh]">
-        <noscript>
-          <div className="mb-4 rounded-md border border-yellow-500/40 bg-yellow-500/10 px-3 py-2 text-sm text-yellow-100">
-            JavaScript is disabled in your browser. Please enable JavaScript to
-            sign in to your Radaa account.
-          </div>
-        </noscript>
+    <>
+      <noscript>
+        <div className="mb-4 rounded-md border border-yellow-500/40 bg-yellow-500/10 px-3 py-2 text-sm text-yellow-100">
+          JavaScript is disabled in your browser. Please enable JavaScript to
+          sign in to your Radaa account.
+        </div>
+      </noscript>
 
-        {error && (
-          <div
-            role="alert"
-            aria-live="assertive"
-            className="mb-4 rounded-md border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm text-red-100 shadow-sm"
-          >
-            {error}
-          </div>
-        )}
       {error && (
         <div
           role="alert"
@@ -118,9 +107,8 @@ export default function LoginPage() {
         </div>
       )}
 
-        <Card className="bg-slate-950/40 p-6 shadow-glass-elevated">
-          <form onSubmit={handleSubmit} className="space-y-5" aria-busy={loading}>
-          <div className="space-y-2">
+      <form onSubmit={handleSubmit} className="space-y-5" aria-busy={loading}>
+        <div className="space-y-2">
           <p className="radaa-glass-pill text-[11px] uppercase tracking-[0.18em] text-sunYellow">
             Karibu Radaa
           </p>
@@ -131,9 +119,9 @@ export default function LoginPage() {
             Access live matatu tracking, driver perks, and SACCO controls — all
             in one dashboard.
           </p>
-          </div>
+        </div>
 
-          <div className="space-y-1">
+        <div className="space-y-1">
           <label
             htmlFor="email"
             className="text-sm font-medium text-slate-100"
@@ -188,9 +176,9 @@ export default function LoginPage() {
               {fieldError}
             </p>
           )}
-          </div>
+        </div>
 
-          <div className="flex items-center justify-between text-xs text-slate-300">
+        <div className="flex items-center justify-between text-xs text-slate-300">
           <label className="flex items-center gap-2">
             <input
               type="checkbox"
@@ -206,13 +194,9 @@ export default function LoginPage() {
           >
             Forgot?
           </Link>
-          </div>
+        </div>
 
-          <Button
-            type="submit"
-            disabled={loading}
-            fullWidth
-          >
+        <Button type="submit" disabled={loading} fullWidth>
           {loading && (
             <svg
               className="mr-2 h-4 w-4 animate-spin text-sky-100"
@@ -235,10 +219,10 @@ export default function LoginPage() {
               />
             </svg>
           )}
-            <span>{loading ? "Signing in…" : "Sign in"}</span>
-          </Button>
+          <span>{loading ? "Signing in" : "Sign in"}</span>
+        </Button>
 
-          <p className="pt-1 text-center text-xs text-slate-300">
+        <p className="pt-1 text-center text-xs text-slate-300">
           Don&apos;t have an account?{" "}
           <Link
             href="/auth/register"
@@ -246,9 +230,9 @@ export default function LoginPage() {
           >
             Create one
           </Link>
-          </p>
+        </p>
 
-          <p className="text-center text-xs text-slate-300">
+        <p className="text-center text-xs text-slate-300">
           Are you a SACCO admin?{" "}
           <Link
             href="/auth/login-sacco"
@@ -256,9 +240,9 @@ export default function LoginPage() {
           >
             Sign in to SACCO dashboard
           </Link>
-          </p>
+        </p>
 
-          <p className="text-center text-xs text-slate-400">
+        <p className="text-center text-xs text-slate-400">
           Are you a driver?{" "}
           <Link
             href="/auth/login-driver"
@@ -267,9 +251,7 @@ export default function LoginPage() {
             Sign in to driver dashboard
           </Link>
         </p>
-          </form>
-        </Card>
-      </div>
-    </div>
+      </form>
+    </>
   );
 }

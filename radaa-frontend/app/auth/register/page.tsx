@@ -44,7 +44,7 @@ export default function RegisterPage() {
   const isDisabled = submitting || loading;
 
   return (
-    <div className="mx-auto max-w-md space-y-6">
+    <>
       <div className="space-y-2">
         <h1 className="text-2xl font-semibold tracking-tight">
           Create your account
@@ -179,6 +179,6 @@ export default function RegisterPage() {
           Create a driver account
         </Link>
       </p>
-    </div>
+    </>
   );
 }
