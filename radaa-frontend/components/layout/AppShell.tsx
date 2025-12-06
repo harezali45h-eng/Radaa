@@ -201,61 +201,69 @@ export function AppShell({ children }: AppShellProps) {
         </div>
       </main>
       {isDashboard && mobileNavOpen && (
-        <div className="fixed inset-0 z-40 bg-black/60 md:hidden">
-          <div className="absolute left-0 top-0 flex h-full w-72 max-w-xs flex-col border-r border-slate-800 bg-slate-950 px-4 py-4">
-            <div className="mb-4 flex items-center justify-between">
-              <span className="text-sm font-semibold text-slate-100">Menu</span>
+        <div className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm md:hidden">
+          <div className="absolute left-0 top-0 flex h-full">
+            <div className="radaa-mobile-drawer">
+              <div className="mb-5 flex items-center justify-between">
+                <span className="text-sm font-semibold tracking-tight text-slate-50">
+                  Menu
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setMobileNavOpen(false)}
+                  className="inline-flex items-center rounded-full border border-slate-300/40 bg-slate-900/40 px-3 py-1 text-[11px] font-medium text-slate-100 shadow-soft hover:border-slate-100/60 hover:bg-slate-900/70"
+                >
+                  Close
+                </button>
+              </div>
+              <nav className="flex flex-1 flex-col gap-1.5 text-sm font-medium text-slate-50/90">
+                <Link
+                  href={homeHref}
+                  onClick={() => setMobileNavOpen(false)}
+                  className="flex min-h-[3rem] items-center gap-3 rounded-xl px-4 py-3 text-[13px] font-semibold text-slate-50/90 hover:bg-white/10 active:bg-white/15"
+                >
+                  <span className="inline-flex h-2.5 w-2.5 rounded-full bg-emerald-300/90 shadow-[0_0_0_2px_rgba(16,185,129,0.35)]" />
+                  <span>Home</span>
+                </Link>
+                <Link
+                  href={liveHref}
+                  onClick={() => setMobileNavOpen(false)}
+                  className="flex min-h-[3rem] items-center gap-3 rounded-xl px-4 py-3 text-[13px] font-semibold text-slate-50/90 hover:bg-white/10 active:bg-white/15"
+                >
+                  <span className="inline-flex h-2.5 w-2.5 rounded-full bg-sky-300/90 shadow-[0_0_0_2px_rgba(56,189,248,0.35)]" />
+                  <span>Live</span>
+                </Link>
+                {/* Trips entry removed from mobile drawer now that the trip module is disabled. */}
+                <Link
+                  href="/profile"
+                  onClick={() => setMobileNavOpen(false)}
+                  className="flex min-h-[3rem] items-center gap-3 rounded-xl px-4 py-3 text-[13px] font-semibold text-slate-50/90 hover:bg-white/10 active:bg-white/15"
+                >
+                  <span className="inline-flex h-2.5 w-2.5 rounded-full bg-violet-300/90 shadow-[0_0_0_2px_rgba(167,139,250,0.4)]" />
+                  <span>Profile</span>
+                </Link>
+                {isAdmin && (
+                  <Link
+                    href="/dashboard/sacco"
+                    onClick={() => setMobileNavOpen(false)}
+                    className="flex min-h-[3rem] items-center gap-3 rounded-xl px-4 py-3 text-[13px] font-semibold text-slate-50/90 hover:bg-white/10 active:bg-white/15"
+                  >
+                    <span className="inline-flex h-2.5 w-2.5 rounded-full bg-amber-300/90 shadow-[0_0_0_2px_rgba(252,211,77,0.45)]" />
+                    <span>SACCO</span>
+                  </Link>
+                )}
+              </nav>
               <button
                 type="button"
-                onClick={() => setMobileNavOpen(false)}
-                className="rounded-md border border-slate-700 px-2 py-1 text-[11px] text-slate-300 hover:border-slate-500 hover:text-slate-100"
+                onClick={() => {
+                  setMobileNavOpen(false);
+                  logout();
+                }}
+                className="mt-5 inline-flex w-full items-center justify-center rounded-full border border-red-500/70 bg-red-500/15 px-4 py-2.5 text-sm font-semibold text-red-100 shadow-soft hover:border-red-400 hover:bg-red-500/25"
               >
-                Close
+                Logout
               </button>
             </div>
-            <nav className="flex flex-1 flex-col gap-1 text-sm">
-              <Link
-                href={homeHref}
-                onClick={() => setMobileNavOpen(false)}
-                className="rounded-md px-3 py-2 text-slate-200 hover:bg-slate-800"
-              >
-                Home
-              </Link>
-              <Link
-                href={liveHref}
-                onClick={() => setMobileNavOpen(false)}
-                className="rounded-md px-3 py-2 text-slate-200 hover:bg-slate-800"
-              >
-                Live
-              </Link>
-              {/* Trips entry removed from mobile drawer now that the trip module is disabled. */}
-              <Link
-                href="/profile"
-                onClick={() => setMobileNavOpen(false)}
-                className="rounded-md px-3 py-2 text-slate-200 hover:bg-slate-800"
-              >
-                Profile
-              </Link>
-              {isAdmin && (
-                <Link
-                  href="/dashboard/sacco"
-                  onClick={() => setMobileNavOpen(false)}
-                  className="rounded-md px-3 py-2 text-slate-200 hover:bg-slate-800"
-                >
-                  SACCO
-                </Link>
-              )}
-            </nav>
-            <button
-              type="button"
-              onClick={() => {
-                setMobileNavOpen(false);
-                logout();
-              }}
-              className="mt-4 rounded-md border border-red-500/60 px-3 py-2 text-sm font-medium text-red-200 hover:border-red-400 hover:bg-red-500/10"
-            >
-              Logout
-            </button>
           </div>
         </div>
       )}

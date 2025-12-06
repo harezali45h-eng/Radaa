@@ -95,4 +95,20 @@
     background-repeat: no-repeat;
     background-blend-mode: screen, screen, normal, normal, soft-light;
   }
+
+  .radaa-mobile-drawer {
+    @apply flex h-full w-80 max-w-[90vw] flex-col border-r border-white/10 bg-gradient-to-b from-indigo-600/95 via-indigo-700 to-slate-950 px-5 py-5 shadow-glass-elevated;
+    animation: radaa-slide-in-left 220ms cubic-bezier(0.22, 0.61, 0.36, 1);
+  }
+}
+
+@keyframes radaa-slide-in-left {
+  0% {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }
