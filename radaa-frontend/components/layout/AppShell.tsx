@@ -222,7 +222,7 @@ export function AppShell({ children }: AppShellProps) {
                   onClick={() => setMobileNavOpen(false)}
                   className="flex min-h-[3rem] items-center gap-3 rounded-xl px-4 py-3 text-[13px] font-semibold text-slate-50/90 hover:bg-white/10 active:bg-white/15"
                 >
-                  <span className="inline-flex h-2.5 w-2.5 rounded-full bg-emerald-300/90 shadow-[0_0_0_2px_rgba(16,185,129,0.35)]" />
+                  <span className="inline-flex h-2.5 w-2.5 rounded-full bg-slate-200/95 shadow-[0_0_0_2px_rgba(226,232,240,0.55)]" />
                   <span>Home</span>
                 </Link>
                 <Link
@@ -230,7 +230,7 @@ export function AppShell({ children }: AppShellProps) {
                   onClick={() => setMobileNavOpen(false)}
                   className="flex min-h-[3rem] items-center gap-3 rounded-xl px-4 py-3 text-[13px] font-semibold text-slate-50/90 hover:bg-white/10 active:bg-white/15"
                 >
-                  <span className="inline-flex h-2.5 w-2.5 rounded-full bg-sky-300/90 shadow-[0_0_0_2px_rgba(56,189,248,0.35)]" />
+                  <span className="inline-flex h-2.5 w-2.5 rounded-full bg-emerald-400/95 shadow-[0_0_0_2px_rgba(52,211,153,0.55)]" />
                   <span>Live</span>
                 </Link>
                 {/* Trips entry removed from mobile drawer now that the trip module is disabled. */}
@@ -239,7 +239,7 @@ export function AppShell({ children }: AppShellProps) {
                   onClick={() => setMobileNavOpen(false)}
                   className="flex min-h-[3rem] items-center gap-3 rounded-xl px-4 py-3 text-[13px] font-semibold text-slate-50/90 hover:bg-white/10 active:bg-white/15"
                 >
-                  <span className="inline-flex h-2.5 w-2.5 rounded-full bg-violet-300/90 shadow-[0_0_0_2px_rgba(167,139,250,0.4)]" />
+                  <span className="inline-flex h-2.5 w-2.5 rounded-full bg-sky-400/95 shadow-[0_0_0_2px_rgba(56,189,248,0.55)]" />
                   <span>Profile</span>
                 </Link>
                 {isAdmin && (
@@ -248,7 +248,7 @@ export function AppShell({ children }: AppShellProps) {
                     onClick={() => setMobileNavOpen(false)}
                     className="flex min-h-[3rem] items-center gap-3 rounded-xl px-4 py-3 text-[13px] font-semibold text-slate-50/90 hover:bg-white/10 active:bg-white/15"
                   >
-                    <span className="inline-flex h-2.5 w-2.5 rounded-full bg-amber-300/90 shadow-[0_0_0_2px_rgba(252,211,77,0.45)]" />
+                    <span className="inline-flex h-2.5 w-2.5 rounded-full bg-orange-300/95 shadow-[0_0_0_2px_rgba(253,186,116,0.6)]" />
                     <span>SACCO</span>
                   </Link>
                 )}
