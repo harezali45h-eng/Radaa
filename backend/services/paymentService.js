@@ -5,14 +5,13 @@ import { initiatePaymentGateway, verifyPaymentGateway } from "./paymentGateway.j
 
 export const createRidePaymentService = async ({
   userId,
-  matatuId,
   amount,
   currency,
   provider,
   providerPaymentId,
   status
 }) => {
-  if (!userId || !matatuId || amount == null || !provider || !providerPaymentId) {
+  if (!userId || amount == null || !provider || !providerPaymentId) {
     throw new ValidationError("Missing required payment fields");
   }
 
@@ -24,33 +23,12 @@ export const createRidePaymentService = async ({
 
   const payment = await RidePayment.create({
     user: userId,
-    matatu: matatuId,
     amount,
     currency: currency || "KES",
     provider,
     providerPaymentId,
     status: status || "success"
   });
-
-  if (!user.loyalty) {
-    user.loyalty = {
-      paidRidesCount: 0,
-      freeRides: 0
-    };
-  }
-
-  user.loyalty.paidRidesCount = (user.loyalty.paidRidesCount || 0) + 1;
-
-  if (user.loyalty.paidRidesCount >= 10) {
-    user.loyalty.paidRidesCount = 0;
-    user.loyalty.freeRides = (user.loyalty.freeRides || 0) + 1;
-  }
-
-  user.ridesTaken = (user.ridesTaken || 0) + 1;
-  user.ridesPaid = (user.ridesPaid || 0) + 1;
-  user.loyaltyPoints = (user.loyaltyPoints || 0) + 1;
-
-  await user.save();
 
   return {
     payment,
@@ -70,7 +48,6 @@ export const initiatePaymentService = async ({ userId, amount, method }) => {
 
 export const verifyPaymentService = async ({
   userId,
-  matatuId,
   amount,
   method,
   transactionId
@@ -87,7 +64,6 @@ export const verifyPaymentService = async ({
 
   const ridePaymentResult = await createRidePaymentService({
     userId,
-    matatuId,
     amount,
     currency: verification.currency || "KES",
     provider: method || verification.provider || "placeholder",

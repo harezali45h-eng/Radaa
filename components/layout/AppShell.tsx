@@ -97,8 +97,11 @@ export function AppShell({ children }: AppShellProps) {
               <Link href={liveHref} className="hover:text-white">
                 Live
               </Link>
-              <Link href="/dashboard/trips/list" className="hover:text-white">
-                Trips
+              <Link
+                href="/dashboard/payments/list"
+                className="hover:text-white"
+              >
+                Payments & Wallet
               </Link>
               <Link href="/profile" className="hover:text-white">
                 Profile
@@ -241,11 +244,11 @@ export function AppShell({ children }: AppShellProps) {
                 Live
               </Link>
               <Link
-                href="/dashboard/trips/list"
+                href="/dashboard/payments/list"
                 onClick={() => setMobileNavOpen(false)}
                 className="rounded-md px-3 py-2 text-slate-200 hover:bg-slate-800"
               >
-                Trips
+                Payments & Wallet
               </Link>
               <Link
                 href="/profile"

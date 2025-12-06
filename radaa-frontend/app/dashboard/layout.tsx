@@ -8,7 +8,7 @@ import { useRealtime } from "@/context/realtimeContext";
 import { useTheme } from "@/context/ThemeContext";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const role = (user as any)?.role as string | undefined;
   const isAdmin = role === "admin";
   const isDriver = role === "driver";
@@ -57,10 +57,10 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                   </Link>
                 )}
                 <Link
-                  href="/dashboard/trips/list"
+                  href="/dashboard/payments/list"
                   className="block rounded-md px-3 py-2 text-slate-300 transition hover:bg-slate-800/80 hover:text-white"
                 >
-                  Trips
+                  Payments & Wallet
                 </Link>
                 <Link
                   href="/profile"
@@ -76,6 +76,13 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                     SACCO
                   </Link>
                 )}
+                <button
+                  type="button"
+                  onClick={logout}
+                  className="block w-full rounded-md px-3 py-2 text-left text-slate-300 transition hover:bg-slate-800/80 hover:text-white"
+                >
+                  Logout
+                </button>
               </div>
             </div>
           </nav>
@@ -89,7 +96,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
               <span className="text-slate-600">/</span>
               <span className="text-slate-400">Live</span>
               <span className="text-slate-600">/</span>
-              <span className="text-slate-400">Trips</span>
+              <span className="text-slate-400">Payments & Wallet</span>
               <span className="text-slate-600">/</span>
               <span className="text-slate-400">Profile</span>
               {isAdmin && (

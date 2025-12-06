@@ -20,6 +20,8 @@ import healthRoutes from "./routes/healthRoutes.js";
 import matatuRoutes from "./routes/matatuRoutes.js";
 import paymentRoutes from "./routes/payments.js";
 import tripRoutes from "./routes/tripRoutes.js";
+import mpesaRoutes from "./routes/mpesaRoutes.js";
+import walletRoutes from "./routes/walletRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import debugRoutes from "./routes/debugRoutes.js";
 import rideRoutes from "./routes/rideRoutes.js";
@@ -121,6 +123,8 @@ app.use("/api/sacco", saccoRoutes);
 
 app.use("/api/admin", adminRoutes);
 app.use("/api/payments", paymentRoutes);
+app.use("/api/mpesa", mpesaRoutes);
+app.use("/api/wallet", walletRoutes);
 app.use("/api/trips", tripRoutes);
 
 app.get("/api/matatus/live", getLiveMatatus);

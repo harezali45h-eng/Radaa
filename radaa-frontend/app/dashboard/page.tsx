@@ -6,6 +6,7 @@ import { useAuth } from "@/context/AuthContext";
 import { getProfile, type AuthUser } from "@/lib/api/auth";
 import { getLiveMatatus, getLoyaltyStatus } from "@/lib/api";
 import RideRequestButton from "@/components/RideRequestButton";
+import WalletDashboard from "@/components/WalletDashboard";
 
 interface LoyaltyStatus {
   userId: string;
@@ -132,7 +133,7 @@ export default function DashboardHomePage() {
             {effectiveUser?.username}
           </h1>
           <p className="text-xs text-slate-300">
-            Your central hub for matatus, trips, loyalty, and payments.
+            Your central hub for matatus, rides, loyalty, and your wallet.
           </p>
         </div>
         <button
@@ -164,13 +165,7 @@ export default function DashboardHomePage() {
             View matatus
           </Link>
           <Link
-            href="/dashboard/trips/list"
-            className="inline-flex flex-none items-center justify-center rounded-md border border-slate-700 bg-slate-900 px-3 py-1.5 font-medium text-slate-200 transition hover:border-slate-500 hover:bg-slate-800/90"
-          >
-            View trips
-          </Link>
-          <Link
-            href="/payments"
+            href="/dashboard/payments/list"
             className="inline-flex flex-none items-center justify-center rounded-md border border-emerald-600/40 bg-emerald-600/10 px-3 py-1.5 font-medium text-emerald-200 transition hover:border-emerald-400/70 hover:bg-emerald-600/20"
           >
             Payments & wallet
@@ -178,6 +173,10 @@ export default function DashboardHomePage() {
           <RideRequestButton />
         </div>
       </section>
+
+      <div className="mt-4">
+        <WalletDashboard />
+      </div>
 
       {loading && (
         <div className="radaa-card p-4 text-xs text-slate-300">
@@ -313,32 +312,6 @@ export default function DashboardHomePage() {
                     </div>
                   ))}
               </div>
-            </div>
-
-            <div className="space-y-3 radaa-card p-4 text-xs">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-sm font-semibold text-slate-100">
-                    Your active trips
-                  </div>
-                  <div className="text-[11px] text-slate-400">
-                    When a trip is live, it will appear here with quick actions.
-                  </div>
-                </div>
-                <span className="rounded-full bg-slate-800 px-2 py-0.5 text-[10px] text-slate-200">
-                  {activeTripsCount}
-                </span>
-              </div>
-              <div className="rounded-md border border-dashed border-slate-700 bg-slate-900/60 px-3 py-4 text-[11px] text-slate-400">
-                No active trips right now. Start a ride from your matatu or
-                trips section.
-              </div>
-              <a
-                href="/dashboard/trips/list"
-                className="inline-flex items-center text-[11px] font-medium text-sky-400 hover:text-sky-300"
-              >
-                View all trips
-              </a>
             </div>
           </section>
         </>

@@ -14,6 +14,39 @@ export const getLiveMatatus = async () => {
   }
 };
 
+export const getWallet = async () => {
+  try {
+    const res = await API.get("/wallet");
+    return res.data;
+  } catch (error: any) {
+    console.error("API ERROR:", (error as any)?.response?.data || error);
+    throw error;
+  }
+};
+
+export const walletDeposit = async (payload: {
+  amount: number;
+  phoneNumber: string;
+}) => {
+  try {
+    const res = await API.post("/wallet/deposit", payload);
+    return res.data;
+  } catch (error: any) {
+    console.error("API ERROR:", (error as any)?.response?.data || error);
+    throw error;
+  }
+};
+
+export const walletPayFare = async (payload: { amount: number }) => {
+  try {
+    const res = await API.post("/wallet/pay-fare", payload);
+    return res.data;
+  } catch (error: any) {
+    console.error("API ERROR:", (error as any)?.response?.data || error);
+    throw error;
+  }
+};
+
 export const getMapMarkers = async () => {
   try {
     const res = await API.get("/map/markers");
@@ -79,6 +112,23 @@ export const verifyPayment = async (payload: {
 }) => {
   try {
     const res = await API.post("/payments/verify", payload);
+    return res.data;
+  } catch (error: any) {
+    console.error("API ERROR:", (error as any)?.response?.data || error);
+    throw error;
+  }
+};
+
+export const initiateMpesaStkPush = async (payload: {
+  userId: string;
+  matatuId: string;
+  amount: number;
+  phoneNumber: string;
+  accountReference?: string;
+  description?: string;
+}) => {
+  try {
+    const res = await API.post("/mpesa/stk-push", payload);
     return res.data;
   } catch (error: any) {
     console.error("API ERROR:", (error as any)?.response?.data || error);

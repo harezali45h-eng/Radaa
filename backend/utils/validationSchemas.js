@@ -107,6 +107,22 @@ export const redeemFreeRideSchema = z.object({
   })
 });
 
+export const initiateMpesaPaymentSchema = z.object({
+  body: z.object({
+    userId: z.string().min(1, "userId is required"),
+    matatuId: z.string().min(1, "matatuId is required"),
+    amount: z
+      .union([z.number(), z.string()])
+      .transform((value) => (typeof value === "number" ? value : Number(value)))
+      .refine((value) => !Number.isNaN(value) && value > 0, {
+        message: "amount must be a positive number"
+      }),
+    phoneNumber: z.string().min(1, "phoneNumber is required"),
+    accountReference: z.string().optional(),
+    description: z.string().optional()
+  })
+});
+
 export const createEphemeralRequestSchema = z.object({
   body: z.object({
     pickup: z.object({

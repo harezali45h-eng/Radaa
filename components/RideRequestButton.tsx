@@ -26,7 +26,8 @@ export default function RideRequestButton() {
       addNotification({
         type: "system",
         title: "Location unavailable",
-        message: "Geolocation is not available in this browser.",
+        message:
+          "This device does not support location. Try a modern browser like Chrome on your phone.",
       });
       return;
     }
@@ -64,7 +65,23 @@ export default function RideRequestButton() {
         }
       },
       (error) => {
-        const message = error?.message || "Unable to fetch current location.";
+        const code =
+          error && typeof error.code === "number" ? (error.code as number) : 0;
+
+        let message: string;
+        if (code === 1) {
+          message =
+            "Location access is blocked. Please allow location for Radaa in your browser settings and try again.";
+        } else if (code === 2) {
+          message =
+            "We couldn't get a GPS fix. Check that location is turned on and you have a good network signal.";
+        } else if (code === 3) {
+          message =
+            "It is taking a bit long to find you. Move closer to a window or check your network, then try again.";
+        } else {
+          message = error?.message || "Unable to fetch your current location.";
+        }
+
         addNotification({
           type: "system",
           title: "Location error",
@@ -84,9 +101,9 @@ export default function RideRequestButton() {
       type="button"
       onClick={handleClick}
       disabled={loading}
-      className={`${primaryButtonClass} flex-none text-[11px] px-4 py-2 disabled:cursor-not-allowed disabled:opacity-60`}
+      className={`${primaryButtonClass} ride-cta-twende flex-none text-[11px] px-4 py-2 disabled:cursor-not-allowed disabled:opacity-60`}
     >
-      {loading ? "Requesting ride..." : "Request a ride"}
+      {loading ? "Locating you… please stand by." : "Request Ride – Twende!"}
     </button>
   );
 }

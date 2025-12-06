@@ -3,6 +3,7 @@ import { generateToken } from "../utils/helpers.js";
 import { ValidationError, AuthError } from "../utils/errors.js";
 import { isFeatureEnabled } from "../utils/featureFlags.js";
 import { FEATURE_FLAG_KEYS } from "../config/featureFlags.js";
+import { getOrCreateWalletForUser } from "./walletService.js";
 
 export const getUsersService = async () => {
   const users = await User.find({}).select("-password");
@@ -191,12 +192,14 @@ export const getLoyaltyStatusService = async (userId) => {
     throw new ValidationError("User not found");
   }
 
+  const wallet = await getOrCreateWalletForUser(userId);
+
   return {
     userId: user._id,
-    balance: user.balance,
+    balance: wallet.balance,
     ridesTaken: user.ridesTaken,
     ridesPaid: user.ridesPaid,
-    loyaltyPoints: user.loyaltyPoints,
+    loyaltyPoints: wallet.loyaltyPoints,
     loyalty: user.loyalty || { paidRidesCount: 0, freeRides: 0 }
   };
 };
