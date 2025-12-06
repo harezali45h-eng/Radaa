@@ -97,9 +97,6 @@ export function AppShell({ children }: AppShellProps) {
               <Link href={liveHref} className="hover:text-white">
                 Live
               </Link>
-              <Link href="/dashboard/trips/list" className="hover:text-white">
-                Trips
-              </Link>
               <Link href="/profile" className="hover:text-white">
                 Profile
               </Link>
@@ -188,13 +185,7 @@ export function AppShell({ children }: AppShellProps) {
                 </div>
               )}
             </div>
-            <button
-              type="button"
-              onClick={logout}
-              className="hidden text-xs font-medium text-slate-300 hover:text-red-300 md:inline-flex"
-            >
-              Logout
-            </button>
+            {/* Top-level Logout button removed to avoid duplication; users can logout from the sidebar or mobile drawer. */}
           </nav>
         </div>
       </header>
@@ -237,13 +228,7 @@ export function AppShell({ children }: AppShellProps) {
               >
                 Live
               </Link>
-              <Link
-                href="/dashboard/trips/list"
-                onClick={() => setMobileNavOpen(false)}
-                className="rounded-md px-3 py-2 text-slate-200 hover:bg-slate-800"
-              >
-                Trips
-              </Link>
+              {/* Trips entry removed from mobile drawer now that the trip module is disabled. */}
               <Link
                 href="/profile"
                 onClick={() => setMobileNavOpen(false)}
