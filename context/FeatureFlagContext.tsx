@@ -105,7 +105,12 @@ export function useIsFeatureEnabled(
 
   const entry = flags[key];
 
-  if (!entry) return false;
+  if (!entry) {
+    if (typeof console !== "undefined") {
+      console.warn(`Missing flag: ${key}`);
+    }
+    return false;
+  }
 
   return Boolean(entry.enabled);
 }

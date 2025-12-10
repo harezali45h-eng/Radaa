@@ -4,6 +4,7 @@ import User from "../models/User.js";
 import Matatu from "../models/Matatu.js";
 import { ValidationError, ApiError } from "../utils/errors.js";
 import { applyDepositToWallet } from "./walletService.js";
+import { creditDriverWalletFromFare } from "./driverWalletService.js";
 
 const MPESA_ENV = process.env.MPESA_ENV || "sandbox";
 
@@ -92,7 +93,10 @@ export const initiateMpesaStkPushService = async ({
   accountReference,
   description,
   matatuId,
-  purpose
+  purpose,
+  tripId,
+  driverId,
+  fareAmount
 }) => {
   if (!userId || amount == null || !phoneNumber) {
     throw new ValidationError("userId, amount, and phoneNumber are required");
@@ -180,9 +184,16 @@ export const initiateMpesaStkPushService = async ({
 
   const providerPaymentId = data.CheckoutRequestID || data.MerchantRequestID;
 
+  const numericFare =
+    fareAmount != null && !Number.isNaN(Number(fareAmount))
+      ? Number(fareAmount)
+      : undefined;
+
   const payment = await RidePayment.create({
     user: userId,
     matatu: matatuId || null,
+    trip: tripId || null,
+    driver: driverId || null,
     amount: normalizedAmount,
     currency: "KES",
     provider: "mpesa",
@@ -190,7 +201,13 @@ export const initiateMpesaStkPushService = async ({
     status: "pending",
     method: "mpesa",
     transactionId: providerPaymentId,
-    purpose: effectivePurpose
+    purpose: effectivePurpose,
+    fareAmount: numericFare,
+    serviceFee:
+      numericFare != null && normalizedAmount >= numericFare
+        ? normalizedAmount - numericFare
+        : undefined,
+    totalPaid: normalizedAmount
   });
 
   return {
@@ -340,6 +357,39 @@ export const handleMpesaCallbackService = async (body) => {
       payment.currency = payment.currency || "KES";
       payment.transactionId = receipt || payment.transactionId;
       payment.method = "mpesa";
+
+      const totalPaid =
+        payment.amount != null && !Number.isNaN(Number(payment.amount))
+          ? Number(payment.amount)
+          : undefined;
+
+      if (payment.purpose === "fare" && totalPaid != null) {
+        const serviceFee = 6;
+        const fareBase = totalPaid - serviceFee;
+
+        payment.totalPaid = totalPaid;
+        payment.serviceFee = serviceFee;
+        payment.fareAmount = fareBase >= 0 ? fareBase : 0;
+
+        if (payment.driver) {
+          await creditDriverWalletFromFare(
+            {
+              driverId: payment.driver,
+              amount: totalPaid,
+              reference: receipt || undefined,
+              meta: {
+                paymentId: payment._id,
+                user: payment.user,
+                trip: payment.trip || null,
+                matatu: payment.matatu || null,
+                providerPaymentId,
+                transactionDate: parseMpesaCallbackDate(transactionDate)
+              }
+            },
+            session
+          );
+        }
+      }
 
       if (payment.purpose === "deposit" && !payment.walletApplied) {
         await applyDepositToWallet(payment.user, payment.amount, {

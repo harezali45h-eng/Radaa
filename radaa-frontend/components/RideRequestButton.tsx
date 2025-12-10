@@ -5,9 +5,30 @@ import { useAuth } from "@/context/AuthContext";
 import { useNotifications } from "@/context/NotificationContext";
 import { requestRide } from "@/lib/api/rides";
 import { useTheme } from "@/context/ThemeContext";
+import { calculateFareWithFee } from "@/utils/payments";
+
+const payFare = async (amount: number, phone: string) => {
+  try {
+    const res = await fetch("/api/mpesa/pay", {
+      method: "POST",
+      body: JSON.stringify({ fare: amount, phone }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok || !data.success) {
+      alert("Payment failed: " + JSON.stringify(data.error || data));
+      return;
+    }
+
+    alert("Check your phone for MPesa STK Popup!");
+  } catch (error: any) {
+    alert("Payment failed: " + (error?.message || "Unexpected error"));
+  }
+};
 
 export default function RideRequestButton() {
-  const { token } = useAuth();
+  const { user, token } = useAuth();
   const { addNotification } = useNotifications();
   const [loading, setLoading] = useState(false);
   const { primaryButtonClass } = useTheme();
@@ -51,6 +72,39 @@ export default function RideRequestButton() {
             title: "Ride requested",
             message: "We are finding a nearby driver for you.",
           });
+
+          if (typeof window !== "undefined") {
+            const fareInput = window.prompt(
+              "Enter agreed fare (KES)",
+              "",
+            );
+
+            if (!fareInput) {
+              return;
+            }
+
+            const fareValue = Number(fareInput);
+
+            if (Number.isNaN(fareValue) || fareValue <= 0) {
+              alert("Invalid fare amount. Please enter a positive number.");
+              return;
+            }
+
+            const defaultPhone = user?.phone || "";
+
+            const phoneInput = window.prompt(
+              "Confirm Mpesa phone number (2547xxxxxxxx)",
+              defaultPhone,
+            );
+
+            if (!phoneInput) {
+              return;
+            }
+
+            const { totalCharge } = calculateFareWithFee(fareValue);
+
+            await payFare(totalCharge, phoneInput);
+          }
         } catch (error: any) {
           const message =
             error instanceof Error ? error.message : "Failed to request ride";

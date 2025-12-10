@@ -23,6 +23,7 @@ import tripRoutes from "./routes/tripRoutes.js";
 import mpesaRoutes from "./routes/mpesaRoutes.js";
 import walletRoutes from "./routes/walletRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
+import adminQueueRoutes from "./routes/adminQueueRoutes.js";
 import debugRoutes from "./routes/debugRoutes.js";
 import rideRoutes from "./routes/rideRoutes.js";
 import routesRoutes from "./routes/routesRoutes.js";
@@ -30,8 +31,10 @@ import requestsRoutes from "./routes/requestsRoutes.js";
 import mapRoutes from "./routes/mapRoutes.js";
 import ratingRoutes from "./routes/ratingRoutes.js";
 import matatuApiRoutes from "./routes/matatuApiRoutes.js";
+import matatuPhotoRoutes from "./routes/matatuPhotoRoutes.js";
 import saccoRoutes from "./routes/saccoRoutes.js";
 import featureFlagRoutes from "./routes/featureFlagRoutes.js";
+import driverRoutes from "./routes/driverRoutes.js";
 
 import { notFound, errorHandler } from "./middleware/errorMiddleware.js";
 
@@ -119,13 +122,16 @@ app.use("/api/ratings", ratingRoutes);
 
 app.use("/api/matatus", matatuRoutes);
 app.use("/api/matatus", matatuApiRoutes);
+app.use("/api/matatus", matatuPhotoRoutes);
 app.use("/api/sacco", saccoRoutes);
 
 app.use("/api/admin", adminRoutes);
+app.use("/api/admin", adminQueueRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/mpesa", mpesaRoutes);
 app.use("/api/wallet", walletRoutes);
 app.use("/api/trips", tripRoutes);
+app.use("/api/driver", driverRoutes);
 
 app.get("/api/matatus/live", getLiveMatatus);
 app.use("/api/matatu-system", matatuRoutes);

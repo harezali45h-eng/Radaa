@@ -35,9 +35,37 @@ export const mpesaDeposit = async (req, res, next) => {
 
 export const mpesaFare = async (req, res, next) => {
   try {
+    const {
+      userId,
+      fare,
+      phoneNumber,
+      matatuId,
+      tripId,
+      driverId,
+      accountReference,
+      description
+    } = req.body || {};
+
+    const numericFare =
+      fare != null && !Number.isNaN(Number(fare)) ? Number(fare) : undefined;
+
+    if (numericFare == null || numericFare <= 0) {
+      throw new Error("fare must be a positive number");
+    }
+
+    const totalCharge = numericFare + 6;
+
     const result = await initiateMpesaStkPushService({
-      ...req.body,
-      purpose: "fare"
+      userId,
+      amount: totalCharge,
+      phoneNumber,
+      accountReference,
+      description,
+      matatuId,
+      purpose: "fare",
+      tripId,
+      driverId,
+      fareAmount: numericFare
     });
     res.status(201).json(result);
   } catch (error) {

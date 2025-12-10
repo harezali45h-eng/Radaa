@@ -48,12 +48,28 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                 >
                   Live
                 </Link>
-                {isDriver && (
+                {(!isDriver || isAdmin) && (
+                  <Link
+                    href="/dashboard/passenger/request"
+                    className="block rounded-md px-3 py-2 text-slate-300 transition hover:bg-slate-800/80 hover:text-white"
+                  >
+                    Request ride
+                  </Link>
+                )}
+                {(isDriver || isAdmin) && (
                   <Link
                     href="/dashboard/driver/live"
                     className="block rounded-md px-3 py-2 text-slate-300 transition hover:bg-slate-800/80 hover:text-white"
                   >
                     Driver live
+                  </Link>
+                )}
+                {(isDriver || isAdmin) && (
+                  <Link
+                    href="/dashboard/driver/matatu"
+                    className="block rounded-md px-3 py-2 text-slate-300 transition hover:bg-slate-800/80 hover:text-white"
+                  >
+                    My matatu photos
                   </Link>
                 )}
                 <Link

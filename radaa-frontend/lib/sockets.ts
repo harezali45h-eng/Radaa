@@ -4,24 +4,43 @@ let socket: Socket | null = null;
 
 const SOCKET_URL = (process.env.NEXT_PUBLIC_SOCKET_URL || "").replace(/\/+$/, "");
 const SOCKET_NAMESPACE = "/realtime";
+let hasWarnedMissingSocketUrl = false;
 
 function ensureSocket(): Socket | null {
   if (typeof window === "undefined") return null;
 
+  if (!SOCKET_URL) {
+    if (!hasWarnedMissingSocketUrl && typeof console !== "undefined") {
+      console.warn(
+        "[sockets] NEXT_PUBLIC_SOCKET_URL is not configured; realtime helpers are disabled (HTTP-only mode).",
+      );
+      hasWarnedMissingSocketUrl = true;
+    }
+    return null;
+  }
+
   if (!socket) {
     const url = `${SOCKET_URL}${SOCKET_NAMESPACE}`;
-    socket = io(url, {
-      autoConnect: true,
-      transports: ["websocket"],
-      path: "/socket.io",
-      withCredentials: true,
-      reconnection: true,
-      reconnectionAttempts: Infinity,
-      reconnectionDelay: 500,
-      reconnectionDelayMax: 10000,
-      randomizationFactor: 0.5,
-      timeout: 10000,
-    });
+    try {
+      socket = io(url, {
+        autoConnect: true,
+        transports: ["websocket"],
+        path: "/socket.io",
+        withCredentials: true,
+        reconnection: true,
+        reconnectionAttempts: Infinity,
+        reconnectionDelay: 500,
+        reconnectionDelayMax: 10000,
+        randomizationFactor: 0.5,
+        timeout: 10000,
+      });
+    } catch (error) {
+      if (typeof console !== "undefined") {
+        console.error("[sockets] Failed to initialize socket", error);
+      }
+      socket = null;
+      return null;
+    }
   }
 
   return socket;
@@ -53,9 +72,15 @@ export function onMatatuUpdate(
 export function emitEvent(event: string, payload?: any) {
   const s = ensureSocket();
   if (!s) return;
-  if (payload !== undefined) {
-    s.emit(event, payload);
-  } else {
-    s.emit(event);
+  try {
+    if (payload !== undefined) {
+      s.emit(event, payload);
+    } else {
+      s.emit(event);
+    }
+  } catch (error) {
+    if (typeof console !== "undefined") {
+      console.error("[sockets] emitEvent error", error);
+    }
   }
 }

@@ -12,6 +12,7 @@ const SOCKET_NAMESPACE = "/realtime";
 
 let socket: Socket | null = null;
 let subscriberCount = 0;
+let hasWarnedMissingSocketUrl = false;
 
 function getStoredToken(): string | null {
   if (typeof window === "undefined") return null;
@@ -42,6 +43,16 @@ function getStoredToken(): string | null {
 
 function ensureSocket(token?: string | null): Socket | null {
   if (typeof window === "undefined") return null;
+
+  if (!SOCKET_URL) {
+    if (!hasWarnedMissingSocketUrl && typeof console !== "undefined") {
+      console.warn(
+        "[useSocket] NEXT_PUBLIC_SOCKET_URL is not configured; realtime features are disabled (HTTP-only mode).",
+      );
+      hasWarnedMissingSocketUrl = true;
+    }
+    return null;
+  }
 
   if (!socket) {
     const url = `${SOCKET_URL}${SOCKET_NAMESPACE}`;
@@ -132,22 +143,28 @@ export function useSocket(): UseSocket {
   const connect = useCallback((tokenOverride?: string | null) => {
     if (typeof window === "undefined") return;
 
-    const token = tokenOverride ?? getStoredToken();
+    try {
+      const token = tokenOverride ?? getStoredToken();
 
-    if (!token) {
-      return;
-    }
+      if (!token) {
+        return;
+      }
 
-    const s = ensureSocket(token);
+      const s = ensureSocket(token);
 
-    if (!s) return;
+      if (!s) return;
 
-    if (token) {
-      s.auth = { ...(s.auth || {}), token };
-    }
+      if (token) {
+        s.auth = { ...(s.auth || {}), token };
+      }
 
-    if (!s.connected) {
-      s.connect();
+      if (!s.connected) {
+        s.connect();
+      }
+    } catch (error) {
+      if (typeof console !== "undefined") {
+        console.error("[useSocket] connect error", error);
+      }
     }
   }, []);
 
@@ -160,17 +177,22 @@ export function useSocket(): UseSocket {
     (event: string, payload?: any, callback?: (...args: any[]) => void) => {
       const s = socket;
       if (!s) return;
-
-      if (callback) {
-        if (payload !== undefined) {
-          s.emit(event, payload, callback);
+      try {
+        if (callback) {
+          if (payload !== undefined) {
+            s.emit(event, payload, callback);
+          } else {
+            s.emit(event, callback);
+          }
+        } else if (payload !== undefined) {
+          s.emit(event, payload);
         } else {
-          s.emit(event, callback);
+          s.emit(event);
         }
-      } else if (payload !== undefined) {
-        s.emit(event, payload);
-      } else {
-        s.emit(event);
+      } catch (error) {
+        if (typeof console !== "undefined") {
+          console.error("[useSocket] emit error", error);
+        }
       }
     },
     [],
@@ -180,9 +202,14 @@ export function useSocket(): UseSocket {
     (event: string, callback: (...args: any[]) => void) => {
       const s = socket;
       if (!s) return;
-
-      s.off(event, callback);
-      s.on(event, callback);
+      try {
+        s.off(event, callback);
+        s.on(event, callback);
+      } catch (error) {
+        if (typeof console !== "undefined") {
+          console.error("[useSocket] on error", error);
+        }
+      }
     },
     [],
   );
@@ -191,11 +218,16 @@ export function useSocket(): UseSocket {
     (event: string, callback?: (...args: any[]) => void) => {
       const s = socket;
       if (!s) return;
-
-      if (callback) {
-        s.off(event, callback);
-      } else {
-        s.removeAllListeners(event);
+      try {
+        if (callback) {
+          s.off(event, callback);
+        } else {
+          s.removeAllListeners(event);
+        }
+      } catch (error) {
+        if (typeof console !== "undefined") {
+          console.error("[useSocket] off error", error);
+        }
       }
     },
     [],

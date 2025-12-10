@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useNotifications } from "@/context/NotificationContext";
 import { useSocket } from "@/hooks/useSocket";
-import { useRealtime } from "@/context/realtimeContext";
+import { useDriverRealtime } from "@/hooks/useDriverRealtime";
 import {
   acceptRide,
   getNearbyRequests,
@@ -12,7 +12,8 @@ import {
 } from "@/lib/api/rides";
 import { getAssignedPassengers } from "@/lib/api/driver";
 import { useIsFeatureEnabled } from "@/context/FeatureFlagContext";
-import MapContainer from "@/components/map/MapContainer";
+import MapWrapper from "@/components/MapWrapper";
+import DriverRequestCard from "@/components/DriverRequestCard";
 
 interface LatLng {
   lat: number;
@@ -42,7 +43,15 @@ export default function DriverLiveDashboardPage() {
   const { user, token, loading } = useAuth();
   const { addNotification } = useNotifications();
   const { on, off, emit } = useSocket();
-  const { driverOnline, setDriverOnline } = useRealtime();
+  const {
+    driverOnline,
+    currentRequest,
+    timeLeftSeconds,
+    goOnline,
+    goOffline,
+    acceptCurrentRequest,
+    rejectCurrentRequest,
+  } = useDriverRealtime();
 
   const role = (user as any)?.role as string | undefined;
   const isDriver = role === "driver";
@@ -92,9 +101,17 @@ export default function DriverLiveDashboardPage() {
       (geoError) => {
         if (cancelled) return;
         setLoadingIncoming(false);
-        setError(
-          geoError.message || "Unable to determine your current location.",
-        );
+        const message =
+          geoError.message || "Unable to determine your current location.";
+        setError(message);
+        if (typeof console !== "undefined") {
+          console.error("[driver-live] geolocation error", geoError);
+        }
+        addNotification({
+          type: "system",
+          title: "Location error",
+          message,
+        });
       },
       {
         enableHighAccuracy: true,
@@ -142,6 +159,9 @@ export default function DriverLiveDashboardPage() {
         const message =
           err instanceof Error ? err.message : "Failed to load nearby requests";
         setError(message);
+        if (typeof console !== "undefined") {
+          console.error("[driver-live] getNearbyRequests error", err);
+        }
       } finally {
         if (!cancelled) {
           setLoadingIncoming(false);
@@ -171,6 +191,9 @@ export default function DriverLiveDashboardPage() {
         setAssigned(Array.isArray(data) ? data : []);
       } catch (err) {
         if (cancelled) return;
+        if (typeof console !== "undefined") {
+          console.error("[driver-live] getAssignedPassengers error", err);
+        }
       } finally {
         if (!cancelled) {
           setLoadingAssigned(false);
@@ -191,61 +214,82 @@ export default function DriverLiveDashboardPage() {
     }
 
     const handleRideCreated = (payload: any) => {
-      if (!payload) return;
+      try {
+        if (!payload) return;
 
-      const id = payload?.id || payload?._id;
+        const id = payload?.id || payload?._id;
 
-      setIncoming((current) => {
-        const exists = current.some(
-          (r) => (r._id as any) === id || (r as any).id === id,
-        );
-        if (exists) return current;
-        const next: RideRequest = {
-          ...(payload as RideRequest),
-          _id: (payload?._id || id || "") as string,
-        };
-        return [next, ...current];
-      });
+        setIncoming((current) => {
+          const exists = current.some(
+            (r) => (r._id as any) === id || (r as any).id === id,
+          );
+          if (exists) return current;
+          const next: RideRequest = {
+            ...(payload as RideRequest),
+            _id: (payload?._id || id || "") as string,
+          };
+          return [next, ...current];
+        });
 
-      addNotification({
-        type: "trip",
-        title: "New nearby ride request",
-        message: "A passenger near you has requested a ride.",
-      });
+        addNotification({
+          type: "trip",
+          title: "New nearby ride request",
+          message: "A passenger near you has requested a ride.",
+        });
+      } catch (err) {
+        if (typeof console !== "undefined") {
+          console.error("[driver-live] ride:created handler error", err);
+        }
+      }
     };
 
     const handleRideCancelled = (payload: any) => {
-      const id = payload?.id || payload?._id;
-      if (!id) return;
+      try {
+        const id = payload?.id || payload?._id;
+        if (!id) return;
 
-      setIncoming((current) =>
-        current.filter((r) => (r._id as any) !== id && (r as any).id !== id),
-      );
-      setAssigned((current) =>
-        current.filter((r) => (r._id as any) !== id && (r as any).id !== id),
-      );
+        setIncoming((current) =>
+          current.filter((r) => (r._id as any) !== id && (r as any).id !== id),
+        );
+        setAssigned((current) =>
+          current.filter((r) => (r._id as any) !== id && (r as any).id !== id),
+        );
 
-      addNotification({
-        type: "trip",
-        title: "Ride cancelled",
-        message: "A ride in your area was cancelled.",
-      });
+        addNotification({
+          type: "trip",
+          title: "Ride cancelled",
+          message: "A ride in your area was cancelled.",
+        });
+      } catch (err) {
+        if (typeof console !== "undefined") {
+          console.error("[driver-live] ride:cancelled handler error", err);
+        }
+      }
     };
 
     const handlePassengerUpdate = (payload: any) => {
-      if (!payload) return;
-      const rawId = payload.id ?? payload.rideId;
-      if (!rawId) return;
-      const id = String(rawId);
+      try {
+        if (!payload) return;
+        const rawId = payload.id ?? payload.rideId;
+        if (!rawId) return;
+        const id = String(rawId);
 
-      setAssigned((current) => {
-        const next = current.map((ride) =>
-          (ride._id as any) === id || (ride as any).id === id
-            ? ({ ...ride, ...(payload as Partial<RideRequest>) } as RideRequest)
-            : ride,
-        );
-        return next;
-      });
+        setAssigned((current) => {
+          const next = current.map((ride) =>
+            (ride._id as any) === id || (ride as any).id === id
+              ? ({
+                  ...ride,
+                  ...(payload as Partial<RideRequest>),
+                } as RideRequest)
+              : ride,
+          );
+          return next;
+        });
+      } catch (err) {
+        if (typeof console !== "undefined") {
+          console.error("[driver-live] passenger:update handler error", err);
+        }
+      }
     };
 
     on("ride:created", handleRideCreated as any);
@@ -300,7 +344,12 @@ export default function DriverLiveDashboardPage() {
     () =>
       incoming
         .map((ride) => {
-          const pickup = (ride as any).pickup;
+          const rideAny = ride as any;
+          const pickup =
+            rideAny.pickup ||
+            rideAny.pickupLocation ||
+            rideAny.location ||
+            null;
           if (
             !pickup ||
             !Array.isArray(pickup.coordinates) ||
@@ -442,7 +491,7 @@ export default function DriverLiveDashboardPage() {
         </div>
         <button
           type="button"
-          onClick={() => setDriverOnline(!driverOnline)}
+          onClick={() => (driverOnline ? goOffline() : goOnline())}
           className={`inline-flex items-center rounded-full px-3 py-1 text-[11px] font-medium transition ${
             driverOnline
               ? "bg-emerald-600/80 text-emerald-50 hover:bg-emerald-500/80"
@@ -452,6 +501,17 @@ export default function DriverLiveDashboardPage() {
           {driverOnline ? "Go offline" : "Go online"}
         </button>
       </section>
+
+      {currentRequest && (
+        <section className="rounded-xl border border-emerald-700/60 bg-emerald-950/40 p-3 text-xs">
+          <DriverRequestCard
+            request={currentRequest}
+            timeLeftSeconds={timeLeftSeconds}
+            onAccept={acceptCurrentRequest}
+            onReject={rejectCurrentRequest}
+          />
+        </section>
+      )}
 
       <section className="rounded-xl border border-slate-800 bg-slate-900/80 p-3 text-xs">
         <div className="mb-2 flex items-center justify-between">
@@ -464,7 +524,7 @@ export default function DriverLiveDashboardPage() {
             </p>
           </div>
         </div>
-        <MapContainer
+        <MapWrapper
           matatus={[]}
           passengers={passengerMarkers}
           userLocation={coords}
@@ -496,6 +556,7 @@ export default function DriverLiveDashboardPage() {
           isLoading={loadingIncoming}
           hasAnyLocation={hasAnyLocation}
           driverMode
+          showCenterOnMe
         />
       </section>
 

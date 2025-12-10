@@ -1,5 +1,6 @@
 import { Server } from "socket.io";
 import jwt from "jsonwebtoken";
+import { attachRealtimeHandlers } from "../controllers/realtimeController.js";
 
 const allowedOrigins = [
   process.env.FRONTEND_ORIGIN,
@@ -159,6 +160,11 @@ export const initSocket = (server) => {
       socket.join(`user:${userId}`);
       socket.join(`passenger:${userId}`);
     }
+
+    attachRealtimeHandlers(socket, io, {
+      setDriverState,
+      getAvailableDrivers
+    });
 
     // Live passenger position stream
     socket.on("passenger:update_location", (payload = {}) => {

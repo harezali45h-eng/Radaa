@@ -94,3 +94,64 @@ export async function uploadMatatuPhoto(
 
   return Array.isArray(data) ? data : [];
 }
+
+export async function getMatatuPhotosV2(
+  id: string,
+  token?: string | null,
+): Promise<MatatuPhoto[]> {
+  try {
+    const data = await request<MatatuPhoto[] | { photos?: MatatuPhoto[] }>(
+      `/matatus/${id}/photos/v2`,
+      {
+        method: "GET",
+        token: token ?? null,
+      },
+    );
+
+    if (Array.isArray(data)) {
+      return data;
+    }
+
+    if (data && typeof data === "object" && Array.isArray((data as any).photos)) {
+      return (data as any).photos as MatatuPhoto[];
+    }
+
+    return [];
+  } catch {
+    return getMatatuPhotos(id, token);
+  }
+}
+
+export async function uploadMatatuPhotoV2(
+  id: string,
+  file: File,
+  options: { caption?: string } = {},
+  token?: string | null,
+): Promise<MatatuPhoto[]> {
+  const formData = new FormData();
+  formData.append("photo", file);
+  if (options.caption) {
+    formData.append("caption", options.caption);
+  }
+
+  await request<any>(`/matatus/${id}/photos/v2`, {
+    method: "POST",
+    body: formData,
+    token: token ?? null,
+  });
+
+  return getMatatuPhotosV2(id, token);
+}
+
+export async function deleteMatatuPhotoV2(
+  id: string,
+  photoId: string,
+  token?: string | null,
+): Promise<MatatuPhoto[]> {
+  await request<void>(`/matatus/${id}/photos/${photoId}`, {
+    method: "DELETE",
+    token: token ?? null,
+  });
+
+  return getMatatuPhotosV2(id, token);
+}
