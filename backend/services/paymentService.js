@@ -21,6 +21,19 @@ export const createRidePaymentService = async ({
     throw new ApiError(404, "User not found", "NOT_FOUND");
   }
 
+  const loyalty = user.loyalty || {};
+
+  loyalty.paidRidesCount = (loyalty.paidRidesCount || 0) + 1;
+  user.ridesPaid = (user.ridesPaid || 0) + 1;
+  user.ridesTaken = (user.ridesTaken || 0) + 1;
+
+  if (loyalty.paidRidesCount % 10 === 0) {
+    loyalty.freeRides = (loyalty.freeRides || 0) + 1;
+  }
+
+  user.loyalty = loyalty;
+  await user.save();
+
   const payment = await RidePayment.create({
     user: userId,
     amount,

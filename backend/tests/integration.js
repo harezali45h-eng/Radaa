@@ -82,7 +82,7 @@ const run = async () => {
     driverPhone: "0712345678"
   });
 
-  const locRes = await httpRequest("POST", `/matatus/${matatu._id}/location`, {
+  const locRes = await httpRequest("POST", `/api/matatus/${matatu._id}/location`, {
     lat: -1.2921,
     lng: 36.8219
   });
@@ -103,7 +103,7 @@ const run = async () => {
   }
 
   for (let i = 0; i < 10; i += 1) {
-    const payRes = await httpRequest("POST", "/payments/ride", {
+    const payRes = await httpRequest("POST", "/api/payments/ride", {
       userId: user._id.toString(),
       matatuId: matatu._id.toString(),
       amount: 100,
@@ -127,7 +127,7 @@ const run = async () => {
   const beforeRedeemUser = await User.findById(user._id);
   const freeRidesBefore = beforeRedeemUser.loyalty ? beforeRedeemUser.loyalty.freeRides : 0;
 
-  const redeemRes = await httpRequest("POST", "/payments/redeem-free", {
+  const redeemRes = await httpRequest("POST", "/api/payments/redeem-free", {
     userId: user._id.toString(),
     matatuId: matatu._id.toString(),
     provider: "test-provider"
