@@ -48,12 +48,54 @@ app.set("trust proxy", 1);
 /* -------------------------------------------
    CORS
 -------------------------------------------- */
-const allowedOrigins = [
-  "https://radaa-dvpr.vercel.app",
-  "https://radaa-frontend.vercel.app",
-  "http://localhost:3000",
-  "http://localhost:5173",
-];
+const parseOrigins = (value) => {
+  if (!value) return [];
+  return String(value)
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+};
+
+const nodeEnv = process.env.NODE_ENV || "development";
+
+const envOriginValue =
+  process.env.CLIENT_ORIGIN ||
+  process.env.CORS_ORIGIN ||
+  "";
+
+const baseOrigins = parseOrigins(envOriginValue);
+
+if (nodeEnv !== "production") {
+  // Always allow localhost for local development
+  baseOrigins.push("http://localhost:3000", "http://localhost:5173");
+}
+
+const wildcardOrigins = baseOrigins.filter((origin) => origin.startsWith("*."));
+const exactOrigins = baseOrigins.filter((origin) => !origin.startsWith("*."));
+
+const isAllowedOrigin = (origin) => {
+  if (!origin) return true;
+
+  if (exactOrigins.includes(origin)) {
+    return true;
+  }
+
+  if (wildcardOrigins.length) {
+    try {
+      const url = new URL(origin);
+      const hostname = url.hostname;
+
+      return wildcardOrigins.some((pattern) => {
+        const suffix = pattern.slice(1).replace(/^\./, "");
+        return hostname === suffix || hostname.endsWith(`.${suffix}`);
+      });
+    } catch {
+      return false;
+    }
+  }
+
+  return false;
+};
 
 app.use(
   cors({
@@ -63,7 +105,7 @@ app.use(
         return callback(null, true);
       }
 
-      if (allowedOrigins.includes(origin)) {
+      if (isAllowedOrigin(origin)) {
         return callback(null, true);
       }
 

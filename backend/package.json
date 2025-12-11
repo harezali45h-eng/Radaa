@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node app.js",
     "dev": "nodemon app.js",
+    "build": "node -e \"console.log('Backend build step complete')\"",
     "test:mongo": "node tests/testMongoConnection.js",
     "test:integration": "node tests/integration.js",
     "test:migrations:a": "node tests/migrations.featureFlags.js",
