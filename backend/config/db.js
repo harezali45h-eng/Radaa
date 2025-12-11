@@ -3,11 +3,15 @@ import mongoose from "mongoose";
 mongoose.set("strictQuery", false);
 
 mongoose.connection.on("connected", () => {
-  console.log("MongoDB connected");
+  console.log("[mongo] connection established");
 });
 
-mongoose.connection.on("error", (err) => {
-  console.log("MongoDB error:", err);
+mongoose.connection.on("disconnected", () => {
+  console.warn("[mongo] connection lost");
+});
+
+mongoose.connection.on("error", () => {
+  console.error("[mongo] connection error event");
 });
 
 const MAX_RETRIES = 5;
@@ -19,31 +23,17 @@ export const connectDB = async () => {
   let uri = process.env.MONGODB_URI || process.env.MONGO_URI;
 
   if (!uri) {
-    if (nodeEnv === "production") {
+    if (nodeEnv !== "production") {
+      uri = "mongodb://localhost:27017/radaa";
+      console.warn(
+        "[mongo] No MONGO_URI/MONGODB_URI set. Using default local MongoDB at mongodb://localhost:27017/radaa for development."
+      );
+    } else {
       console.error(
-        "❗ DB Connection Error: MongoDB URI is not defined in env (expected MONGO_URI or MONGODB_URI)."
+        "[mongo] No MongoDB URI configured (expected MONGO_URI or MONGODB_URI). Database features will be unavailable until this is set."
       );
       process.exit(1);
     }
-
-    uri = "mongodb://localhost:27017/radaa";
-    console.log(
-      "MongoDB dev fallback: using local mongodb://localhost:27017/radaa because no MONGO_URI/MONGODB_URI was set."
-    );
-  }
-
-  try {
-    const protocol = uri.split("://")[0];
-    let host = "";
-    try {
-      const parsed = new URL(uri);
-      host = parsed.hostname;
-    } catch {
-      host = "<unparseable>";
-    }
-    console.log(`MongoDB connection debug -> protocol: ${protocol}, host: ${host}`);
-  } catch {
-    console.log("MongoDB connection debug -> unable to parse URI");
   }
 
   const isAuthError = (error) => {
@@ -71,15 +61,15 @@ export const connectDB = async () => {
   while (attempt < MAX_RETRIES) {
     try {
       attempt += 1;
-      console.log(`Connecting to MongoDB (attempt ${attempt}/${MAX_RETRIES})...`);
+      console.log(`[mongo] Connecting to MongoDB (attempt ${attempt}/${MAX_RETRIES})...`);
       await mongoose.connect(uri, {
         serverSelectionTimeoutMS: 5000
       });
-      console.log("🔥 Radaa DB Connected Successfully");
       return;
     } catch (error) {
-      const message = error && error.message ? error.message : String(error);
-      console.error(`❗ DB Connection Error: ${message}`);
+      const message = error && error.message ? error.message : "";
+
+      console.error("[mongo] Failed to connect to MongoDB.");
 
       if (isAuthError(error)) {
         console.error(
@@ -95,16 +85,19 @@ export const connectDB = async () => {
       }
 
       if (attempt >= MAX_RETRIES) {
-        console.error("MongoDB connection failed after maximum retries");
+        console.error(
+          "[mongo] MongoDB connection failed after maximum retries. Database-dependent endpoints will continue to fail until connectivity/auth is restored."
+        );
+        if (nodeEnv === "production") {
+          process.exit(1);
+        }
         break;
       }
 
-      console.log(`Retrying MongoDB connection in ${RETRY_DELAY_MS / 1000} seconds...`);
+      console.log(
+        `[mongo] Retrying MongoDB connection in ${RETRY_DELAY_MS / 1000} seconds...`
+      );
       await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS));
     }
   }
-
-  console.error(
-    "MongoDB connection was not established. The backend will continue running, but any endpoint that requires the database will fail until connectivity/auth is fixed."
-  );
 };

@@ -115,8 +115,6 @@ const driverWalletSchema = new mongoose.Schema(
   }
 );
 
-driverWalletSchema.index({ driver: 1 });
-
 driverWalletSchema.pre("save", function nextHook(next) {
   this.lastUpdated = new Date();
   next();

@@ -11,11 +11,6 @@ const {
   CLOUDINARY_URL,
 } = process.env;
 
-if (!CLOUDINARY_URL && (!CLOUDINARY_CLOUD_NAME || !CLOUDINARY_API_KEY || !CLOUDINARY_API_SECRET)) {
-  // Cloudinary is optional at boot, but matatu photo service will throw a clear error if used without config
-  console.warn("[cloudinary] Cloudinary configuration is incomplete. Matatu photo uploads will fail until configured.");
-}
-
 cloudinary.config({
   cloud_name: CLOUDINARY_CLOUD_NAME,
   api_key: CLOUDINARY_API_KEY,
