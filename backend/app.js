@@ -65,7 +65,22 @@ const envOriginValue =
 
 const baseOrigins = parseOrigins(envOriginValue);
 
-if (nodeEnv !== "production") {
+if (nodeEnv === "production") {
+  const defaultProdOrigins = [
+    "https://radaa-dvpr.vercel.app",
+    "https://radaa-frontend.vercel.app",
+  ];
+
+  defaultProdOrigins.forEach((origin) => {
+    if (!baseOrigins.includes(origin)) {
+      baseOrigins.push(origin);
+    }
+  });
+
+  if (!baseOrigins.includes("*.vercel.app")) {
+    baseOrigins.push("*.vercel.app");
+  }
+} else {
   // Always allow localhost for local development
   baseOrigins.push("http://localhost:3000", "http://localhost:5173");
 }
