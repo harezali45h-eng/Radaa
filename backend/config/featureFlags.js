@@ -17,7 +17,8 @@ export const FEATURE_FLAG_KEYS = {
   SWIPE_MATATUS_V1: "ff_swipe_matatus",
   LIVE_ONLY_MAP_V1: "ff_live_only_map",
   FARE_SUGGESTIONS_V1: "ff_fare_suggestions",
-  PAYMENT_CONFIRM_V1: "ff_payment_confirm"
+  PAYMENT_CONFIRM_V1: "ff_payment_confirm",
+  BOLT_LIVE_MAP_V1: "ff_bolt_live_map",
 };
 
 const parseBoolEnv = (value) => {
@@ -101,6 +102,10 @@ export const featureFlagDefaults = {
   },
   [FEATURE_FLAG_KEYS.PAYMENT_CONFIRM_V1]: {
     enabled: parseBoolEnv(process.env.FEATURE_FALLBACK_PAYMENT_CONFIRM_V1),
+    rolloutPercent: 0
+  },
+  [FEATURE_FLAG_KEYS.BOLT_LIVE_MAP_V1]: {
+    enabled: parseBoolEnv(process.env.FEATURE_BOLT_LIVE_MAP),
     rolloutPercent: 0
   }
 };

@@ -37,7 +37,8 @@ export function MatatuSwipeDeck({ items, onSelect }: MatatuSwipeDeckProps) {
 
   const title = useMemo(() => {
     if (!active) return "No matatus nearby";
-    return active.route || active.plate || active.numberPlate || "Matatu";
+    if (active.route) return active.route;
+    return "Matatu";
   }, [active]);
 
   const subtitle = useMemo(() => {

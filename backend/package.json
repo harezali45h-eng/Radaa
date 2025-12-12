@@ -13,7 +13,8 @@
     "test:checkpoint:b": "node tests/checkpointB.routes.js",
     "test:checkpoint:c": "node tests/checkpointC.requests.js",
     "test:checkpoint:d": "node tests/checkpointD.autocancel.js",
-    "test:matatuPhotos": "node tests/matatuPhotos.upload.js"
+    "test:matatuPhotos": "node tests/matatuPhotos.upload.js",
+    "test:bolt-live": "node tests/bolt.live.js"
   },
   "keywords": [],
   "author": "",

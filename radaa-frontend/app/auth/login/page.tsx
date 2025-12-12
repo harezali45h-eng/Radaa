@@ -82,7 +82,11 @@ export default function LoginPage() {
       console.error(err);
       const message = err?.message || "Login failed";
       setError(message);
-      setFieldError(message);
+      if (message.toLowerCase().includes("invalid credentials")) {
+        setFieldError("Check your email or password and try again.");
+      } else {
+        setFieldError(message);
+      }
     } finally {
       setLoading(false);
     }

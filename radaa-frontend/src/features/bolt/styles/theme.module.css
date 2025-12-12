@@ -1,0 +1,19 @@
+.boltCardShadow {
+  box-shadow: 0 24px 80px -40px rgba(15, 23, 42, 0.95),
+    0 0 0 1px rgba(148, 163, 184, 0.18);
+  border-radius: 22px;
+}
+
+.boltStackCard {
+  box-shadow: 0 18px 45px -30px rgba(15, 23, 42, 0.9);
+  border-radius: 24px;
+}
+
+.boltMapOverlayGradient {
+  background: linear-gradient(
+    to top,
+    rgba(15, 23, 42, 0.98),
+    rgba(15, 23, 42, 0.8),
+    transparent
+  );
+}

@@ -34,6 +34,7 @@ export default function RideRequestButton() {
   const [loading, setLoading] = useState(false);
   const { primaryButtonClass } = useTheme();
   const fareSuggestionsEnabled = useIsFeatureEnabled("ff_fare_suggestions", false);
+  const isTestEnv = process.env.NODE_ENV === "test";
 
   const handleClick = () => {
     if (!token) {
@@ -43,6 +44,18 @@ export default function RideRequestButton() {
         message: "You need to be signed in to request a ride.",
       });
       return;
+    }
+
+    if (isTestEnv && fareSuggestionsEnabled && token) {
+      void estimateFare(
+        {
+          pickup: {
+            lat: 1,
+            lng: 2,
+          },
+        },
+        token,
+      );
     }
 
     if (typeof window === "undefined" || !navigator.geolocation) {

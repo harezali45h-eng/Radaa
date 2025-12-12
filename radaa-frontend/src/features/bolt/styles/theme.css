@@ -1,0 +1,11 @@
+/* Bolt-specific design tokens (kept local to the Bolt feature namespace).
+   These are not imported globally; Bolt components rely primarily on Tailwind
+   utility classes plus the theme.ts helpers. This file is provided so that
+   future global theming can promote these tokens if desired. */
+
+:root {
+  --bolt-radius-card: 22px;
+  --bolt-radius-pill: 999px;
+  --bolt-glow-soft: 0 24px 80px -40px rgba(15, 23, 42, 0.95),
+    0 0 0 1px rgba(148, 163, 184, 0.18);
+}

@@ -35,6 +35,7 @@ import matatuPhotoRoutes from "./routes/matatuPhotoRoutes.js";
 import saccoRoutes from "./routes/saccoRoutes.js";
 import featureFlagRoutes from "./routes/featureFlagRoutes.js";
 import driverRoutes from "./routes/driverRoutes.js";
+import boltRoutes from "./routes/boltRoutes.js";
 
 import { notFound, errorHandler } from "./middleware/errorMiddleware.js";
 
@@ -181,6 +182,7 @@ app.use("/api/matatus", matatuRoutes);
 app.use("/api/matatus", matatuApiRoutes);
 app.use("/api/matatus", matatuPhotoRoutes);
 app.use("/api/sacco", saccoRoutes);
+app.use("/api/bolt", boltRoutes);
 
 app.use("/api/admin", adminRoutes);
 app.use("/api/admin", adminQueueRoutes);

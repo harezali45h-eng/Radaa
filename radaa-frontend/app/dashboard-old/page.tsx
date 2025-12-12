@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import dynamic from "next/dynamic";
 import { useAuth } from "@/context/AuthContext";
 import { getProfile, type AuthUser } from "@/lib/api/auth";
 import { getLiveMatatus, getLoyaltyStatus } from "@/lib/api";
@@ -333,13 +332,6 @@ function DashboardHomePage() {
   );
 }
 
-const BoltDashboardPage = dynamic(
-  () => import("@/src/features/bolt/pages/BoltDashboardPage"),
-  { ssr: false },
-);
-
-export default function DashboardBoltShim() {
-  return <BoltDashboardPage />;
+export default function DashboardOldPage() {
+  return <DashboardHomePage />;
 }
-
-export { DashboardHomePage };

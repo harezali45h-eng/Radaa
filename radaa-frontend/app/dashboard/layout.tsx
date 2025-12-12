@@ -96,15 +96,13 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                     SACCO
                   </Link>
                 )}
-                {!simplifiedNavEnabled && (
-                  <button
-                    type="button"
-                    onClick={logout}
-                    className="block w-full rounded-md px-3 py-2 text-left text-slate-300 transition hover:bg-slate-800/80 hover:text-white"
-                  >
-                    Logout
-                  </button>
-                )}
+                <button
+                  type="button"
+                  onClick={logout}
+                  className="block w-full rounded-md px-3 py-2 text-left text-slate-300 transition hover:bg-slate-800/80 hover:text-white"
+                >
+                  Logout
+                </button>
               </div>
             </div>
           </nav>

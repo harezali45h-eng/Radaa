@@ -308,13 +308,14 @@ export function AppShell({ children }: AppShellProps) {
               </Link>
               <Link
                 href={
-                  (user as any)?.role === "driver" && activeMode === "driver"
-                    ? "/dashboard/driver/live"
-                    : "/dashboard/passenger/live"
+                  liveOnlyMapEnabled
+                    ? "/map"
+                    : (user as any)?.role === "driver" && activeMode === "driver"
+                      ? "/dashboard/driver/live"
+                      : "/dashboard/passenger/live"
                 }
                 className={`flex flex-1 flex-col items-center gap-0.5 rounded-full px-2 py-1.5 ${
-                  pathname.startsWith("/dashboard/passenger/live") ||
-                  pathname.startsWith("/dashboard/driver/live")
+                  liveTabActive
                     ? "text-sky-300"
                     : "text-slate-400 hover:text-slate-200"
                 }`}
