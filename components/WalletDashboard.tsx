@@ -19,6 +19,13 @@ export default function WalletDashboard() {
     .filter((tx) => tx.type === "fare")
     .reduce((sum, tx) => sum + (tx.amount || 0), 0);
 
+  const loyaltyPoints = wallet?.loyaltyPoints ?? 0;
+  const tierSize = 1500;
+  const pointsPerTier = 50;
+  const spentTowardsNextTier = totalFareSpent % tierSize;
+  const progressToNextTier =
+    tierSize > 0 ? Math.min(100, (spentTowardsNextTier / tierSize) * 100) : 0;
+
   const handleDeposit = async () => {
     setActionError(null);
     setStatusMessage(null);
@@ -80,7 +87,7 @@ export default function WalletDashboard() {
   };
 
   return (
-    <section className="rounded-xl border border-slate-800 bg-slate-900/85 p-4 text-xs shadow-soft">
+    <section className="rounded-2xl border border-slate-800/80 bg-[radial-gradient(circle_at_0%_0%,rgba(15,23,42,0.98),transparent),radial-gradient(circle_at_100%_100%,rgba(15,23,42,0.96),transparent)] p-4 text-xs shadow-soft backdrop-blur">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-sm font-semibold text-slate-50">Wallet yako</h2>
@@ -112,7 +119,7 @@ export default function WalletDashboard() {
             setStatusMessage(null);
             setActionError(null);
           }}
-          className="inline-flex items-center rounded-md border border-emerald-500/70 bg-emerald-500/15 px-3 py-1.5 font-medium text-emerald-100 hover:border-emerald-400 hover:bg-emerald-500/25"
+          className="inline-flex items-center rounded-full border border-emerald-400/40 bg-emerald-400/10 px-3 py-1.5 font-medium text-emerald-100/90 hover:border-emerald-300/70 hover:bg-emerald-400/20"
         >
           Deposit with Mpesa
         </button>
@@ -124,23 +131,34 @@ export default function WalletDashboard() {
             setStatusMessage(null);
             setActionError(null);
           }}
-          className="inline-flex items-center rounded-md border border-sky-500/70 bg-sky-500/15 px-3 py-1.5 font-medium text-sky-100 hover:border-sky-400 hover:bg-sky-500/25"
+          className="inline-flex items-center rounded-full border border-sky-400/40 bg-sky-400/10 px-3 py-1.5 font-medium text-sky-100/90 hover:border-sky-300/70 hover:bg-sky-400/20"
         >
           Pay Fare
         </button>
       </div>
 
       <div className="mt-4 grid gap-3 md:grid-cols-2">
-        <div className="rounded-lg border border-slate-800 bg-slate-950/60 p-3">
-          <div className="text-[11px] text-slate-400">Loyalty points</div>
-          <div className="mt-1 text-base font-semibold text-amber-300">
-            {wallet?.loyaltyPoints ?? 0}
+        <div className="rounded-lg border border-slate-800 bg-slate-950/70 p-3">
+          <div className="text-[11px] font-semibold text-slate-200">
+            Loyalty rewards
+          </div>
+          <div className="mt-1 flex items-baseline gap-2">
+            <div className="text-base font-semibold text-amber-300">
+              {loyaltyPoints}
+            </div>
+            <div className="text-[11px] text-slate-400">points</div>
+          </div>
+          <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-slate-800/90">
+            <div
+              className="h-full rounded-full bg-gradient-to-r from-amber-300 via-amber-400 to-emerald-400"
+              style={{ width: `${progressToNextTier}%` }}
+            />
           </div>
           <p className="mt-1 text-[11px] text-slate-400">
-            Kwa kila 1500 umetumia kama fare, unapata points 50.
+            Kwa kila 1500 umetumia kama fare, unapata points {pointsPerTier}.
           </p>
         </div>
-        <div className="rounded-lg border border-slate-800 bg-slate-950/60 p-3">
+        <div className="rounded-lg border border-slate-800 bg-slate-950/70 p-3">
           <div className="text-[11px] text-slate-400">Total fare spent</div>
           <div className="mt-1 text-base font-semibold text-slate-100">
             KES {totalFareSpent}

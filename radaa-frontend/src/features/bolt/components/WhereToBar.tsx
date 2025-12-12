@@ -18,12 +18,12 @@ export function WhereToBar({ onSelectSuggestion }: WhereToBarProps) {
   return (
     <div className={boltBottomBarClass}>
       <div className={boltBottomBarInnerClass}>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <div className="flex h-8 w-8 flex-none items-center justify-center rounded-full bg-emerald-500/20 text-xs text-emerald-300">
             ●
           </div>
           <div className="flex-1">
-            <div className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+            <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-200 sm:text-xs">
               Where to?
             </div>
             <input
@@ -31,7 +31,7 @@ export function WhereToBar({ onSelectSuggestion }: WhereToBarProps) {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search destination, stage, or landmark"
-              className="mt-0.5 w-full rounded-full border border-slate-700 bg-slate-950 px-3 py-1.5 text-[11px] text-slate-50 outline-none placeholder:text-slate-500 focus:border-genz-accent focus:ring-1 focus:ring-genz-accent"
+              className="mt-1 w-full rounded-2xl border border-slate-700 bg-slate-950 px-3 py-2 text-[12px] text-slate-50 outline-none placeholder:text-slate-500 focus:border-genz-accent focus:ring-1 focus:ring-genz-accent sm:text-sm"
             />
           </div>
           {loading && (

@@ -19,7 +19,7 @@ export const boltSecondaryButtonClass =
   "inline-flex items-center justify-center rounded-full border border-slate-700 bg-slate-900/70 px-4 py-2 text-xs font-medium text-slate-100 shadow-sm hover:border-slate-500 hover:bg-slate-800";
 
 export const boltBottomBarClass =
-  "pointer-events-auto fixed inset-x-0 bottom-0 z-30 px-3 pb-4 pt-2 sm:px-4 sm:pb-6";
+  "pointer-events-auto fixed inset-x-0 bottom-0 z-30 px-3 pb-6 pt-6 sm:px-4 sm:pb-8 sm:pt-8";
 
 export const boltBottomBarInnerClass =
-  "mx-auto max-w-md rounded-3xl border border-slate-800/70 bg-slate-950/95 px-3 py-2 shadow-glass-elevated backdrop-blur";
+  "mx-auto max-w-lg rounded-[28px] border border-slate-800/70 bg-slate-950/95 px-4 py-3 shadow-glass-elevated backdrop-blur sm:px-5 sm:py-4 min-h-[160px] sm:min-h-[210px]";
