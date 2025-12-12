@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { getLoyaltyStatus } from "../../lib/api";
+import { useIsFeatureEnabled } from "@/context/FeatureFlagContext";
 
 interface LoyaltyStatus {
   userId: string;
@@ -17,8 +18,10 @@ interface LoyaltyStatus {
 }
 
 export default function ProfilePage() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [data, setData] = useState<LoyaltyStatus | null>(null);
+
+  const simplifiedNavEnabled = useIsFeatureEnabled("ff_simplified_nav", false);
 
   useEffect(() => {
     const userId =
@@ -144,6 +147,26 @@ export default function ProfilePage() {
           />
         </div>
       </section>
+
+      {simplifiedNavEnabled && (
+        <section className="space-y-3 rounded-xl border border-slate-800 bg-slate-900/80 p-4 text-xs">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="font-medium text-slate-100">Account</div>
+              <div className="text-[11px] text-slate-400">
+                Sign out of your Radaa account on this device.
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={logout}
+              className="inline-flex items-center rounded-full border border-red-500/70 bg-red-500/10 px-3 py-1.5 text-[11px] font-semibold text-red-100 shadow-sm transition hover:border-red-400 hover:bg-red-500/20"
+            >
+              Logout
+            </button>
+          </div>
+        </section>
+      )}
     </div>
   );
 }

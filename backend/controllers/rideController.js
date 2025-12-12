@@ -1,11 +1,32 @@
 import RideRequest from "../models/RideRequest.js";
 import { ValidationError, AuthError } from "../utils/errors.js";
 import { emitDriverScoreUpdate, emitPassengerScoreUpdate } from "../realtime/socket.js";
+import { isFeatureEnabled } from "../utils/featureFlags.js";
+import { FEATURE_FLAG_KEYS } from "../config/featureFlags.js";
 
 const ensureDriver = (user) => {
   if (!user || (user.role !== "driver" && user.role !== "admin")) {
     throw new AuthError("Driver access required", 403);
   }
+};
+
+const haversineDistanceMeters = (a, b) => {
+  const R = 6371000;
+  const toRad = (deg) => (deg * Math.PI) / 180;
+
+  const dLat = toRad(b.lat - a.lat);
+  const dLng = toRad(b.lng - a.lng);
+  const lat1 = toRad(a.lat);
+  const lat2 = toRad(b.lat);
+
+  const sinDLat = Math.sin(dLat / 2);
+  const sinDLng = Math.sin(dLng / 2);
+
+  const h =
+    sinDLat * sinDLat + Math.cos(lat1) * Math.cos(lat2) * sinDLng * sinDLng;
+  const c = 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
+
+  return R * c;
 };
 
 const ensureUserOrAdmin = (user, userId) => {
@@ -65,6 +86,107 @@ export const createRideRequest = async (req, res, next) => {
       message: "Ride request created",
       data: ride
     });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const estimateFare = async (req, res, next) => {
+  try {
+    if (!req.user) {
+      throw new AuthError("Not authorized", 401);
+    }
+
+    const enabled = await isFeatureEnabled(
+      FEATURE_FLAG_KEYS.FARE_SUGGESTIONS_V1,
+      req.user._id,
+    );
+
+    if (!enabled) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Fare suggestions feature disabled" });
+    }
+
+    const { pickup, destination, partySize, routeName } = req.body || {};
+
+    if (!pickup || typeof pickup.lat !== "number" || typeof pickup.lng !== "number") {
+      throw new ValidationError("pickup with lat and lng is required");
+    }
+
+    const hasDestination =
+      destination &&
+      typeof destination.lat === "number" &&
+      typeof destination.lng === "number";
+
+    let distanceMeters = 0;
+    if (hasDestination) {
+      distanceMeters = haversineDistanceMeters(
+        { lat: pickup.lat, lng: pickup.lng },
+        { lat: destination.lat, lng: destination.lng },
+      );
+    } else {
+      distanceMeters = 3000;
+    }
+
+    const distanceKm = distanceMeters / 1000;
+
+    const now = new Date();
+    const hour = now.getUTCHours();
+
+    const isPeak =
+      (hour >= 3 && hour < 6) ||
+      (hour >= 13 && hour < 20);
+
+    const baseFare = 40;
+    const perKm = 25;
+    const peakMultiplier = isPeak ? 1.25 : 1;
+
+    const effectiveKm = Math.max(1, distanceKm);
+
+    let rawFare = baseFare + effectiveKm * perKm;
+
+    const numericPartySize =
+      typeof partySize === "number"
+        ? partySize
+        : typeof partySize === "string"
+          ? Number(partySize)
+          : 1;
+
+    if (!Number.isNaN(numericPartySize) && numericPartySize > 1) {
+      const extraRiders = Math.min(5, numericPartySize - 1);
+      rawFare *= 1 + extraRiders * 0.08;
+    }
+
+    const peakFare = rawFare * peakMultiplier;
+    const suggestedFare = Math.round(peakFare);
+
+    const minFare = Math.max(30, Math.round(suggestedFare * 0.85));
+    const maxFare = Math.round(suggestedFare * 1.15);
+
+    const payload = {
+      pickup: {
+        lat: pickup.lat,
+        lng: pickup.lng,
+      },
+      destination: hasDestination
+        ? { lat: destination.lat, lng: destination.lng }
+        : null,
+      distanceMeters,
+      distanceKm,
+      suggestedFare,
+      minFare,
+      maxFare,
+      currency: "KES",
+      isPeak,
+      routeName: routeName || null,
+      partySize:
+        !Number.isNaN(numericPartySize) && numericPartySize > 0
+          ? numericPartySize
+          : 1,
+    };
+
+    res.json({ success: true, data: payload });
   } catch (error) {
     next(error);
   }

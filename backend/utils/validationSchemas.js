@@ -227,6 +227,29 @@ export const createRideRequestSchema = z.object({
   })
 });
 
+export const estimateFareSchema = z.object({
+  body: z.object({
+    pickup: z.object({
+      lat: latitudeSchema,
+      lng: longitudeSchema
+    }),
+    destination: z
+      .object({
+        lat: latitudeSchema,
+        lng: longitudeSchema
+      })
+      .optional(),
+    partySize: z
+      .union([z.number(), z.string()])
+      .transform((value) => (typeof value === "number" ? value : Number(value)))
+      .refine((value) => !Number.isNaN(value) && value >= 1 && value <= 10, {
+        message: "partySize must be a number between 1 and 10"
+      })
+      .optional(),
+    routeName: z.string().max(120).optional()
+  })
+});
+
 export const getNearbyRideRequestsSchema = z.object({
   query: z.object({
     lat: latitudeSchema,

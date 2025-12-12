@@ -17,6 +17,30 @@
       radial-gradient(circle at 100% 100%, rgba(255, 106, 0, 0.35), transparent 55%),
       linear-gradient(145deg, #020617 0%, #020617 40%, #020617 100%);
   }
+
+  .theme-genz {
+    /* Gen-Z Kenya shell: darker charcoal base, slightly softer text */
+    @apply bg-genz-bg text-slate-50;
+    font-family:
+      system-ui,
+      -apple-system,
+      BlinkMacSystemFont,
+      "Inter",
+      "SF Pro Text",
+      sans-serif;
+    background-image:
+      radial-gradient(circle at 0% 0%, rgba(10, 132, 255, 0.24), transparent 55%),
+      radial-gradient(circle at 100% 0%, rgba(0, 225, 142, 0.22), transparent 55%),
+      radial-gradient(circle at 100% 100%, rgba(255, 224, 116, 0.25), transparent 55%),
+      linear-gradient(145deg, #020617 0%, #020617 45%, #020617 100%);
+  }
+
+  .theme-genz *:focus-visible {
+    outline: none;
+    box-shadow:
+      0 0 0 1px rgba(15, 23, 42, 0.95),
+      0 0 0 3px rgba(10, 132, 255, 0.85);
+  }
 }
 
 @layer components {
@@ -58,6 +82,27 @@
 
   .radaa-glass-nav {
     @apply flex items-center justify-between rounded-pill border border-white/10 bg-slate-900/40 px-3 py-1.5 text-xs text-slate-100 shadow-soft backdrop-blur-xl;
+  }
+
+  .theme-genz .radaa-card {
+    @apply rounded-[22px] border border-white/10 bg-slate-900/80 shadow-glass-elevated;
+    transition: transform 150ms cubic-bezier(0.16, 1, 0.3, 1),
+      box-shadow 150ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .theme-genz .radaa-card:hover {
+    transform: translateY(-2px);
+    box-shadow:
+      0 20px 60px -32px rgba(15, 23, 42, 1),
+      0 0 0 1px rgba(148, 163, 184, 0.3);
+  }
+
+  .theme-genz .radaa-btn-primary {
+    @apply bg-genz-primary text-slate-50 shadow-[0_0_0_1px_rgba(15,23,42,0.8),0_0_0_6px_rgba(10,132,255,0.4)];
+  }
+
+  .theme-genz .radaa-btn-secondary {
+    @apply border-genz-primary/30 bg-slate-900/90 text-slate-100;
   }
 
   .radaa-login-bg {

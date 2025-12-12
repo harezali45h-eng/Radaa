@@ -7,6 +7,7 @@ import { getProfile, type AuthUser } from "@/lib/api/auth";
 import { getLiveMatatus, getLoyaltyStatus } from "@/lib/api";
 import RideRequestButton from "@/components/RideRequestButton";
 import WalletDashboard from "@/components/WalletDashboard";
+import { useIsFeatureEnabled } from "@/context/FeatureFlagContext";
 
 interface LoyaltyStatus {
   userId: string;
@@ -35,6 +36,8 @@ interface DashboardStats {
 
 export default function DashboardHomePage() {
   const { user, token, logout } = useAuth();
+
+  const simplifiedNavEnabled = useIsFeatureEnabled("ff_simplified_nav", false);
 
   const [profile, setProfile] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -136,13 +139,15 @@ export default function DashboardHomePage() {
             Your central hub for matatus, rides, loyalty, and your wallet.
           </p>
         </div>
-        <button
-          type="button"
-          onClick={logout}
-          className="inline-flex items-center justify-center rounded-md border border-slate-700 bg-slate-900 px-3 py-1.5 text-xs font-medium text-slate-100 shadow-sm transition hover:border-red-500/60 hover:bg-red-600/10 hover:text-red-200"
-        >
-          Log out
-        </button>
+        {!simplifiedNavEnabled && (
+          <button
+            type="button"
+            onClick={logout}
+            className="inline-flex items-center justify-center rounded-md border border-slate-700 bg-slate-900 px-3 py-1.5 text-xs font-medium text-slate-100 shadow-sm transition hover:border-red-500/60 hover:bg-red-600/10 hover:text-red-200"
+          >
+            Log out
+          </button>
+        )}
       </header>
 
       <section className="radaa-card space-y-2 p-3 text-xs">

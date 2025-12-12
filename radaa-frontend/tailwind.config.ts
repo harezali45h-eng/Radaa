@@ -21,6 +21,13 @@ const config: Config = {
         safariOrange: "#FF6A00",
         twilightPurple: "#A855F7",
         deepIndigo: "#1D4ED8",
+
+        // Gen-Z Kenya theme palette
+        "genz-primary": "#0A84FF", // Electric Blue
+        "genz-accent": "#00E18E", // Neon Emerald
+        "genz-bg": "#111213", // Midnight Charcoal
+        "genz-surface": "#F1F3F4", // Soft Grey
+        "genz-accent-yellow": "#FFE074", // Accent Yellow
       },
       borderRadius: {
         card: "18px",

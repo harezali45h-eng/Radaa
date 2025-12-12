@@ -3,13 +3,14 @@
 import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { useNotifications } from "@/context/NotificationContext";
 import BackToDashboardButton from "@/components/BackToDashboardButton";
 import { useSocket } from "@/hooks/useSocket";
 import { useRealtime } from "@/context/realtimeContext";
 import { useTheme } from "@/context/ThemeContext";
+import { useIsFeatureEnabled } from "@/context/FeatureFlagContext";
 
 interface AppShellProps {
   children: ReactNode;
@@ -17,6 +18,7 @@ interface AppShellProps {
 
 export function AppShell({ children }: AppShellProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const { user, token, logout } = useAuth();
   const { notifications, unreadCount, markAllAsRead } = useNotifications();
   const [open, setOpen] = useState(false);
@@ -24,6 +26,8 @@ export function AppShell({ children }: AppShellProps) {
   const { connect } = useSocket();
   const { driverOnline, setDriverOnline, activeMode } = useRealtime();
   const { headerBgClass } = useTheme();
+  const simplifiedNavEnabled = useIsFeatureEnabled("ff_simplified_nav", false);
+  const liveOnlyMapEnabled = useIsFeatureEnabled("ff_live_only_map", false);
 
   useEffect(() => {
     if (!token) {
@@ -40,6 +44,14 @@ export function AppShell({ children }: AppShellProps) {
 
   const isDashboard = isDashboardRoot || isDashboardSub;
 
+  const isBottomNavEligible =
+    simplifiedNavEnabled &&
+    !isAuthRoute &&
+    !isMarketingHome &&
+    (pathname.startsWith("/dashboard") ||
+      pathname === "/map" ||
+      pathname.startsWith("/profile"));
+
   const showBackToDashboard =
     !isMarketingHome && !isAuthRoute && !isDashboardRoot;
   const role = (user as any)?.role as string | undefined;
@@ -52,10 +64,16 @@ export function AppShell({ children }: AppShellProps) {
       ? "/dashboard/driver/live"
       : "/dashboard";
 
-  const liveHref =
-    isDriver && activeMode === "driver"
+  const liveHref = liveOnlyMapEnabled
+    ? "/map"
+    : isDriver && activeMode === "driver"
       ? "/dashboard/driver/live"
       : "/dashboard/passenger/live";
+
+  const liveTabActive = liveOnlyMapEnabled
+    ? pathname === "/map"
+    : pathname.startsWith("/dashboard/passenger/live") ||
+      pathname.startsWith("/dashboard/driver/live");
 
   const toggleNotifications = () => {
     const next = !open;
@@ -70,7 +88,7 @@ export function AppShell({ children }: AppShellProps) {
       <header className={headerBgClass}>
         <div className="radaa-shell flex items-center justify-between py-3">
           <div className="flex items-center gap-3">
-            {isDashboard && (
+            {isDashboard && !simplifiedNavEnabled && (
               <button
                 type="button"
                 onClick={() => setMobileNavOpen(true)}
@@ -200,7 +218,7 @@ export function AppShell({ children }: AppShellProps) {
           {children}
         </div>
       </main>
-      {isDashboard && mobileNavOpen && (
+      {isDashboard && mobileNavOpen && !simplifiedNavEnabled && (
         <div className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm md:hidden">
           <div className="absolute left-0 top-0 flex h-full">
             <div className="radaa-mobile-drawer">
@@ -266,6 +284,66 @@ export function AppShell({ children }: AppShellProps) {
             </div>
           </div>
         </div>
+      )}
+      {isBottomNavEligible && (
+        <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-800/80 bg-slate-950/95 backdrop-blur-md md:hidden">
+          <div className="relative mx-auto flex max-w-6xl items-center justify-between px-6 py-2.5 text-[11px]">
+            <button
+              type="button"
+              onClick={() => router.push("/dashboard/passenger/request")}
+              className="absolute left-1/2 top-0 flex -translate-x-1/2 -translate-y-1/2 items-center rounded-full bg-genz-primary px-5 py-2.5 font-semibold text-slate-950 shadow-[0_18px_45px_rgba(15,23,42,0.9)] transition hover:bg-sky-400"
+            >
+              Request ride
+            </button>
+            <div className="flex w-full items-center justify-between gap-4">
+              <Link
+                href="/dashboard"
+                className={`flex flex-1 flex-col items-center gap-0.5 rounded-full px-2 py-1.5 ${
+                  pathname === "/dashboard"
+                    ? "text-sky-300"
+                    : "text-slate-400 hover:text-slate-200"
+                }`}
+              >
+                <span className="text-[11px] font-medium">Home</span>
+              </Link>
+              <Link
+                href={
+                  (user as any)?.role === "driver" && activeMode === "driver"
+                    ? "/dashboard/driver/live"
+                    : "/dashboard/passenger/live"
+                }
+                className={`flex flex-1 flex-col items-center gap-0.5 rounded-full px-2 py-1.5 ${
+                  pathname.startsWith("/dashboard/passenger/live") ||
+                  pathname.startsWith("/dashboard/driver/live")
+                    ? "text-sky-300"
+                    : "text-slate-400 hover:text-slate-200"
+                }`}
+              >
+                <span className="text-[11px] font-medium">Live</span>
+              </Link>
+              <Link
+                href="/dashboard/trips/list"
+                className={`flex flex-1 flex-col items-center gap-0.5 rounded-full px-2 py-1.5 ${
+                  pathname.startsWith("/dashboard/trips")
+                    ? "text-sky-300"
+                    : "text-slate-400 hover:text-slate-200"
+                }`}
+              >
+                <span className="text-[11px] font-medium">Rides</span>
+              </Link>
+              <Link
+                href="/profile"
+                className={`flex flex-1 flex-col items-center gap-0.5 rounded-full px-2 py-1.5 ${
+                  pathname.startsWith("/profile")
+                    ? "text-sky-300"
+                    : "text-slate-400 hover:text-slate-200"
+                }`}
+              >
+                <span className="text-[11px] font-medium">Profile</span>
+              </Link>
+            </div>
+          </div>
+        </nav>
       )}
     </div>
   );

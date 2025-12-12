@@ -8,14 +8,16 @@ import {
   acceptRideRequest,
   cancelRideRequest,
   getUserRides,
-  getDriverAssignedRides
+  getDriverAssignedRides,
+  estimateFare
 } from "../controllers/rideController.js";
 import {
   createRideRequestSchema,
   getNearbyRideRequestsSchema,
   acceptRideRequestSchema,
   cancelRideRequestSchema,
-  getUserRidesSchema
+  getUserRidesSchema,
+  estimateFareSchema
 } from "../utils/validationSchemas.js";
 
 const router = express.Router();
@@ -50,6 +52,15 @@ router.post(
   requireUserRole,
   validateRequest(createRideRequestSchema),
   createRideRequest
+);
+
+router.post(
+  "/estimate-fare",
+  requireAuth,
+  rideWriteLimiter,
+  requireUserRole,
+  validateRequest(estimateFareSchema),
+  estimateFare
 );
 
 router.get(

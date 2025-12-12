@@ -6,6 +6,7 @@ import { AppShell } from "@/components/layout/AppShell";
 import { useAuth } from "@/context/AuthContext";
 import { useRealtime } from "@/context/realtimeContext";
 import { useTheme } from "@/context/ThemeContext";
+import { useIsFeatureEnabled } from "@/context/FeatureFlagContext";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const { user, logout } = useAuth();
@@ -14,6 +15,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const isDriver = role === "driver";
   const { activeMode } = useRealtime();
   const { cardSurfaceClass } = useTheme();
+  const simplifiedNavEnabled = useIsFeatureEnabled("ff_simplified_nav", false);
+  const liveOnlyMapEnabled = useIsFeatureEnabled("ff_live_only_map", false);
 
   const homeHref = isAdmin
     ? "/dashboard/sacco"
@@ -21,8 +24,9 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       ? "/dashboard/driver/live"
       : "/dashboard";
 
-  const liveHref =
-    isDriver && activeMode === "driver"
+  const liveHref = liveOnlyMapEnabled
+    ? "/map"
+    : isDriver && activeMode === "driver"
       ? "/dashboard/driver/live"
       : "/dashboard/passenger/live";
 
@@ -92,13 +96,15 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                     SACCO
                   </Link>
                 )}
-                <button
-                  type="button"
-                  onClick={logout}
-                  className="block w-full rounded-md px-3 py-2 text-left text-slate-300 transition hover:bg-slate-800/80 hover:text-white"
-                >
-                  Logout
-                </button>
+                {!simplifiedNavEnabled && (
+                  <button
+                    type="button"
+                    onClick={logout}
+                    className="block w-full rounded-md px-3 py-2 text-left text-slate-300 transition hover:bg-slate-800/80 hover:text-white"
+                  >
+                    Logout
+                  </button>
+                )}
               </div>
             </div>
           </nav>

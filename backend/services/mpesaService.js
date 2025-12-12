@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import RidePayment from "../models/RidePayment.js";
+import PaymentConfirmation from "../models/PaymentConfirmation.js";
 import User from "../models/User.js";
 import Matatu from "../models/Matatu.js";
 import { ValidationError, ApiError } from "../utils/errors.js";
@@ -45,6 +46,32 @@ const getTimestamp = () => {
 const getMpesaPassword = (timestamp) => {
   const raw = `${MPESA_SHORTCODE}${MPESA_PASSKEY}${timestamp}`;
   return Buffer.from(raw).toString("base64");
+};
+
+const normalizePhoneNumber = (value) => {
+  if (!value) {
+    return "";
+  }
+
+  const digits = String(value).replace(/\D/g, "");
+
+  if (digits.length === 12 && digits.startsWith("254")) {
+    return digits;
+  }
+
+  if (digits.length === 10 && digits.startsWith("0")) {
+    return `254${digits.slice(1)}`;
+  }
+
+  if (digits.length === 9 && digits.startsWith("7")) {
+    return `254${digits}`;
+  }
+
+  if (digits.length === 13 && digits.startsWith("2540")) {
+    return `254${digits.slice(4)}`;
+  }
+
+  return digits;
 };
 
 export const getMpesaAccessToken = async () => {
@@ -122,6 +149,8 @@ export const initiateMpesaStkPushService = async ({
     throw new ValidationError("amount must be a valid number");
   }
 
+  const normalizedPhoneNumber = normalizePhoneNumber(phoneNumber);
+
   const token = await getMpesaAccessToken();
   const timestamp = getTimestamp();
   const password = getMpesaPassword(timestamp);
@@ -139,9 +168,9 @@ export const initiateMpesaStkPushService = async ({
     Timestamp: timestamp,
     TransactionType: "CustomerPayBillOnline",
     Amount: normalizedAmount,
-    PartyA: phoneNumber,
+    PartyA: normalizedPhoneNumber,
     PartyB: MPESA_SHORTCODE,
-    PhoneNumber: phoneNumber,
+    PhoneNumber: normalizedPhoneNumber,
     CallBackURL: callbackUrl,
     AccountReference:
       accountReference ||
@@ -209,6 +238,24 @@ export const initiateMpesaStkPushService = async ({
         : undefined,
     totalPaid: normalizedAmount
   });
+
+  try {
+    await PaymentConfirmation.create({
+      user: userId,
+      payment: payment._id,
+      amount: payment.amount,
+      currency: payment.currency || "KES",
+      purpose: effectivePurpose,
+      channel: "mpesa",
+      status: "pending",
+      meta: {
+        merchantRequestId: data.MerchantRequestID,
+        checkoutRequestId: data.CheckoutRequestID
+      }
+    });
+  } catch {
+    // best-effort; do not block STK on confirmation write
+  }
 
   return {
     paymentId: payment._id,
@@ -340,6 +387,21 @@ export const handleMpesaCallbackService = async (body) => {
         payment.transactionId = receipt || payment.transactionId;
         await payment.save({ session });
 
+        await PaymentConfirmation.findOneAndUpdate(
+          { payment: payment._id },
+          {
+            $set: {
+              status: "failed",
+              meta: {
+                resultCode,
+                resultDesc,
+                receipt: receipt || null
+              }
+            }
+          },
+          { session },
+        ).catch(() => undefined);
+
         result = {
           payment,
           resultCode,
@@ -400,6 +462,22 @@ export const handleMpesaCallbackService = async (body) => {
       }
 
       await payment.save({ session });
+
+      await PaymentConfirmation.findOneAndUpdate(
+        { payment: payment._id },
+        {
+          $set: {
+            status: payment.status,
+            meta: {
+              resultCode,
+              resultDesc,
+              receipt: receipt || payment.transactionId,
+              transactionDate: parseMpesaCallbackDate(transactionDate)
+            }
+          }
+        },
+        { session },
+      ).catch(() => undefined);
 
       result = {
         payment,

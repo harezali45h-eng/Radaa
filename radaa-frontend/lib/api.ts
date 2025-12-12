@@ -119,6 +119,59 @@ export const verifyPayment = async (payload: {
   }
 };
 
+export interface PaymentConfirmationDTO {
+  _id: string;
+  user: string;
+  payment: string;
+  amount: number;
+  currency: string;
+  purpose?: string;
+  channel?: string;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+  seenAt?: string | null;
+  meta?: Record<string, unknown> | null;
+}
+
+export const getPaymentConfirmations = async (
+  limit: number = 20,
+): Promise<PaymentConfirmationDTO[]> => {
+  try {
+    const res = await API.get("/payments/confirmations", {
+      params: { limit },
+    });
+    const data = res.data as any;
+
+    if (data && typeof data === "object" && "data" in data) {
+      return (data as any).data as PaymentConfirmationDTO[];
+    }
+
+    return data as PaymentConfirmationDTO[];
+  } catch (error: any) {
+    console.error("API ERROR:", (error as any)?.response?.data || error);
+    throw error;
+  }
+};
+
+export const markPaymentConfirmationSeen = async (
+  id: string,
+): Promise<PaymentConfirmationDTO> => {
+  try {
+    const res = await API.post(`/payments/confirmations/${id}/seen`);
+    const data = res.data as any;
+
+    if (data && typeof data === "object" && "data" in data) {
+      return (data as any).data as PaymentConfirmationDTO;
+    }
+
+    return data as PaymentConfirmationDTO;
+  } catch (error: any) {
+    console.error("API ERROR:", (error as any)?.response?.data || error);
+    throw error;
+  }
+};
+
 export const initiateMpesaStkPush = async (payload: {
   userId: string;
   matatuId: string;

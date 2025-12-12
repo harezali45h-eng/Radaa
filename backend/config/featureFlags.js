@@ -11,7 +11,13 @@ export const FEATURE_FLAG_KEYS = {
   MAP_PHOTOS_V1: "map_photos_v1",
   TRIP_UI_V1: "trip_ui_v1",
   DRIVER_ONBOARD_V1: "driver_onboard_v1",
-  SACCO_ONBOARD_V1: "sacco_onboard_v1"
+  SACCO_ONBOARD_V1: "sacco_onboard_v1",
+  NEW_THEME_V1: "ff_new_theme",
+  SIMPLIFIED_NAV_V1: "ff_simplified_nav",
+  SWIPE_MATATUS_V1: "ff_swipe_matatus",
+  LIVE_ONLY_MAP_V1: "ff_live_only_map",
+  FARE_SUGGESTIONS_V1: "ff_fare_suggestions",
+  PAYMENT_CONFIRM_V1: "ff_payment_confirm"
 };
 
 const parseBoolEnv = (value) => {
@@ -71,6 +77,30 @@ export const featureFlagDefaults = {
   },
   [FEATURE_FLAG_KEYS.SACCO_ONBOARD_V1]: {
     enabled: parseBoolEnv(process.env.FEATURE_FALLBACK_SACCO_ONBOARD_V1),
+    rolloutPercent: 0
+  },
+  [FEATURE_FLAG_KEYS.NEW_THEME_V1]: {
+    enabled: parseBoolEnv(process.env.FEATURE_FALLBACK_NEW_THEME_V1),
+    rolloutPercent: 0
+  },
+  [FEATURE_FLAG_KEYS.SIMPLIFIED_NAV_V1]: {
+    enabled: parseBoolEnv(process.env.FEATURE_FALLBACK_SIMPLIFIED_NAV_V1),
+    rolloutPercent: 0
+  },
+  [FEATURE_FLAG_KEYS.SWIPE_MATATUS_V1]: {
+    enabled: parseBoolEnv(process.env.FEATURE_FALLBACK_SWIPE_MATATUS_V1),
+    rolloutPercent: 0
+  },
+  [FEATURE_FLAG_KEYS.LIVE_ONLY_MAP_V1]: {
+    enabled: parseBoolEnv(process.env.FEATURE_FALLBACK_LIVE_ONLY_MAP_V1),
+    rolloutPercent: 0
+  },
+  [FEATURE_FLAG_KEYS.FARE_SUGGESTIONS_V1]: {
+    enabled: parseBoolEnv(process.env.FEATURE_FALLBACK_FARE_SUGGESTIONS_V1),
+    rolloutPercent: 0
+  },
+  [FEATURE_FLAG_KEYS.PAYMENT_CONFIRM_V1]: {
+    enabled: parseBoolEnv(process.env.FEATURE_FALLBACK_PAYMENT_CONFIRM_V1),
     rolloutPercent: 0
   }
 };

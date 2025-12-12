@@ -2,6 +2,10 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useIsFeatureEnabled } from "@/context/FeatureFlagContext";
+import MatatuSwipeDeck, {
+  type MatatuSwipeItem,
+} from "@/components/MatatuSwipeDeck";
 
 const BACKEND_URL =
   process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_BACKEND_URL || "";
@@ -26,6 +30,23 @@ export default function MatatuListPage() {
   const [matatus, setMatatus] = useState<Matatu[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+
+  const swipeEnabled = useIsFeatureEnabled("ff_swipe_matatus", false);
+
+  const swipeItems: MatatuSwipeItem[] = matatus.map((m) => ({
+    id: m._id,
+    plate: m.plate || "Unknown plate",
+    route: m.route || "Route TBD",
+    sacco: m.sacco ?? null,
+    driverName: m.driverName ?? null,
+    driverPhone: m.driverPhone ?? null,
+    status: m.status || (m.isOnline ? "Online" : "Offline"),
+    online: Boolean(m.isOnline),
+    lastLocation:
+      m.location?.lat != null && m.location?.lng != null
+        ? `${m.location.lat.toFixed(4)}, ${m.location.lng.toFixed(4)}`
+        : null,
+  }));
 
   useEffect(() => {
     const run = async () => {
@@ -82,6 +103,10 @@ export default function MatatuListPage() {
         <div className="rounded-xl border border-red-500/40 bg-red-500/10 p-4 text-xs text-red-200">
           {error}
         </div>
+      )}
+
+      {!loading && !error && swipeEnabled && matatus.length > 0 && (
+        <MatatuSwipeDeck matatus={swipeItems} />
       )}
 
       {!loading && !error && matatus.length === 0 && (

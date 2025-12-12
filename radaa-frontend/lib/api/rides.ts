@@ -102,11 +102,43 @@ export interface RideRequest {
   [key: string]: any;
 }
 
+export interface FareEstimateRequest {
+  pickup: RideLocation;
+  destination?: RideLocation;
+  partySize?: number;
+  routeName?: string;
+}
+
+export interface FareEstimateResponse {
+  pickup: RideLocation;
+  destination: RideLocation | null;
+  distanceMeters: number;
+  distanceKm: number;
+  suggestedFare: number;
+  minFare: number;
+  maxFare: number;
+  currency: string;
+  isPeak: boolean;
+  routeName: string | null;
+  partySize: number;
+}
+
 export async function requestRide(
   payload: RequestRidePayload,
   token: string,
 ): Promise<RideRequest> {
   return request<RideRequest>("/rides/request", {
+    method: "POST",
+    body: payload,
+    token,
+  });
+}
+
+export async function estimateFare(
+  payload: FareEstimateRequest,
+  token: string,
+): Promise<FareEstimateResponse> {
+  return request<FareEstimateResponse>("/rides/estimate-fare", {
     method: "POST",
     body: payload,
     token,

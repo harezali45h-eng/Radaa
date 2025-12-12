@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSocket } from "@/hooks/useSocket";
 import { getLiveMatatus, getMapMarkers } from "@/lib/api";
 import MapContainer from "@/components/map/MapContainer";
+import GoogleMapContainer from "@/components/map/GoogleMapContainer";
 import { useRealtime } from "@/context/realtimeContext";
 import { useIsFeatureEnabled } from "@/context/FeatureFlagContext";
 import {
@@ -77,6 +78,8 @@ export default function MapPage() {
   const { driverOnline, setDriverOnline } = useRealtime();
 
   const uiRevampEnabled = useIsFeatureEnabled("ui_revamp_v1", false);
+  const globalMapEnabled = useIsFeatureEnabled("global_map_v1", false);
+  const liveOnlyMapEnabled = useIsFeatureEnabled("ff_live_only_map", false);
 
   const [matatus, setMatatus] = useState<Matatu[]>([]);
   const [passengers, setPassengers] = useState<PassengerMarker[]>([]);
@@ -558,6 +561,38 @@ export default function MapPage() {
   const totalPassengers = passengers.length;
 
   if (!uiRevampEnabled) {
+    if (liveOnlyMapEnabled) {
+      return (
+        <div className="rounded-2xl border border-slate-800 bg-slate-950 p-4">
+          {globalMapEnabled ? (
+            <GoogleMapContainer
+              matatus={matatusWithFlags}
+              passengers={passengers}
+              userLocation={userLocation}
+              onCenterOnMe={handleCenterOnMe}
+              onSelectMatatu={handleSelectMatatu}
+              isLoading={loading}
+              hasAnyLocation={hasAnyLocation}
+              driverMode={driverOnline}
+            />
+          ) : (
+            <MapContainer
+              matatus={matatusWithFlags}
+              passengers={passengers}
+              userLocation={userLocation}
+              displayPositions={displayPositions}
+              project={project}
+              onCenterOnMe={handleCenterOnMe}
+              onSelectMatatu={handleSelectMatatu}
+              isLoading={loading}
+              hasAnyLocation={hasAnyLocation}
+              driverMode={driverOnline}
+            />
+          )}
+        </div>
+      );
+    }
+
     return (
       <div className="grid gap-4 md:grid-cols-[2fr,1fr]">
         <div className="rounded-xl border border-slate-800 bg-slate-900/80 p-4">
@@ -635,18 +670,31 @@ export default function MapPage() {
             </div>
           )}
 
-          <MapContainer
-            matatus={matatusWithFlags}
-            passengers={passengers}
-            userLocation={userLocation}
-            displayPositions={displayPositions}
-            project={project}
-            onCenterOnMe={handleCenterOnMe}
-            onSelectMatatu={handleSelectMatatu}
-            isLoading={loading}
-            hasAnyLocation={hasAnyLocation}
-            driverMode={driverOnline}
-          />
+          {globalMapEnabled ? (
+            <GoogleMapContainer
+              matatus={matatusWithFlags}
+              passengers={passengers}
+              userLocation={userLocation}
+              onCenterOnMe={handleCenterOnMe}
+              onSelectMatatu={handleSelectMatatu}
+              isLoading={loading}
+              hasAnyLocation={hasAnyLocation}
+              driverMode={driverOnline}
+            />
+          ) : (
+            <MapContainer
+              matatus={matatusWithFlags}
+              passengers={passengers}
+              userLocation={userLocation}
+              displayPositions={displayPositions}
+              project={project}
+              onCenterOnMe={handleCenterOnMe}
+              onSelectMatatu={handleSelectMatatu}
+              isLoading={loading}
+              hasAnyLocation={hasAnyLocation}
+              driverMode={driverOnline}
+            />
+          )}
 
           {geoError && (
             <p className="mt-2 text-[11px] text-amber-300">{geoError}</p>
@@ -795,23 +843,37 @@ export default function MapPage() {
 
       <section className="relative overflow-hidden rounded-2xl border border-slate-800 bg-slate-950">
         <div className="p-4 pb-3">
-          <MapContainer
-            matatus={matatusWithFlags}
-            passengers={passengers}
-            userLocation={userLocation}
-            displayPositions={displayPositions}
-            project={project}
-            onCenterOnMe={handleCenterOnMe}
-            onSelectMatatu={handleSelectMatatu}
-            isLoading={loading}
-            hasAnyLocation={hasAnyLocation}
-            driverMode={driverOnline}
-          />
+          {globalMapEnabled ? (
+            <GoogleMapContainer
+              matatus={matatusWithFlags}
+              passengers={passengers}
+              userLocation={userLocation}
+              onCenterOnMe={handleCenterOnMe}
+              onSelectMatatu={handleSelectMatatu}
+              isLoading={loading}
+              hasAnyLocation={hasAnyLocation}
+              driverMode={driverOnline}
+            />
+          ) : (
+            <MapContainer
+              matatus={matatusWithFlags}
+              passengers={passengers}
+              userLocation={userLocation}
+              displayPositions={displayPositions}
+              project={project}
+              onCenterOnMe={handleCenterOnMe}
+              onSelectMatatu={handleSelectMatatu}
+              isLoading={loading}
+              hasAnyLocation={hasAnyLocation}
+              driverMode={driverOnline}
+            />
+          )}
         </div>
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-slate-950 to-transparent" />
       </section>
 
-      <section className="space-y-3 rounded-2xl border border-slate-800 bg-slate-900/80 p-4">
+      {!liveOnlyMapEnabled && (
+        <section className="space-y-3 rounded-2xl border border-slate-800 bg-slate-900/80 p-4">
         <div className="flex items-center justify-between gap-2">
           <div>
             <h2 className="text-sm font-semibold">Matatus on this map</h2>

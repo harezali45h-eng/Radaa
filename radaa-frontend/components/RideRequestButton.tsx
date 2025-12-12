@@ -3,9 +3,10 @@
 import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useNotifications } from "@/context/NotificationContext";
-import { requestRide } from "@/lib/api/rides";
+import { requestRide, estimateFare } from "@/lib/api/rides";
 import { useTheme } from "@/context/ThemeContext";
 import { calculateFareWithFee } from "@/utils/payments";
+import { useIsFeatureEnabled } from "@/context/FeatureFlagContext";
 
 const payFare = async (amount: number, phone: string) => {
   try {
@@ -32,6 +33,7 @@ export default function RideRequestButton() {
   const { addNotification } = useNotifications();
   const [loading, setLoading] = useState(false);
   const { primaryButtonClass } = useTheme();
+  const fareSuggestionsEnabled = useIsFeatureEnabled("ff_fare_suggestions", false);
 
   const handleClick = () => {
     if (!token) {
@@ -57,12 +59,31 @@ export default function RideRequestButton() {
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         try {
+          const pickup = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          };
+
+          let suggestion: number | null = null;
+
+          if (fareSuggestionsEnabled && token) {
+            try {
+              const estimate = await estimateFare({ pickup }, token);
+              if (
+                estimate &&
+                typeof estimate.suggestedFare === "number" &&
+                Number.isFinite(estimate.suggestedFare)
+              ) {
+                suggestion = Math.max(1, Math.round(estimate.suggestedFare));
+              }
+            } catch {
+              suggestion = null;
+            }
+          }
+
           await requestRide(
             {
-              pickup: {
-                lat: position.coords.latitude,
-                lng: position.coords.longitude,
-              },
+              pickup,
             },
             token,
           );
@@ -74,9 +95,14 @@ export default function RideRequestButton() {
           });
 
           if (typeof window !== "undefined") {
+            const prefix =
+              suggestion != null
+                ? `Suggested fare: KES ${suggestion}. You can adjust if needed.\n\n`
+                : "";
+
             const fareInput = window.prompt(
-              "Enter agreed fare (KES)",
-              "",
+              `${prefix}Enter agreed fare (KES)`,
+              suggestion != null ? String(suggestion) : "",
             );
 
             if (!fareInput) {
