@@ -1057,6 +1057,7 @@ export default function MapPage() {
           </div>
         )}
       </section>
+      )}
 
       {geoError && <p className="text-[11px] text-amber-300">{geoError}</p>}
     </div>
