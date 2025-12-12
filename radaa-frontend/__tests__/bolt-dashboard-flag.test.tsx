@@ -31,6 +31,36 @@ jest.mock("@/src/features/bolt/components/MatatuProfileSheet", () => () => null)
 
 jest.mock("@/src/features/bolt/components/WhereToBar", () => () => null);
 
+jest.mock("next/navigation", () => ({
+	useRouter: () => ({
+		push: jest.fn(),
+		replace: jest.fn(),
+		prefetch: jest.fn(),
+		back: jest.fn(),
+	}),
+}));
+
+jest.mock("@/context/AuthContext", () => ({
+	useAuth: () => ({
+		user: { role: "passenger" },
+		token: "test-token",
+		logout: jest.fn(),
+		login: jest.fn(),
+	}),
+}));
+
+jest.mock("@/context/realtimeContext", () => ({
+	useRealtime: () => ({
+		activeMode: "passenger",
+		driverOnline: false,
+		setDriverOnline: jest.fn(),
+	}),
+}));
+
+jest.mock("@/context/FeatureFlagContext", () => ({
+	useIsFeatureEnabled: () => false,
+}));
+
 import BoltDashboardPage from "@/src/features/bolt/pages/BoltDashboardPage";
 
 describe("BoltDashboardPage", () => {

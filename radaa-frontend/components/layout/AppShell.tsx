@@ -57,6 +57,10 @@ export function AppShell({ children }: AppShellProps) {
   const role = (user as any)?.role as string | undefined;
   const isAdmin = role === "admin";
   const isDriver = role === "driver";
+  const displayName =
+    (user as any)?.username || (user as any)?.phone || "Radaa user";
+  const initials = displayName.charAt(0).toUpperCase();
+  const ratingLabel = "4.8 ★";
 
   const homeHref = isAdmin
     ? "/dashboard/sacco"
@@ -222,7 +226,7 @@ export function AppShell({ children }: AppShellProps) {
         <div className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm md:hidden">
           <div className="absolute left-0 top-0 flex h-full">
             <div className="radaa-mobile-drawer">
-              <div className="mb-5 flex items-center justify-between">
+              <div className="mb-4 flex items-center justify-between">
                 <span className="text-sm font-semibold tracking-tight text-slate-50">
                   Menu
                 </span>
@@ -234,40 +238,84 @@ export function AppShell({ children }: AppShellProps) {
                   Close
                 </button>
               </div>
+              <div className="mb-4 flex items-center gap-3 rounded-xl border border-slate-800/70 bg-slate-950/80 px-3 py-3">
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-500/15 text-sm font-semibold text-emerald-200">
+                  {initials}
+                </div>
+                <div className="flex-1">
+                  <div className="text-[12px] font-semibold text-slate-50">
+                    {displayName}
+                  </div>
+                  <div className="text-[10px] text-slate-400">
+                    {isDriver ? "Driver" : isAdmin ? "Admin" : "Passenger"}
+                  </div>
+                </div>
+                <div className="flex flex-col items-end text-[10px] text-amber-300">
+                  <span className="rounded-full bg-slate-900/70 px-2 py-0.5 font-medium">
+                    {ratingLabel}
+                  </span>
+                  <span className="mt-0.5 text-[9px] text-slate-500">
+                    Loyalty score
+                  </span>
+                </div>
+              </div>
               <nav className="flex flex-1 flex-col gap-1.5 text-sm font-medium text-slate-50/90">
                 <Link
-                  href={homeHref}
+                  href="/dashboard/payments/list"
                   onClick={() => setMobileNavOpen(false)}
-                  className="flex min-h-[3rem] items-center gap-3 rounded-xl px-4 py-3 text-[13px] font-semibold text-slate-50/90 hover:bg-white/10 active:bg-white/15"
+                  className="flex min-h-[2.75rem] items-center justify-between rounded-xl px-4 py-2.5 text-[13px] font-semibold text-slate-50/90 hover:bg-white/10 active:bg-white/15"
                 >
-                  <span className="inline-flex h-2.5 w-2.5 rounded-full bg-slate-200/95 shadow-[0_0_0_2px_rgba(226,232,240,0.55)]" />
-                  <span>Home</span>
+                  <span>Payments</span>
+                  <span className="text-[10px] text-slate-400">Wallet</span>
                 </Link>
                 <Link
-                  href={liveHref}
+                  href="/free-ride"
                   onClick={() => setMobileNavOpen(false)}
-                  className="flex min-h-[3rem] items-center gap-3 rounded-xl px-4 py-3 text-[13px] font-semibold text-slate-50/90 hover:bg-white/10 active:bg-white/15"
+                  className="flex min-h-[2.75rem] items-center justify-between rounded-xl px-4 py-2.5 text-[13px] font-semibold text-slate-50/90 hover:bg-white/10 active:bg-white/15"
                 >
-                  <span className="inline-flex h-2.5 w-2.5 rounded-full bg-emerald-400/95 shadow-[0_0_0_2px_rgba(52,211,153,0.55)]" />
-                  <span>Live</span>
+                  <span>Promotions</span>
+                  <span className="text-[10px] text-emerald-300">Free rides</span>
                 </Link>
-                {/* Trips entry removed from mobile drawer now that the trip module is disabled. */}
+                <Link
+                  href="/dashboard/trips/list"
+                  onClick={() => setMobileNavOpen(false)}
+                  className="flex min-h-[2.75rem] items-center justify-between rounded-xl px-4 py-2.5 text-[13px] font-semibold text-slate-50/90 hover:bg-white/10 active:bg-white/15"
+                >
+                  <span>My rides</span>
+                  <span className="text-[10px] text-slate-400">History</span>
+                </Link>
+                <Link
+                  href="/map"
+                  onClick={() => setMobileNavOpen(false)}
+                  className="flex min-h-[2.75rem] items-center justify-between rounded-xl px-4 py-2.5 text-[13px] font-semibold text-slate-50/90 hover:bg-white/10 active:bg-white/15"
+                >
+                  <span>Safety</span>
+                  <span className="text-[10px] text-slate-400">Live map</span>
+                </Link>
                 <Link
                   href="/profile"
                   onClick={() => setMobileNavOpen(false)}
-                  className="flex min-h-[3rem] items-center gap-3 rounded-xl px-4 py-3 text-[13px] font-semibold text-slate-50/90 hover:bg-white/10 active:bg-white/15"
+                  className="flex min-h-[2.75rem] items-center justify-between rounded-xl px-4 py-2.5 text-[13px] font-semibold text-slate-50/90 hover:bg-white/10 active:bg-white/15"
                 >
-                  <span className="inline-flex h-2.5 w-2.5 rounded-full bg-sky-400/95 shadow-[0_0_0_2px_rgba(56,189,248,0.55)]" />
-                  <span>Profile</span>
+                  <span>Support</span>
+                  <span className="text-[10px] text-slate-400">Profile</span>
+                </Link>
+                <Link
+                  href="/home"
+                  onClick={() => setMobileNavOpen(false)}
+                  className="flex min-h-[2.75rem] items-center justify-between rounded-xl px-4 py-2.5 text-[13px] font-semibold text-slate-50/90 hover:bg-white/10 active:bg-white/15"
+                >
+                  <span>About</span>
+                  <span className="text-[10px] text-slate-400">Radaa</span>
                 </Link>
                 {isAdmin && (
                   <Link
                     href="/dashboard/sacco"
                     onClick={() => setMobileNavOpen(false)}
-                    className="flex min-h-[3rem] items-center gap-3 rounded-xl px-4 py-3 text-[13px] font-semibold text-slate-50/90 hover:bg-white/10 active:bg-white/15"
+                    className="flex min-h-[2.75rem] items-center justify-between rounded-xl px-4 py-2.5 text-[13px] font-semibold text-slate-50/90 hover:bg-white/10 active:bg-white/15"
                   >
-                    <span className="inline-flex h-2.5 w-2.5 rounded-full bg-orange-300/95 shadow-[0_0_0_2px_rgba(253,186,116,0.6)]" />
                     <span>SACCO</span>
+                    <span className="text-[10px] text-slate-400">Admin</span>
                   </Link>
                 )}
               </nav>
@@ -287,14 +335,7 @@ export function AppShell({ children }: AppShellProps) {
       )}
       {isBottomNavEligible && (
         <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-800/80 bg-slate-950/95 backdrop-blur-md md:hidden">
-          <div className="relative mx-auto flex max-w-6xl items-center justify-between px-6 py-2.5 text-[11px]">
-            <button
-              type="button"
-              onClick={() => router.push("/dashboard/passenger/request")}
-              className="absolute left-1/2 top-0 flex -translate-x-1/2 -translate-y-1/2 items-center rounded-full bg-genz-primary px-5 py-2.5 font-semibold text-slate-950 shadow-[0_18px_45px_rgba(15,23,42,0.9)] transition hover:bg-sky-400"
-            >
-              Request ride
-            </button>
+          <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-2.5 text-[11px]">
             <div className="flex w-full items-center justify-between gap-4">
               <Link
                 href="/dashboard"
@@ -321,16 +362,6 @@ export function AppShell({ children }: AppShellProps) {
                 }`}
               >
                 <span className="text-[11px] font-medium">Live</span>
-              </Link>
-              <Link
-                href="/dashboard/trips/list"
-                className={`flex flex-1 flex-col items-center gap-0.5 rounded-full px-2 py-1.5 ${
-                  pathname.startsWith("/dashboard/trips")
-                    ? "text-sky-300"
-                    : "text-slate-400 hover:text-slate-200"
-                }`}
-              >
-                <span className="text-[11px] font-medium">Rides</span>
               </Link>
               <Link
                 href="/profile"

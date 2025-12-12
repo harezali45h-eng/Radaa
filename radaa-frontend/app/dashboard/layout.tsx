@@ -30,80 +30,102 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       ? "/dashboard/driver/live"
       : "/dashboard/passenger/live";
 
+  const displayName = (user as any)?.username || (user as any)?.phone || "Radaa user";
+  const initials = displayName.charAt(0).toUpperCase();
+  const ratingLabel = "4.8 ★";
+
   return (
     <AppShell>
-      <div className="grid gap-6 md:grid-cols-[210px,1fr]">
-        <aside className={`${cardSurfaceClass} hidden p-4 text-xs md:block`}>
-          <nav className="space-y-4">
+      <div className="grid gap-6 md:grid-cols-[230px,1fr]">
+        <aside className={`${cardSurfaceClass} hidden space-y-4 p-4 text-xs md:block`}>
+          <div className="flex items-center gap-3 rounded-xl border border-slate-800/70 bg-slate-950/70 px-3 py-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-500/15 text-sm font-semibold text-emerald-200">
+              {initials}
+            </div>
+            <div className="flex-1">
+              <div className="text-[12px] font-semibold text-slate-50">
+                {displayName}
+              </div>
+              <div className="text-[10px] text-slate-400">
+                {isDriver ? "Driver" : isAdmin ? "Admin" : "Passenger"}
+              </div>
+            </div>
+            <div className="flex flex-col items-end text-[10px] text-amber-300">
+              <span className="rounded-full bg-slate-900/70 px-2 py-0.5 font-medium">
+                {ratingLabel}
+              </span>
+              <span className="mt-0.5 text-[9px] text-slate-500">
+                Loyalty score
+              </span>
+            </div>
+          </div>
+          <nav className="space-y-3">
             <div>
               <div className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
                 Menu
               </div>
-              <div className="mt-1 space-y-1">
-                <Link
-                  href={homeHref}
-                  className="block rounded-md px-3 py-2 text-slate-300 transition hover:bg-slate-800/80 hover:text-white"
-                >
-                  Home
-                </Link>
-                <Link
-                  href={liveHref}
-                  className="block rounded-md px-3 py-2 text-slate-300 transition hover:bg-slate-800/80 hover:text-white"
-                >
-                  Live
-                </Link>
-                {(!isDriver || isAdmin) && (
-                  <Link
-                    href="/dashboard/passenger/request"
-                    className="block rounded-md px-3 py-2 text-slate-300 transition hover:bg-slate-800/80 hover:text-white"
-                  >
-                    Request ride
-                  </Link>
-                )}
-                {(isDriver || isAdmin) && (
-                  <Link
-                    href="/dashboard/driver/live"
-                    className="block rounded-md px-3 py-2 text-slate-300 transition hover:bg-slate-800/80 hover:text-white"
-                  >
-                    Driver live
-                  </Link>
-                )}
-                {(isDriver || isAdmin) && (
-                  <Link
-                    href="/dashboard/driver/matatu"
-                    className="block rounded-md px-3 py-2 text-slate-300 transition hover:bg-slate-800/80 hover:text-white"
-                  >
-                    My matatu photos
-                  </Link>
-                )}
+              <div className="mt-2 space-y-1">
                 <Link
                   href="/dashboard/payments/list"
-                  className="block rounded-md px-3 py-2 text-slate-300 transition hover:bg-slate-800/80 hover:text-white"
+                  className="flex items-center justify-between rounded-md px-3 py-2 text-slate-300 transition hover:bg-slate-800/80 hover:text-white"
                 >
-                  Payments & Wallet
+                  <span>Payments</span>
+                  <span className="text-[10px] text-slate-400">Wallet</span>
+                </Link>
+                <Link
+                  href="/free-ride"
+                  className="flex items-center justify-between rounded-md px-3 py-2 text-slate-300 transition hover:bg-slate-800/80 hover:text-white"
+                >
+                  <span>Promotions</span>
+                  <span className="text-[10px] text-emerald-300">Free rides</span>
+                </Link>
+                <Link
+                  href="/dashboard/trips/list"
+                  className="flex items-center justify-between rounded-md px-3 py-2 text-slate-300 transition hover:bg-slate-800/80 hover:text-white"
+                >
+                  <span>My rides</span>
+                  <span className="text-[10px] text-slate-400">History</span>
+                </Link>
+                <Link
+                  href="/map"
+                  className="flex items-center justify-between rounded-md px-3 py-2 text-slate-300 transition hover:bg-slate-800/80 hover:text-white"
+                >
+                  <span>Safety</span>
+                  <span className="text-[10px] text-slate-400">Live map</span>
                 </Link>
                 <Link
                   href="/profile"
-                  className="block rounded-md px-3 py-2 text-slate-300 transition hover:bg-slate-800/80 hover:text-white"
+                  className="flex items-center justify-between rounded-md px-3 py-2 text-slate-300 transition hover:bg-slate-800/80 hover:text-white"
                 >
-                  Profile
+                  <span>Support</span>
+                  <span className="text-[10px] text-slate-400">Profile</span>
+                </Link>
+                <Link
+                  href="/home"
+                  className="flex items-center justify-between rounded-md px-3 py-2 text-slate-300 transition hover:bg-slate-800/80 hover:text-white"
+                >
+                  <span>About</span>
+                  <span className="text-[10px] text-slate-400">Radaa</span>
                 </Link>
                 {isAdmin && (
                   <Link
                     href="/dashboard/sacco"
-                    className="block rounded-md px-3 py-2 text-slate-300 transition hover:bg-slate-800/80 hover:text-white"
+                    className="flex items-center justify-between rounded-md px-3 py-2 text-slate-300 transition hover:bg-slate-800/80 hover:text-white"
                   >
-                    SACCO
+                    <span>SACCO</span>
+                    <span className="text-[10px] text-slate-400">Admin</span>
                   </Link>
                 )}
-                <button
-                  type="button"
-                  onClick={logout}
-                  className="block w-full rounded-md px-3 py-2 text-left text-slate-300 transition hover:bg-slate-800/80 hover:text-white"
-                >
-                  Logout
-                </button>
               </div>
+            </div>
+            <div className="pt-2">
+              <button
+                type="button"
+                onClick={logout}
+                className="block w-full rounded-full border border-slate-700 bg-slate-900 px-3 py-2 text-center text-[11px] font-medium text-slate-200 transition hover:border-slate-500 hover:bg-slate-800"
+              >
+                Logout
+              </button>
             </div>
           </nav>
         </aside>

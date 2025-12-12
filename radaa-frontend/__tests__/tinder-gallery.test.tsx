@@ -44,7 +44,7 @@ describe("TinderGallery", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /Skip/i }));
 
-    expect(screen.getByText(/Route 2/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/Route 2/i)[0]).toBeInTheDocument();
   });
 
   it("calls onOpenOnMap when Open on map clicked", () => {

@@ -2,6 +2,10 @@
 
 import dynamic from "next/dynamic";
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
+import { useRealtime } from "@/context/realtimeContext";
+import { useIsFeatureEnabled } from "@/context/FeatureFlagContext";
 import { useBoltLiveRadar } from "@/src/features/bolt/hooks/useBoltLiveRadar";
 import { useBoltRideRequest } from "@/src/features/bolt/hooks/useBoltRideRequest";
 import type {
@@ -32,11 +36,17 @@ const TinderGallery = dynamic(
 );
 
 export default function BoltDashboardPage() {
+  const router = useRouter();
+  const { user } = useAuth();
+  const { activeMode } = useRealtime();
+  const liveOnlyMapEnabled = useIsFeatureEnabled("ff_live_only_map", false);
   const [activeTab, setActiveTab] = useState<"map" | "gallery">("map");
   const [selectedMatatuId, setSelectedMatatuId] = useState<string | null>(null);
   const [routeMatatus, setRouteMatatus] = useState<BoltMatatuProfile[]>([]);
+  const [selectedDestination, setSelectedDestination] =
+    useState<BoltSuggestion | null>(null);
 
-  const { requestRideTo } = useBoltRideRequest();
+  const { requestRideTo, loading: rideRequestLoading } = useBoltRideRequest();
 
   const {
     matatus,
@@ -51,6 +61,20 @@ export default function BoltDashboardPage() {
     return matatus.map((m) => ({ ...m }));
   }, [matatus, routeMatatus]);
 
+  const role = (user as any)?.role as string | undefined;
+  const isDriver = role === "driver";
+
+  const liveHref = liveOnlyMapEnabled
+    ? "/map"
+    : isDriver && activeMode === "driver"
+      ? "/dashboard/driver/live"
+      : "/dashboard/passenger/live";
+
+  const galleryHref = "/dashboard/passenger/live";
+
+  const hasSelectedDestination =
+    selectedDestination != null && selectedDestination.location != null;
+
   const selectedProfile: BoltMatatuProfile | null = useMemo(() => {
     if (!selectedMatatuId) return null;
     const fromRoute = routeMatatus.find((m) => m.id === selectedMatatuId);
@@ -64,10 +88,7 @@ export default function BoltDashboardPage() {
   };
 
   const handleSelectSuggestion = async (item: BoltSuggestion) => {
-    if (item.location) {
-      const dest: BoltLatLng = item.location;
-      await requestRideTo(dest, { routeName: item.primaryText });
-    }
+    setSelectedDestination(item);
 
     if (item.type === "route" && (item.routeId || item.id)) {
       const routeId = item.routeId || item.id;
@@ -81,7 +102,18 @@ export default function BoltDashboardPage() {
       } catch {
         setRouteMatatus([]);
       }
+    } else {
+      setRouteMatatus([]);
     }
+  };
+
+  const handleRequestRide = async () => {
+    if (!selectedDestination || !selectedDestination.location) {
+      return;
+    }
+
+    const dest: BoltLatLng = selectedDestination.location;
+    await requestRideTo(dest, { routeName: selectedDestination.primaryText });
   };
 
   const handleOpenOnMap = (id: string) => {
@@ -109,6 +141,9 @@ export default function BoltDashboardPage() {
 
       {/* Foreground content */}
       <main className="relative z-10 mx-auto flex max-w-md flex-col gap-3 px-3 sm:px-4">
+        <p className="mt-2 text-[11px] text-slate-300">
+          Radaa — Move Smart. Move In Sync.
+        </p>
         <header className="mt-2 flex items-center justify-between gap-3">
           <div>
             <h1 className="text-base font-semibold text-slate-50">
@@ -118,18 +153,15 @@ export default function BoltDashboardPage() {
               Bolt-style overview of live matatus and quick actions.
             </p>
           </div>
-          <button
-            type="button"
-            className={`${boltPrimaryButtonClass} hidden sm:inline-flex`}
-          >
-            Request ride
-          </button>
         </header>
 
         <section className="mt-4 grid grid-cols-2 gap-3">
           <button
             type="button"
-            onClick={() => setActiveTab("map")}
+            onClick={() => {
+              setActiveTab("map");
+              router.push(liveHref);
+            }}
             className={`group relative flex h-32 flex-col justify-between overflow-hidden rounded-3xl border px-3 py-3 text-left text-xs transition-all duration-200 ease-snappy sm:h-40 ${
               activeTab === "map"
                 ? "border-emerald-400/70 bg-[radial-gradient(circle_at_0%_0%,rgba(56,189,248,0.55),transparent),radial-gradient(circle_at_100%_100%,rgba(16,185,129,0.6),transparent)] shadow-glow-mint"
@@ -163,7 +195,10 @@ export default function BoltDashboardPage() {
 
           <button
             type="button"
-            onClick={() => setActiveTab("gallery")}
+            onClick={() => {
+              setActiveTab("gallery");
+              router.push(galleryHref);
+            }}
             className={`group relative flex h-32 flex-col justify-between overflow-hidden rounded-3xl border px-3 py-3 text-left text-xs transition-all duration-200 ease-snappy sm:h-40 ${
               activeTab === "gallery"
                 ? "border-amber-300/80 bg-[radial-gradient(circle_at_0%_0%,rgba(251,191,36,0.55),transparent),radial-gradient(circle_at_100%_100%,rgba(248,250,252,0.08),transparent)] shadow-soft"
@@ -219,14 +254,21 @@ export default function BoltDashboardPage() {
             <TinderGallery items={galleryItems} onOpenOnMap={handleOpenOnMap} />
           )}
         </section>
+
+        <WhereToBar
+          inline
+          onSelectSuggestion={handleSelectSuggestion}
+          canRequestRide={hasSelectedDestination}
+          onRequestRide={handleRequestRide}
+          requesting={rideRequestLoading}
+          selectedLabel={selectedDestination?.primaryText}
+        />
       </main>
 
       <MatatuProfileSheet
         matatu={selectedProfile}
         onClose={() => setSelectedMatatuId(null)}
       />
-
-      <WhereToBar onSelectSuggestion={handleSelectSuggestion} />
     </div>
   );
 }
