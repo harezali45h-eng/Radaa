@@ -46,6 +46,37 @@ export default function PassengerLiveDashboardPage() {
   );
   const pingTimerRef = useRef<number | null>(null);
 
+  const getFriendlyGeoError = (geoError: any): string => {
+    const code =
+      geoError && typeof geoError.code === "number" ? (geoError.code as number) : 0;
+
+    if (code === 1) {
+      return "Location access is blocked. Turn on location for Radaa in your browser settings, then refresh this page.";
+    }
+    if (code === 2) {
+      return "We couldn't get a GPS fix. Check that location is turned on and you have a good network signal, then try again.";
+    }
+    if (code === 3) {
+      return "It is taking a bit long to find you. Move closer to a window or check your network, then try again.";
+    }
+
+    return (
+      geoError?.message ||
+      "Unable to determine your current location. Turn on location to see matatus near you."
+    );
+  };
+
+  const rideStatusChipClass =
+    rideStatus === "Accepted" ||
+    rideStatus === "Requested" ||
+    rideStatus === "Requesting"
+      ? "border-emerald-600/60 bg-emerald-600/15 text-emerald-100"
+      : rideStatus === "Cancelled" ||
+          rideStatus === "Auto-cancelled" ||
+          rideStatus === "Auto-cancel warning"
+        ? "border-amber-500/60 bg-amber-500/10 text-amber-100"
+        : "border-slate-700 bg-slate-900/70 text-slate-300";
+
   useEffect(() => {
     if (!token) {
       setLoading(false);
@@ -55,7 +86,9 @@ export default function PassengerLiveDashboardPage() {
 
     if (typeof window === "undefined" || !navigator.geolocation) {
       setLoading(false);
-      setError("Geolocation is not available in this browser.");
+      setError(
+        "Location is not available in this browser. Turn on location or try a different device to see matatus near you.",
+      );
       return;
     }
 
@@ -98,9 +131,7 @@ export default function PassengerLiveDashboardPage() {
       (geoError) => {
         if (cancelled) return;
         setLoading(false);
-        setError(
-          geoError.message || "Unable to determine your current location.",
-        );
+        setError(getFriendlyGeoError(geoError));
       },
       {
         enableHighAccuracy: true,
@@ -390,7 +421,8 @@ export default function PassengerLiveDashboardPage() {
       addNotification({
         type: "system",
         title: "Location unavailable",
-        message: "Geolocation is not available in this browser.",
+        message:
+          "Location is not available in this browser. Turn on location for Radaa or try a different device.",
       });
       return;
     }
@@ -438,8 +470,7 @@ export default function PassengerLiveDashboardPage() {
         }
       },
       (geoError) => {
-        const message =
-          geoError?.message || "Unable to determine your current location.";
+        const message = getFriendlyGeoError(geoError);
         setRideStatus("Idle");
         setActiveRequestId(null);
         setAutoCancelMessage(null);
@@ -479,7 +510,9 @@ export default function PassengerLiveDashboardPage() {
           </p>
         </div>
         <div className="flex flex-none items-center gap-2">
-          <span className="rounded-full border border-slate-700 px-2 py-1 text-[10px] text-slate-300">
+          <span
+            className={`rounded-full px-2 py-1 text-[10px] ${rideStatusChipClass}`}
+          >
             Status: {rideStatus}
           </span>
           <RideRequestButton />
@@ -502,8 +535,11 @@ export default function PassengerLiveDashboardPage() {
       )}
 
       {error && !loading && (
-        <div className="rounded-xl border border-red-500/40 bg-red-500/10 p-4 text-xs text-red-200">
-          {error}
+        <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-4 text-[11px] text-amber-100">
+          <div className="font-semibold">
+            Turn on location to see matatus near you
+          </div>
+          <p className="mt-1">{error}</p>
         </div>
       )}
 

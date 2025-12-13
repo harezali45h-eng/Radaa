@@ -151,7 +151,7 @@ function DashboardHomePage() {
         )}
       </header>
 
-      <section className="radaa-card space-y-2 p-3 text-xs">
+      <section className="radaa-card space-y-2 p-3 text-xs shadow-soft">
         <div className="flex items-center justify-between gap-2">
           <h2 className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
             Quick actions
@@ -160,19 +160,19 @@ function DashboardHomePage() {
         <div className="flex flex-wrap gap-2 text-[11px]">
           <Link
             href="/map"
-            className="inline-flex flex-none items-center justify-center rounded-md border border-sky-600/40 bg-sky-600/15 px-3 py-1.5 font-medium text-sky-200 transition hover:border-sky-400/70 hover:bg-sky-600/25"
+            className="inline-flex flex-none items-center justify-center rounded-md bg-gradient-gold-orange px-3 py-1.5 font-semibold text-slate-950 shadow-soft transition hover:shadow-glow-kenya"
           >
             Open live map
           </Link>
           <Link
             href="/dashboard/matatus/list"
-            className="inline-flex flex-none items-center justify-center rounded-md border border-slate-700 bg-slate-900 px-3 py-1.5 font-medium text-slate-200 transition hover:border-slate-500 hover:bg-slate-800/90"
+            className="inline-flex flex-none items-center justify-center rounded-md border border-slate-800 bg-slate-900/80 px-3 py-1.5 font-medium text-slate-100 shadow-soft transition hover:border-slate-700 hover:bg-slate-900"
           >
             View matatus
           </Link>
           <Link
             href="/dashboard/payments/list"
-            className="inline-flex flex-none items-center justify-center rounded-md border border-emerald-600/40 bg-emerald-600/10 px-3 py-1.5 font-medium text-emerald-200 transition hover:border-emerald-400/70 hover:bg-emerald-600/20"
+            className="inline-flex flex-none items-center justify-center rounded-md border border-slate-800 bg-slate-900/80 px-3 py-1.5 font-medium text-amber-200 shadow-soft transition hover:border-amber-500/70 hover:bg-slate-900"
           >
             Payments & wallet
           </Link>
@@ -199,7 +199,7 @@ function DashboardHomePage() {
       {effectiveUser && !loading && !error && (
         <>
           <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            <div className="radaa-card p-4 text-xs">
+            <div className="radaa-card p-4 text-xs shadow-soft">
               <div className="text-slate-400">Email</div>
               <div className="mt-1 text-sm font-semibold text-slate-100">
                 {effectiveUser.email}
@@ -211,7 +211,7 @@ function DashboardHomePage() {
                 {effectiveUser.handle || "Not set"}
               </div>
             </div>
-            <div className="rounded-xl border border-slate-800 bg-slate-900/80 p-4 text-xs">
+            <div className="rounded-xl border border-slate-800 bg-slate-900/80 p-4 text-xs shadow-soft">
               <div className="text-slate-400">Joined</div>
               <div className="mt-1 text-sm font-semibold text-slate-100">
                 {effectiveUser.createdAt
@@ -222,7 +222,7 @@ function DashboardHomePage() {
           </section>
 
           <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            <div className="rounded-xl border border-slate-800 bg-slate-900/80 p-4 text-xs">
+            <div className="rounded-xl border border-slate-800 bg-slate-900/80 p-4 text-xs shadow-soft">
               <div className="text-slate-400">Active matatus</div>
               <div className="mt-1 text-lg font-semibold text-sky-400">
                 {statsLoading ? "—" : (stats?.activeMatatus ?? 0)}
@@ -232,7 +232,7 @@ function DashboardHomePage() {
               </p>
             </div>
 
-            <div className="rounded-xl border border-slate-800 bg-slate-900/80 p-4 text-xs">
+            <div className="rounded-xl border border-slate-800 bg-slate-900/80 p-4 text-xs shadow-soft">
               <div className="text-slate-400">Wallet summary</div>
               <div className="mt-1 text-lg font-semibold text-emerald-400">
                 KES {stats?.loyalty?.balance ?? 0}
@@ -273,7 +273,7 @@ function DashboardHomePage() {
           </section>
 
           <section className="grid gap-4 lg:grid-cols-[2fr,1fr]">
-            <div className="radaa-card p-4 text-xs">
+            <div className="radaa-card p-4 text-xs shadow-soft">
               <div className="flex items-center justify-between">
                 <div>
                   <div className="text-sm font-semibold text-slate-100">

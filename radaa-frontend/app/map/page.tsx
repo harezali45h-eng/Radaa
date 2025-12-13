@@ -597,7 +597,7 @@ export default function MapPage() {
 
   const handleCenterOnMe = () => {
     if (typeof window === "undefined" || !navigator.geolocation) {
-      setGeoError("Geolocation is not available in this browser.");
+      setGeoError("Location is not available in this browser.");
       return;
     }
 
@@ -610,7 +610,24 @@ export default function MapPage() {
         setGeoError(null);
       },
       (error) => {
-        setGeoError(error.message || "Unable to fetch location.");
+        const code =
+          error && typeof error.code === "number" ? (error.code as number) : 0;
+
+        let message: string;
+        if (code === 1) {
+          message =
+            "Location access is blocked. Please allow location for Radaa in your browser settings and try again.";
+        } else if (code === 2) {
+          message =
+            "We couldn't get a GPS fix. Check that location is turned on and you have a good network signal.";
+        } else if (code === 3) {
+          message =
+            "It is taking a bit long to find you. Move closer to a window or check your network, then try again.";
+        } else {
+          message = error?.message || "Unable to fetch your current location.";
+        }
+
+        setGeoError(message);
       },
       {
         enableHighAccuracy: true,
@@ -619,10 +636,68 @@ export default function MapPage() {
     );
   };
 
-  const handleRequestMatatu = () => {
-    if (!destinationPlaceId || !destinationDescription) return;
+  useEffect(() => {
+    if (!uiRevampEnabled) {
+      return;
+    }
+
+    if (userLocation) {
+      return;
+    }
 
     if (typeof window === "undefined" || !navigator.geolocation) {
+      setGeoError("Location is not available in this browser.");
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setUserLocation({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        });
+        setGeoError(null);
+      },
+      (error) => {
+        const code =
+          error && typeof error.code === "number" ? (error.code as number) : 0;
+
+        let message: string;
+        if (code === 1) {
+          message =
+            "Location access is blocked. Please allow location for Radaa in your browser settings and try again.";
+        } else if (code === 2) {
+          message =
+            "We couldn't get a GPS fix. Check that location is turned on and you have a good network signal.";
+        } else if (code === 3) {
+          message =
+            "It is taking a bit long to find you. Move closer to a window or check your network, then try again.";
+        } else {
+          message = error?.message || "Unable to fetch your current location.";
+        }
+
+        setGeoError(message);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+      },
+    );
+  }, [uiRevampEnabled, userLocation]);
+
+  const handleRequestMatatu = () => {
+    const description =
+      destinationDescription.trim() || destinationQuery.trim();
+
+    if (!description) {
+      setGeoError("Set your destination first to request a matatu.");
+      return;
+    }
+
+    if (typeof window === "undefined" || !navigator.geolocation) {
+      setGeoError(
+        "Location is not available in this browser. Turn on location or try a different device.",
+      );
       return;
     }
 
@@ -639,9 +714,27 @@ export default function MapPage() {
 
         setUserLocation(pickup);
         setRiderStatus("waiting");
+        setGeoError(null);
       },
-      () => {
-        // ignore errors for now; user can try again
+      (error) => {
+        const code =
+          error && typeof error.code === "number" ? (error.code as number) : 0;
+
+        let message: string;
+        if (code === 1) {
+          message =
+            "Location access is blocked. Please allow location for Radaa in your browser settings and try again.";
+        } else if (code === 2) {
+          message =
+            "We couldn't get a GPS fix. Check that location is turned on and you have a good network signal.";
+        } else if (code === 3) {
+          message =
+            "It is taking a bit long to find you. Move closer to a window or check your network, then try again.";
+        } else {
+          message = error?.message || "Unable to fetch your current location.";
+        }
+
+        setGeoError(message);
       },
       {
         enableHighAccuracy: true,
@@ -649,21 +742,18 @@ export default function MapPage() {
       },
     );
 
-    const description = destinationDescription.trim();
-    if (description) {
-      void (async () => {
-        try {
-          const routes = await searchRoutes(description);
-          if (Array.isArray(routes) && routes.length > 0) {
-            const top = routes[0];
-            setSelectedRoute(top);
-            setRouteQuery(top.name);
-          }
-        } catch {
-          // ignore route lookup errors; visibility will remain global
+    void (async () => {
+      try {
+        const routes = await searchRoutes(description);
+        if (Array.isArray(routes) && routes.length > 0) {
+          const top = routes[0];
+          setSelectedRoute(top);
+          setRouteQuery(top.name);
         }
-      })();
-    }
+      } catch {
+        // ignore route lookup errors; visibility will remain global
+      }
+    })();
   };
 
   const totalMatatus = matatusWithFlags.length;
@@ -967,7 +1057,7 @@ export default function MapPage() {
                   onChange={(event) => {
                     setDestinationQuery(event.target.value);
                     setDestinationPlaceId(null);
-                    setDestinationDescription("");
+                    setDestinationDescription(event.target.value);
                   }}
                   placeholder="Search a destination, stage, or landmark"
                   className="w-full bg-transparent text-slate-50 placeholder:text-slate-500 outline-none"
@@ -1043,11 +1133,11 @@ export default function MapPage() {
           </div>
           <button
             type="button"
-            disabled={!destinationPlaceId || riderStatus === "waiting"}
+            disabled={!destinationDescription.trim() || riderStatus === "waiting"}
             onClick={handleRequestMatatu}
             className={`inline-flex items-center rounded-full px-4 py-1.5 text-[11px] font-semibold shadow-soft transition disabled:cursor-not-allowed disabled:opacity-60 ${
-              destinationPlaceId && riderStatus !== "waiting"
-                ? "bg-amber-400 text-slate-950 hover:bg-amber-300"
+              destinationDescription.trim() && riderStatus !== "waiting"
+                ? "bg-gradient-gold-orange text-slate-950"
                 : "bg-slate-800 text-slate-300"
             }`}
           >

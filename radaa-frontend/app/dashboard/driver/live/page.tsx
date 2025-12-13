@@ -83,7 +83,9 @@ export default function DriverLiveDashboardPage() {
 
     if (typeof window === "undefined" || !navigator.geolocation) {
       setLoadingIncoming(false);
-      setError("Geolocation is not available in this browser.");
+      setError(
+        "Location is not available in this browser. Turn on location for Radaa or try a different device.",
+      );
       return;
     }
 
@@ -107,8 +109,27 @@ export default function DriverLiveDashboardPage() {
       (geoError) => {
         if (cancelled) return;
         setLoadingIncoming(false);
-        const message =
-          geoError.message || "Unable to determine your current location.";
+        const code =
+          geoError && typeof geoError.code === "number"
+            ? (geoError.code as number)
+            : 0;
+
+        let message: string;
+        if (code === 1) {
+          message =
+            "Location access is blocked. Turn on location for Radaa in your browser settings so riders near you can see you.";
+        } else if (code === 2) {
+          message =
+            "We couldn't get a GPS fix. Check that location is turned on and you have a good network signal, then try again.";
+        } else if (code === 3) {
+          message =
+            "It is taking a bit long to find you. Move closer to a window or check your network, then try again.";
+        } else {
+          message =
+            geoError.message ||
+            "Unable to determine your current location. Turn on location so nearby riders can see you.";
+        }
+
         setError(message);
         if (typeof console !== "undefined") {
           console.error("[driver-live] geolocation error", geoError);
@@ -540,8 +561,8 @@ export default function DriverLiveDashboardPage() {
             onClick={() => (driverOnline ? goOffline() : goOnline())}
             className={`inline-flex items-center rounded-full px-3 py-1 text-[11px] font-medium transition ${
               driverOnline
-                ? "bg-emerald-600/80 text-emerald-50 hover:bg-emerald-500/80"
-                : "bg-slate-800 text-slate-100 hover:bg-slate-700"
+                ? "bg-gradient-gold-orange text-slate-950 shadow-soft hover:shadow-glow-kenya"
+                : "border border-slate-700 bg-slate-900/80 text-slate-100 hover:border-slate-500 hover:bg-slate-900"
             }`}
           >
             {driverOnline ? "Go offline" : "Go online"}
@@ -560,7 +581,7 @@ export default function DriverLiveDashboardPage() {
         </section>
       )}
 
-      <section className="rounded-xl border border-slate-800 bg-slate-900/80 p-3 text-xs">
+      <section className="rounded-xl border border-slate-800 bg-slate-900/80 p-3 text-xs shadow-soft">
         <div className="mb-2 flex items-center justify-between">
           <div>
             <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
@@ -652,7 +673,9 @@ export default function DriverLiveDashboardPage() {
       </section>
 
       {error && (
-        <p className="text-[11px] text-red-300">{error}</p>
+        <p className="text-[11px] text-amber-200">
+          {error}
+        </p>
       )}
 
       <section className="grid gap-4 md:grid-cols-2">

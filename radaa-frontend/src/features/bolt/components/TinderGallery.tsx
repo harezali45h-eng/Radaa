@@ -73,7 +73,9 @@ export function TinderGallery({ items, onOpenOnMap }: TinderGalleryProps) {
 
   if (!active) {
     return (
-      <div className={`${boltCardClass} p-4 text-xs text-slate-300`}>
+      <div
+        className={`${boltCardClass} p-4 text-xs text-slate-300 bg-[radial-gradient(circle_at_0%_0%,rgba(255,138,0,0.24),transparent_55%),radial-gradient(circle_at_100%_100%,rgba(184,76,255,0.30),transparent_55%)] shadow-glass-elevated`}
+      >
         No nearby matatus to show right now. Kaa Radaa ujue mat yako iko wapi — check again in a few minutes.
       </div>
     );
@@ -83,7 +85,9 @@ export function TinderGallery({ items, onOpenOnMap }: TinderGalleryProps) {
 
   return (
     <div className="relative">
-      <div className={`${boltCardClass} relative overflow-hidden p-3`}>
+      <div
+        className={`${boltCardClass} relative overflow-hidden p-3 bg-[radial-gradient(circle_at_0%_0%,rgba(255,138,0,0.30),transparent_55%),radial-gradient(circle_at_100%_100%,rgba(184,76,255,0.36),transparent_55%)] shadow-glass-elevated transition-transform duration-200 ease-snappy hover:-translate-y-1 hover:shadow-glow-mint`}
+      >
         <div className="mb-2 flex items-center justify-between">
           <div>
             <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">

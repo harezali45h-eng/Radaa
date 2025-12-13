@@ -37,6 +37,28 @@ export function AppShell({ children }: AppShellProps) {
     connect(token);
   }, [token, connect]);
 
+  useEffect(() => {
+    if (!mobileNavOpen) {
+      return;
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setMobileNavOpen(false);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [mobileNavOpen]);
+
+  useEffect(() => {
+    setMobileNavOpen(false);
+  }, [pathname]);
+
   const isDashboardRoot = pathname === "/dashboard";
   const isDashboardSub = pathname.startsWith("/dashboard/");
   const isAuthRoute = pathname.startsWith("/auth");
@@ -94,15 +116,17 @@ export function AppShell({ children }: AppShellProps) {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <header className={headerBgClass}>
+      <header className={`${headerBgClass} relative z-30`}>
         <div className="radaa-shell flex items-center justify-between py-3">
           <div className="flex items-center gap-3">
             {isShellNavContext && !simplifiedNavEnabled && (
               <button
                 type="button"
                 onClick={() => setMobileNavOpen(true)}
-                className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-slate-700 text-slate-200 hover:border-sky-500 hover:text-sky-200 md:hidden"
+                className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-slate-700 text-slate-200 hover:border-sky-500 hover:text-sky-200"
                 aria-label="Open navigation menu"
+                aria-expanded={mobileNavOpen}
+                aria-controls="radaa-mobile-nav"
               >
                 <span className="block h-0.5 w-4 rounded bg-slate-200" />
                 <span className="mt-1 block h-0.5 w-4 rounded bg-slate-200" />
@@ -231,9 +255,14 @@ export function AppShell({ children }: AppShellProps) {
         </div>
       </main>
       {isShellNavContext && mobileNavOpen && !simplifiedNavEnabled && (
-        <div className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm md:hidden">
+        <div
+          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm md:hidden"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Radaa navigation menu"
+        >
           <div className="absolute left-0 top-0 flex h-full">
-            <div className="radaa-mobile-drawer">
+            <div className="radaa-mobile-drawer" id="radaa-mobile-nav">
               <div className="mb-4 flex items-center justify-between">
                 <span className="text-sm font-semibold tracking-tight text-slate-50">
                   Menu
