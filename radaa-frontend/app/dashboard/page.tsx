@@ -333,13 +333,4 @@ function DashboardHomePage() {
   );
 }
 
-const BoltDashboardPage = dynamic(
-  () => import("@/src/features/bolt/pages/BoltDashboardPage"),
-  { ssr: false },
-);
-
-export default function DashboardBoltShim() {
-  return <BoltDashboardPage />;
-}
-
-export { DashboardHomePage };
+export default DashboardHomePage;
