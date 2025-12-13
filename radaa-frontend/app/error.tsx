@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export default function GlobalError({
   error,
@@ -9,6 +10,23 @@ export default function GlobalError({
   error: Error;
   reset: () => void;
 }) {
+  const router = useRouter();
+
+  const handleGoToDashboard = () => {
+    const MODE_STORAGE_KEY = "radaa_active_mode";
+    let mode: string | null = null;
+
+    if (typeof window !== "undefined") {
+      try {
+        mode = window.localStorage.getItem(MODE_STORAGE_KEY);
+      } catch {
+        mode = null;
+      }
+    }
+
+    const target = mode === "driver" ? "/dashboard/driver/live" : "/dashboard";
+    router.push(target);
+  };
   useEffect(() => {
     // eslint-disable-next-line no-console
     console.error("Global app error:", error);
@@ -34,12 +52,13 @@ export default function GlobalError({
               >
                 Try again
               </button>
-              <a
-                href="/dashboard"
+              <button
+                type="button"
+                onClick={handleGoToDashboard}
                 className="inline-flex items-center justify-center rounded-md border border-slate-700 bg-slate-900 px-3 py-1.5 font-medium text-slate-100 hover:border-slate-500"
               >
                 Go to dashboard
-              </a>
+              </button>
             </div>
           </div>
         </div>

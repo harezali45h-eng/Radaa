@@ -70,7 +70,7 @@ export default function BoltDashboardPage() {
       ? "/dashboard/driver/live"
       : "/dashboard/passenger/live";
 
-  const galleryHref = "/dashboard/passenger/live";
+  const galleryHref = "/gallery";
 
   const hasSelectedDestination =
     selectedDestination != null && selectedDestination.location != null;

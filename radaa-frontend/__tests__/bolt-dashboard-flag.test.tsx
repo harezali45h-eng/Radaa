@@ -67,6 +67,6 @@ describe("BoltDashboardPage", () => {
   it("renders Bolt live radar header", () => {
     render(<BoltDashboardPage />);
 
-    expect(screen.getByText(/Live radar/i)).toBeInTheDocument();
+    expect(screen.getByText(/Move Smart/i)).toBeInTheDocument();
   });
 });

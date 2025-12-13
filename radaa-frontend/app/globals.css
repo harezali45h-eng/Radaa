@@ -11,13 +11,11 @@
       BlinkMacSystemFont,
       "SF Pro Text",
       sans-serif;
-    background-image: linear-gradient(
-      180deg,
-      #0B1F2A 0%,
-      #0E2A36 50%,
-      #09141A 100%
-    );
-    background-color: #0B1F2A;
+    background-image:
+      radial-gradient(circle at top left, rgba(255, 138, 0, 0.22), transparent 55%),
+      radial-gradient(circle at top right, rgba(184, 76, 255, 0.22), transparent 55%),
+      linear-gradient(180deg, #0B1F2A 0%, #0E2A36 50%, #09141A 100%);
+    background-color: #09141A;
     color: #EAF6FF;
   }
 

@@ -44,13 +44,18 @@ export function AppShell({ children }: AppShellProps) {
 
   const isDashboard = isDashboardRoot || isDashboardSub;
 
+  const isShellRouteCore =
+    pathname.startsWith("/dashboard") ||
+    pathname === "/map" ||
+    pathname.startsWith("/profile") ||
+    pathname.startsWith("/payments") ||
+    pathname.startsWith("/track") ||
+    pathname === "/gallery";
+
+  const isShellNavContext = !isAuthRoute && !isMarketingHome && isShellRouteCore;
+
   const isBottomNavEligible =
-    simplifiedNavEnabled &&
-    !isAuthRoute &&
-    !isMarketingHome &&
-    (pathname.startsWith("/dashboard") ||
-      pathname === "/map" ||
-      pathname.startsWith("/profile"));
+    simplifiedNavEnabled && !isAuthRoute && !isMarketingHome && isShellRouteCore;
 
   const showBackToDashboard =
     !isMarketingHome && !isAuthRoute && !isDashboardRoot;
@@ -92,7 +97,7 @@ export function AppShell({ children }: AppShellProps) {
       <header className={headerBgClass}>
         <div className="radaa-shell flex items-center justify-between py-3">
           <div className="flex items-center gap-3">
-            {isDashboard && !simplifiedNavEnabled && (
+            {isShellNavContext && !simplifiedNavEnabled && (
               <button
                 type="button"
                 onClick={() => setMobileNavOpen(true)}
@@ -225,7 +230,7 @@ export function AppShell({ children }: AppShellProps) {
           {children}
         </div>
       </main>
-      {isDashboard && mobileNavOpen && !simplifiedNavEnabled && (
+      {isShellNavContext && mobileNavOpen && !simplifiedNavEnabled && (
         <div className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm md:hidden">
           <div className="absolute left-0 top-0 flex h-full">
             <div className="radaa-mobile-drawer">
@@ -341,9 +346,9 @@ export function AppShell({ children }: AppShellProps) {
           <div className="mx-auto flex max-w-6xl items-center justify-between px-4 md:px-6 py-2.5 text-[11px]">
             <div className="flex w-full items-center justify-between gap-4">
               <Link
-                href="/dashboard"
+                href={homeHref}
                 className={`flex flex-1 flex-col items-center gap-0.5 rounded-full px-2 py-1.5 ${
-                  pathname === "/dashboard"
+                  pathname === homeHref
                     ? "text-sky-400"
                     : "text-slate-400 hover:text-slate-200"
                 }`}
@@ -351,13 +356,7 @@ export function AppShell({ children }: AppShellProps) {
                 <span className="text-[11px] font-medium">Home</span>
               </Link>
               <Link
-                href={
-                  liveOnlyMapEnabled
-                    ? "/map"
-                    : (user as any)?.role === "driver" && activeMode === "driver"
-                      ? "/dashboard/driver/live"
-                      : "/dashboard/passenger/live"
-                }
+                href={liveHref}
                 className={`flex flex-1 flex-col items-center gap-0.5 rounded-full px-2 py-1.5 ${
                   liveTabActive
                     ? "text-sky-400"
