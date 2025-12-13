@@ -126,8 +126,10 @@ export default function BoltDashboardPage() {
     setActiveTab("gallery");
   };
 
+  const driversOnline = matatus.length;
+
   return (
-    <div className="relative min-h-screen bg-radaa-bg pb-24 pt-4">
+    <div className="relative min-h-screen bg-slate-950 pb-24 pt-3">
       {/* Map background */}
       <LiveRadarMap
         matatus={matatus}
@@ -140,22 +142,19 @@ export default function BoltDashboardPage() {
       />
 
       {/* Foreground content */}
-      <main className="relative z-10 mx-auto flex max-w-md flex-col gap-3 px-3 sm:px-4">
-        <p className="mt-2 text-[11px] text-slate-300">
-          Radaa — Move Smart. Move In Sync.
-        </p>
-        <header className="mt-2 flex items-center justify-between gap-3">
-          <div>
-            <h1 className="text-base font-semibold text-slate-50">
-              Live radar
-            </h1>
-            <p className="text-[11px] text-slate-400">
-              Bolt-style overview of live matatus and quick actions.
-            </p>
-          </div>
+      <main className="relative z-10 mx-auto flex max-w-md flex-col gap-4 px-3 sm:px-4">
+        {/* Tagline header */}
+        <header className="mt-1 rounded-3xl bg-gradient-to-r from-radaa-orange via-twilightPurple to-radaa-purple px-4 py-3 text-left text-slate-900 shadow-soft">
+          <p className="text-[11px] font-semibold tracking-tight text-slate-50">
+            Move Smart. Move in Sync.
+          </p>
+          <p className="mt-1 text-[10px] text-slate-100/80">
+            See drivers around you in real time and line up your next trip.
+          </p>
         </header>
 
-        <section className="mt-4 grid grid-cols-2 gap-3">
+        {/* Map & gallery as primary cards */}
+        <section className="mt-1 grid grid-cols-2 gap-3">
           <button
             type="button"
             onClick={() => {
@@ -164,8 +163,8 @@ export default function BoltDashboardPage() {
             }}
             className={`group relative flex h-32 flex-col justify-between overflow-hidden rounded-3xl border px-3 py-3 text-left text-xs transition-all duration-200 ease-snappy sm:h-40 ${
               activeTab === "map"
-                ? "border-emerald-400/70 bg-[radial-gradient(circle_at_0%_0%,rgba(56,189,248,0.55),transparent),radial-gradient(circle_at_100%_100%,rgba(16,185,129,0.6),transparent)] shadow-glow-mint"
-                : "border-slate-800/80 bg-[radial-gradient(circle_at_0%_0%,rgba(15,23,42,0.9),transparent),radial-gradient(circle_at_100%_100%,rgba(15,23,42,0.9),transparent)] opacity-80 hover:opacity-100 hover:border-emerald-400/60"
+                ? "border-emerald-400/80 bg-[radial-gradient(circle_at_0%_0%,rgba(248,181,0,0.85),transparent),radial-gradient(circle_at_100%_100%,rgba(236,72,153,0.9),transparent)] shadow-glow-mint"
+                : "border-slate-800/80 bg-[radial-gradient(circle_at_0%_0%,rgba(15,23,42,0.95),transparent),radial-gradient(circle_at_100%_100%,rgba(15,23,42,0.92),transparent)] opacity-85 hover:opacity-100 hover:border-emerald-400/70"
             }`}
           >
             <div>
@@ -178,7 +177,7 @@ export default function BoltDashboardPage() {
             </div>
             <div className="mt-2 flex items-end justify-between gap-2">
               <div className="text-[10px] text-emerald-100/90">
-                {matatus.length} online
+                {driversOnline} online
               </div>
               {MAP_TILE_IMAGE && (
                 <div className="relative h-12 w-16 overflow-hidden rounded-2xl border border-white/10 bg-slate-950/40">
@@ -201,8 +200,8 @@ export default function BoltDashboardPage() {
             }}
             className={`group relative flex h-32 flex-col justify-between overflow-hidden rounded-3xl border px-3 py-3 text-left text-xs transition-all duration-200 ease-snappy sm:h-40 ${
               activeTab === "gallery"
-                ? "border-amber-300/80 bg-[radial-gradient(circle_at_0%_0%,rgba(251,191,36,0.55),transparent),radial-gradient(circle_at_100%_100%,rgba(248,250,252,0.08),transparent)] shadow-soft"
-                : "border-slate-800/80 bg-[radial-gradient(circle_at_0%_0%,rgba(15,23,42,0.9),transparent),radial-gradient(circle_at_100%_100%,rgba(15,23,42,0.9),transparent)] opacity-80 hover:opacity-100 hover:border-amber-300/70"
+                ? "border-amber-300/80 bg-[radial-gradient(circle_at_0%_0%,rgba(248,181,0,0.9),transparent),radial-gradient(circle_at_100%_100%,rgba(236,72,153,0.85),transparent)] shadow-soft"
+                : "border-slate-800/80 bg-[radial-gradient(circle_at_0%_0%,rgba(15,23,42,0.95),transparent),radial-gradient(circle_at_100%_100%,rgba(15,23,42,0.92),transparent)] opacity-85 hover:opacity-100 hover:border-amber-300/70"
             }`}
           >
             <div>
@@ -231,38 +230,67 @@ export default function BoltDashboardPage() {
           </button>
         </section>
 
-        <section className="mt-3 space-y-2">
-          {activeTab === "map" && (
-            <div className={`${boltCardClass} border-slate-800/80 bg-slate-950/80 p-3 text-[11px] text-slate-300`}>
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-xs font-semibold text-slate-100">
-                    Live map
-                  </div>
-                  <div className="text-[11px] text-slate-400">
-                    Tap a matatu to open its profile and card gallery.
-                  </div>
+        {/* Inline drivers online stat & gallery/list */}
+        <section className="space-y-3">
+          <div className="flex items-center justify-between gap-3 rounded-2xl bg-slate-950/60 px-3 py-2 text-[11px] text-slate-200">
+            <div className="flex items-center gap-2">
+              <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500/15 text-[11px] text-emerald-300">
+                ●
+              </span>
+              <div>
+                <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-300">
+                  Drivers Online
                 </div>
-                <div className="text-right text-[10px] text-slate-500">
-                  {matatus.length} online
-                </div>
+                <p className="text-[10px] text-slate-400">
+                  Live drivers currently visible on the map.
+                </p>
               </div>
             </div>
-          )}
+            <div className="flex flex-col items-end text-right text-[11px]">
+              <span className="text-emerald-300">
+                {driversOnline}
+              </span>
+              <span className="text-[10px] text-slate-500">drivers</span>
+            </div>
+          </div>
 
           {activeTab === "gallery" && (
             <TinderGallery items={galleryItems} onOpenOnMap={handleOpenOnMap} />
           )}
         </section>
 
-        <WhereToBar
-          inline
-          onSelectSuggestion={handleSelectSuggestion}
-          canRequestRide={hasSelectedDestination}
-          onRequestRide={handleRequestRide}
-          requesting={rideRequestLoading}
-          selectedLabel={selectedDestination?.primaryText}
-        />
+        {/* Where To search with default chips */}
+        <section className="mt-1 space-y-2">
+          <WhereToBar
+            inline
+            onSelectSuggestion={handleSelectSuggestion}
+            canRequestRide={hasSelectedDestination}
+            onRequestRide={handleRequestRide}
+            requesting={rideRequestLoading}
+            selectedLabel={selectedDestination?.primaryText}
+          />
+
+          <div className="mt-1 flex flex-wrap gap-2 text-[11px]">
+            {[
+              { id: "default-cbd", primaryText: "CBD" },
+              { id: "default-nyayo", primaryText: "Nyayo" },
+              { id: "default-donholm", primaryText: "Donholm" },
+            ].map((preset) => (
+              <button
+                key={preset.id}
+                type="button"
+                onClick={() =>
+                  void handleSelectSuggestion({
+                    ...preset,
+                  } as BoltSuggestion)
+                }
+                className="rounded-full border border-slate-700 bg-slate-950/70 px-3 py-1 text-[11px] font-medium text-slate-100 shadow-soft transition hover:border-emerald-400/70 hover:text-emerald-200"
+              >
+                {preset.primaryText}
+              </button>
+            ))}
+          </div>
+        </section>
       </main>
 
       <MatatuProfileSheet

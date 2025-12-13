@@ -76,22 +76,15 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                   href="/free-ride"
                   className="flex items-center justify-between rounded-md px-3 py-2 text-slate-300 transition hover:bg-slate-800/80 hover:text-white"
                 >
-                  <span>Promotions</span>
+                  <span>Loyalty progress</span>
                   <span className="text-[10px] text-emerald-300">Free rides</span>
                 </Link>
                 <Link
                   href="/dashboard/trips/list"
                   className="flex items-center justify-between rounded-md px-3 py-2 text-slate-300 transition hover:bg-slate-800/80 hover:text-white"
                 >
-                  <span>My rides</span>
+                  <span>My trips</span>
                   <span className="text-[10px] text-slate-400">History</span>
-                </Link>
-                <Link
-                  href="/map"
-                  className="flex items-center justify-between rounded-md px-3 py-2 text-slate-300 transition hover:bg-slate-800/80 hover:text-white"
-                >
-                  <span>Safety</span>
-                  <span className="text-[10px] text-slate-400">Live map</span>
                 </Link>
                 <Link
                   href="/profile"
@@ -133,21 +126,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         <section className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="text-sm font-semibold md:hidden">Dashboard</div>
-            <div className="hidden gap-2 text-[11px] text-slate-300 md:flex">
-              <span className="font-medium text-slate-100">Home</span>
-              <span className="text-slate-600">/</span>
-              <span className="text-slate-400">Live</span>
-              <span className="text-slate-600">/</span>
-              <span className="text-slate-400">Payments & Wallet</span>
-              <span className="text-slate-600">/</span>
-              <span className="text-slate-400">Profile</span>
-              {isAdmin && (
-                <>
-                  <span className="text-slate-600">/</span>
-                  <span className="text-slate-400">SACCO</span>
-                </>
-              )}
-            </div>
           </div>
 
           {children}

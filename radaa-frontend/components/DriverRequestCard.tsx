@@ -41,7 +41,7 @@ export default function DriverRequestCard({
   })();
 
   return (
-    <div className="space-y-2 rounded-xl border border-emerald-600/50 bg-emerald-950/40 p-3 text-xs text-emerald-50">
+    <div className="space-y-2 text-xs text-emerald-50">
       <div className="flex items-center justify-between gap-2">
         <div>
           <div className="text-[11px] font-semibold uppercase tracking-wide text-emerald-300">
@@ -62,7 +62,7 @@ export default function DriverRequestCard({
         </div>
       </div>
 
-      <div className="grid gap-2 rounded-md border border-emerald-700/60 bg-emerald-950/60 p-2 text-[11px]">
+      <div className="mt-1 grid gap-1 border-t border-emerald-700/60 pt-2 text-[11px]">
         <div className="flex items-center justify-between">
           <span className="text-emerald-300/90">Pickup</span>
           <span className="font-mono text-emerald-100">
@@ -77,7 +77,7 @@ export default function DriverRequestCard({
         </div>
       </div>
 
-      <div className="flex items-center justify-end gap-2">
+      <div className="flex items-center justify-end gap-2 pt-1">
         <button
           type="button"
           onClick={onReject}

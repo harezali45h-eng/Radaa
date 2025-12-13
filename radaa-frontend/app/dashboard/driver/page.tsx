@@ -118,80 +118,80 @@ export default function DriverWalletDashboardPage() {
 
   if (!isDriver) {
     return (
-      <div className="space-y-4">
+      <div className="space-y-4 text-xs">
         <header className="space-y-1">
           <h1 className="text-2xl font-semibold tracking-tight">Driver wallet</h1>
-          <p className="text-xs text-slate-300">
+          <p className="text-slate-300">
             You must be signed in as a driver to view this dashboard.
           </p>
         </header>
 
-        {error && (
-          <div className="rounded-xl border border-red-500/40 bg-red-500/10 p-4 text-xs text-red-200">
-            {error}
-          </div>
-        )}
+        {error && <p className="text-red-300">{error}</p>}
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 text-xs">
       <header className="space-y-1">
         <h1 className="text-2xl font-semibold tracking-tight">Driver wallet</h1>
-        <p className="text-xs text-slate-300">
+        <p className="text-slate-300">
           View your ride earnings, pending withdrawals, and request Mpesa payouts.
         </p>
       </header>
 
       {loading && (
-        <div className="rounded-xl border border-slate-800 bg-slate-900/80 p-4 text-xs text-slate-300">
-          Loading wallet...
+        <div className="space-y-2">
+          <div className="h-4 w-32 animate-pulse rounded-full bg-slate-800/70" />
+          <div className="h-6 w-full animate-pulse rounded-full bg-slate-800/70" />
+          <div className="h-6 w-full animate-pulse rounded-full bg-slate-800/70" />
         </div>
       )}
 
-      {error && !loading && (
-        <div className="rounded-xl border border-red-500/40 bg-red-500/10 p-4 text-xs text-red-200">
-          {error}
-        </div>
-      )}
+      {error && !loading && <p className="text-red-300">{error}</p>}
 
       {wallet && !loading && !error && (
         <>
-          <section className="grid gap-4 md:grid-cols-3 text-xs">
-            <div className="rounded-xl border border-slate-800 bg-slate-900/80 p-4">
-              <div className="text-slate-400">Wallet balance</div>
-              <div className="mt-1 text-lg font-semibold text-emerald-400">
+          <section className="grid gap-4 border-t border-slate-800/80 pt-3 md:grid-cols-3">
+            <div className="space-y-1 md:border-r md:border-slate-800/80 md:pr-4">
+              <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+                Wallet balance
+              </div>
+              <div className="text-lg font-semibold text-emerald-400">
                 KES {wallet.walletBalance.toLocaleString()}
               </div>
-              <p className="mt-1 text-[11px] text-slate-500">
+              <p className="text-[11px] text-slate-500">
                 Total funds currently available for withdrawal.
               </p>
             </div>
 
-            <div className="rounded-xl border border-slate-800 bg-slate-900/80 p-4">
-              <div className="text-slate-400">Pending withdrawals</div>
-              <div className="mt-1 text-lg font-semibold text-amber-300">
+            <div className="space-y-1 md:border-r md:border-slate-800/80 md:px-4">
+              <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+                Pending withdrawals
+              </div>
+              <div className="text-lg font-semibold text-amber-300">
                 KES {wallet.pendingWithdrawals.toLocaleString()}
               </div>
-              <p className="mt-1 text-[11px] text-slate-500">
+              <p className="text-[11px] text-slate-500">
                 Withdrawals requested but not yet paid out.
               </p>
             </div>
 
-            <div className="rounded-xl border border-slate-800 bg-slate-900/80 p-4">
-              <div className="text-slate-400">Total earned</div>
-              <div className="mt-1 text-lg font-semibold text-sky-400">
+            <div className="space-y-1 md:pl-4">
+              <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+                Total earned
+              </div>
+              <div className="text-lg font-semibold text-sky-400">
                 KES {wallet.totalEarned.toLocaleString()}
               </div>
-              <p className="mt-1 text-[11px] text-slate-500">
+              <p className="text-[11px] text-slate-500">
                 Cumulative fare revenue credited from completed rides.
               </p>
             </div>
           </section>
 
-          <section className="grid gap-4 md:grid-cols-[1.4fr,1fr] text-xs">
-            <div className="space-y-3 rounded-xl border border-slate-800 bg-slate-900/80 p-4">
+          <section className="grid gap-4 md:grid-cols-[1.4fr,1fr]">
+            <div className="space-y-3 border-t border-slate-800/80 pt-3">
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-sm font-semibold text-slate-100">
@@ -208,13 +208,13 @@ export default function DriverWalletDashboardPage() {
 
               {transactions.length === 0 && (
                 <p className="text-[11px] text-slate-400">
-                  No driver wallet transactions yet. Once riders pay via Mpesa, your
-                  earnings will appear here.
+                  No driver wallet transactions yet. Once riders pay via Mpesa,
+                  your earnings will appear here.
                 </p>
               )}
 
               {transactions.length > 0 && (
-                <div className="overflow-x-auto rounded-md border border-slate-800 bg-slate-950/80">
+                <div className="overflow-x-auto border border-slate-800 bg-slate-950/80">
                   <table className="min-w-full border-collapse text-[11px]">
                     <thead className="bg-slate-900/80 text-slate-300">
                       <tr>
@@ -265,21 +265,21 @@ export default function DriverWalletDashboardPage() {
               )}
             </div>
 
-            <div className="space-y-3 rounded-xl border border-slate-800 bg-slate-900/80 p-4">
+            <div className="space-y-3 border-t border-slate-800/80 pt-3">
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-sm font-semibold text-slate-100">
                     Request withdrawal
                   </h2>
                   <p className="text-[11px] text-slate-400">
-                    Submit a withdrawal request. Payouts are processed via Mpesa as
-                    manual B2C transfers.
+                    Submit a withdrawal request. Payouts are processed via Mpesa
+                    as manual B2C transfers.
                   </p>
                 </div>
               </div>
 
               <div className="space-y-2">
-                <label className="space-y-1 block">
+                <label className="block space-y-1">
                   <span className="text-slate-300">Amount (KES)</span>
                   <input
                     type="number"
@@ -289,7 +289,7 @@ export default function DriverWalletDashboardPage() {
                   />
                 </label>
 
-                <label className="space-y-1 block">
+                <label className="block space-y-1">
                   <span className="text-slate-300">Mpesa phone number</span>
                   <input
                     type="tel"
@@ -304,7 +304,7 @@ export default function DriverWalletDashboardPage() {
                   type="button"
                   onClick={handleWithdraw}
                   disabled={withdrawing || !wallet || wallet.walletBalance <= 0}
-                  className="mt-2 inline-flex items-center rounded-md border border-emerald-600/60 bg-emerald-600/20 px-3 py-1.5 text-[11px] font-medium text-emerald-100 shadow-sm transition hover:border-emerald-400 hover:bg-emerald-600/30 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="mt-2 inline-flex items-center rounded-md border border-emerald-600/60 bg-emerald-600/20 px-3 py-1.5 text-[11px] font-medium text-emerald-100 transition hover:border-emerald-400 hover:bg-emerald-600/30 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {withdrawing ? "Submitting..." : "Request withdrawal"}
                 </button>
@@ -315,7 +315,7 @@ export default function DriverWalletDashboardPage() {
                 </p>
               </div>
 
-              <div className="space-y-2 pt-3 border-t border-slate-800 mt-3">
+              <div className="mt-3 space-y-2 border-t border-slate-800 pt-3">
                 <div className="flex items-center justify-between">
                   <h3 className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
                     Recent withdrawals
@@ -332,14 +332,18 @@ export default function DriverWalletDashboardPage() {
                 )}
 
                 {withdrawals.length > 0 && (
-                  <div className="max-h-52 overflow-auto rounded-md border border-slate-800 bg-slate-950/80">
+                  <div className="max-h-52 overflow-auto border border-slate-800 bg-slate-950/80">
                     <table className="min-w-full border-collapse text-[11px]">
                       <thead className="bg-slate-900/80 text-slate-300">
                         <tr>
                           <th className="px-3 py-2 text-left font-medium">Amount</th>
-                          <th className="px-3 py-2 text-left font-medium">Driver share</th>
+                          <th className="px-3 py-2 text-left font-medium">
+                            Driver share
+                          </th>
                           <th className="px-3 py-2 text-left font-medium">Status</th>
-                          <th className="px-3 py-2 text-left font-medium">Requested</th>
+                          <th className="px-3 py-2 text-left font-medium">
+                            Requested
+                          </th>
                         </tr>
                       </thead>
                       <tbody>

@@ -433,12 +433,12 @@ export default function DriverLiveDashboardPage() {
 
   if (loading || !user || !isDriver) {
     return (
-      <div className="space-y-4">
+      <div className="space-y-4 text-xs">
         <header className="space-y-1">
           <h1 className="text-2xl font-semibold tracking-tight">
             Driver live dashboard
           </h1>
-          <p className="text-xs text-slate-300">
+          <p className="text-slate-300">
             You must be signed in as a driver to view this dashboard.
           </p>
         </header>
@@ -447,17 +447,22 @@ export default function DriverLiveDashboardPage() {
   }
 
   return (
-    <div className="space-y-4">
-      <header className="space-y-1">
+    <div className="space-y-6 text-xs">
+      <header className="space-y-2">
         <h1 className="text-2xl font-semibold tracking-tight">
           Driver live dashboard
         </h1>
-        <p className="text-xs text-slate-300">
+        <p className="text-slate-300">
           Watch incoming ride requests in real time and manage your currently
           assigned passengers.
         </p>
         {driverOnboardEnabled && (
-          <div className="mt-2 inline-flex items-center gap-2 rounded-full border border-emerald-600/60 bg-emerald-600/10 px-3 py-1 text-[10px] text-emerald-100">
+          <p className="text-[11px] text-emerald-200">
+            New driver experience is enabled for your account.
+          </p>
+        )}
+        <div className="mt-2 flex items-center justify-between gap-3">
+          <div className="inline-flex items-center gap-2 text-[11px] text-slate-400">
             <span
               className={
                 driverOnline
@@ -467,43 +472,26 @@ export default function DriverLiveDashboardPage() {
             />
             <span>
               {driverOnline
-                ? "You're visible to nearby riders"
-                : "Go online to start seeing ride requests"}
+                ? "You are online and visible to nearby riders"
+                : "You are offline. Go online to start seeing ride requests."}
             </span>
           </div>
-        )}
+          <button
+            type="button"
+            onClick={() => (driverOnline ? goOffline() : goOnline())}
+            className={`inline-flex items-center rounded-full px-3 py-1 text-[11px] font-medium transition ${
+              driverOnline
+                ? "bg-emerald-600/80 text-emerald-50 hover:bg-emerald-500/80"
+                : "bg-slate-800 text-slate-100 hover:bg-slate-700"
+            }`}
+          >
+            {driverOnline ? "Go offline" : "Go online"}
+          </button>
+        </div>
       </header>
 
-      <section className="flex items-center justify-between rounded-xl border border-slate-800 bg-slate-900/80 p-3 text-xs">
-        <div className="space-y-1">
-          <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
-            Driver status
-          </div>
-          <div className="text-[11px] text-slate-300">
-            You are currently{" "}
-            <span
-              className={driverOnline ? "text-emerald-400" : "text-slate-100"}
-            >
-              {driverOnline ? "Online" : "Offline"}
-            </span>
-            . When online, nearby passengers can see and request you.
-          </div>
-        </div>
-        <button
-          type="button"
-          onClick={() => (driverOnline ? goOffline() : goOnline())}
-          className={`inline-flex items-center rounded-full px-3 py-1 text-[11px] font-medium transition ${
-            driverOnline
-              ? "bg-emerald-600/80 text-emerald-50 hover:bg-emerald-500/80"
-              : "bg-slate-800 text-slate-100 hover:bg-slate-700"
-          }`}
-        >
-          {driverOnline ? "Go offline" : "Go online"}
-        </button>
-      </section>
-
       {currentRequest && (
-        <section className="rounded-xl border border-emerald-700/60 bg-emerald-950/40 p-3 text-xs">
+        <section className="border-t border-emerald-700/60 pt-3">
           <DriverRequestCard
             request={currentRequest}
             timeLeftSeconds={timeLeftSeconds}
@@ -561,13 +549,11 @@ export default function DriverLiveDashboardPage() {
       </section>
 
       {error && (
-        <div className="rounded-xl border border-red-500/40 bg-red-500/10 p-4 text-xs text-red-200">
-          {error}
-        </div>
+        <p className="text-[11px] text-red-300">{error}</p>
       )}
 
       <section className="grid gap-4 md:grid-cols-2">
-        <div className="space-y-3 rounded-xl border border-slate-800 bg-slate-900/80 p-4 text-xs">
+        <div className="space-y-3 border-t border-slate-800/80 pt-3">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-sm font-semibold text-slate-100">
@@ -583,7 +569,10 @@ export default function DriverLiveDashboardPage() {
           </div>
 
           {loadingIncoming && (
-            <div className="h-20 animate-pulse rounded-md bg-slate-800/60" />
+            <div className="space-y-2">
+              <div className="h-6 w-full animate-pulse rounded-full bg-slate-800/70" />
+              <div className="h-6 w-full animate-pulse rounded-full bg-slate-800/70" />
+            </div>
           )}
 
           {!loadingIncoming && !hasIncoming && !error && (
@@ -594,91 +583,82 @@ export default function DriverLiveDashboardPage() {
           )}
 
           {!loadingIncoming && hasIncoming && (
-            <div className="overflow-x-auto rounded-md border border-slate-800 bg-slate-950/80">
-              <table className="min-w-full border-collapse text-[11px]">
-                <thead className="bg-slate-900/80 text-slate-300">
-                  <tr>
-                    <th className="px-3 py-2 text-left font-medium">Pickup</th>
-                    <th className="px-3 py-2 text-left font-medium">
-                      Requested at
-                    </th>
-                    <th className="px-3 py-2 text-left font-medium">
-                      Distance
-                    </th>
-                    <th className="px-3 py-2 text-right font-medium">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {incoming.map((ride) => {
-                    const id = (ride._id as any) || (ride as any).id || "";
-                    const createdAt = ride.createdAt
-                      ? new Date(ride.createdAt)
-                      : null;
+            <div className="divide-y divide-slate-800/80">
+              {incoming.map((ride) => {
+                const id = (ride._id as any) || (ride as any).id || "";
+                const createdAt = ride.createdAt
+                  ? new Date(ride.createdAt)
+                  : null;
 
-                    const pickup = (ride as any).pickup;
-                    let pickupLabel = "—";
-                    if (
-                      pickup &&
-                      Array.isArray(pickup.coordinates) &&
-                      pickup.coordinates.length === 2
-                    ) {
-                      const [lng, lat] = pickup.coordinates as [number, number];
-                      pickupLabel = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
-                    }
+                const pickup = (ride as any).pickup;
+                let pickupLabel = "—";
+                if (
+                  pickup &&
+                  Array.isArray(pickup.coordinates) &&
+                  pickup.coordinates.length === 2
+                ) {
+                  const [lng, lat] = pickup.coordinates as [number, number];
+                  pickupLabel = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+                }
 
-                    let distanceLabel = "—";
-                    if (
-                      coords &&
-                      pickup &&
-                      Array.isArray(pickup.coordinates) &&
-                      pickup.coordinates.length === 2
-                    ) {
-                      const [lng, lat] = pickup.coordinates as [number, number];
-                      const distanceMeters = haversineDistanceMeters(coords, {
-                        lat,
-                        lng,
-                      });
-                      if (Number.isFinite(distanceMeters)) {
-                        const km = distanceMeters / 1000;
-                        const speedKmh = 25;
-                        const etaMinutes =
-                          (distanceMeters / 1000 / speedKmh) * 60;
-                        distanceLabel = `${km.toFixed(1)} km · ~${Math.round(etaMinutes)} min`;
-                      }
-                    }
+                let distanceLabel = "—";
+                if (
+                  coords &&
+                  pickup &&
+                  Array.isArray(pickup.coordinates) &&
+                  pickup.coordinates.length === 2
+                ) {
+                  const [lng, lat] = pickup.coordinates as [number, number];
+                  const distanceMeters = haversineDistanceMeters(coords, {
+                    lat,
+                    lng,
+                  });
+                  if (Number.isFinite(distanceMeters)) {
+                    const km = distanceMeters / 1000;
+                    const speedKmh = 25;
+                    const etaMinutes =
+                      (distanceMeters / 1000 / speedKmh) * 60;
+                    distanceLabel = `${km.toFixed(1)} km · ~${Math.round(
+                      etaMinutes,
+                    )} min`;
+                  }
+                }
 
-                    return (
-                      <tr key={id} className="border-t border-slate-800/80">
-                        <td className="px-3 py-2 text-slate-100">
-                          {pickupLabel}
-                        </td>
-                        <td className="px-3 py-2 text-slate-300">
-                          {createdAt ? createdAt.toLocaleString() : "Just now"}
-                        </td>
-                        <td className="px-3 py-2 text-slate-300">
-                          {distanceLabel}
-                        </td>
-                        <td className="px-3 py-2 text-right">
-                          <button
-                            type="button"
-                            onClick={() => handleAccept(String(id))}
-                            className="inline-flex items-center rounded-md border border-emerald-600/60 bg-emerald-600/20 px-2 py-1 text-[11px] font-medium text-emerald-100 shadow-sm transition hover:border-emerald-400 hover:bg-emerald-600/30"
-                          >
-                            Accept
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+                return (
+                  <div
+                    key={id}
+                    className="flex items-center justify-between gap-3 py-2"
+                  >
+                    <div className="space-y-0.5 text-[11px]">
+                      <div className="font-medium text-slate-100">
+                        {pickupLabel}
+                      </div>
+                      <div className="text-slate-400">
+                        {createdAt
+                          ? createdAt.toLocaleString()
+                          : "Just now"}
+                        {distanceLabel !== "—" && (
+                          <span className="text-slate-500">
+                            {" "}· {distanceLabel}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleAccept(String(id))}
+                      className="inline-flex items-center rounded-md border border-emerald-600/60 bg-emerald-600/20 px-2 py-1 text-[11px] font-medium text-emerald-100 transition hover:border-emerald-400 hover:bg-emerald-600/30"
+                    >
+                      Accept
+                    </button>
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>
 
-        <div className="space-y-3 rounded-xl border border-slate-800 bg-slate-900/80 p-4 text-xs">
+        <div className="space-y-3 border-t border-slate-800/80 pt-3">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-sm font-semibold text-slate-100">
@@ -694,7 +674,10 @@ export default function DriverLiveDashboardPage() {
           </div>
 
           {loadingAssigned && (
-            <div className="h-20 animate-pulse rounded-md bg-slate-800/60" />
+            <div className="space-y-2">
+              <div className="h-6 w-full animate-pulse rounded-full bg-slate-800/70" />
+              <div className="h-6 w-full animate-pulse rounded-full bg-slate-800/70" />
+            </div>
           )}
 
           {!loadingAssigned && !hasAssigned && (
@@ -705,7 +688,7 @@ export default function DriverLiveDashboardPage() {
           )}
 
           {!loadingAssigned && hasAssigned && (
-            <div className="space-y-2">
+            <div className="divide-y divide-slate-800/80">
               {assigned.map((ride) => {
                 const id = (ride._id as any) || (ride as any).id || "";
                 const createdAt = ride.createdAt
@@ -715,7 +698,7 @@ export default function DriverLiveDashboardPage() {
                 return (
                   <div
                     key={id}
-                    className="flex items-center justify-between rounded-md border border-slate-800 bg-slate-950/80 px-3 py-2"
+                    className="flex items-center justify-between gap-3 py-2"
                   >
                     <div className="space-y-0.5 text-[11px] text-slate-200">
                       <div className="font-semibold">

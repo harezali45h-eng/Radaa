@@ -119,6 +119,9 @@ export function AppShell({ children }: AppShellProps) {
               <Link href={liveHref} className="hover:text-white">
                 Live
               </Link>
+              <Link href="/gallery" className="hover:text-white">
+                Gallery
+              </Link>
               <Link href="/profile" className="hover:text-white">
                 Profile
               </Link>
@@ -273,7 +276,7 @@ export function AppShell({ children }: AppShellProps) {
                   onClick={() => setMobileNavOpen(false)}
                   className="flex min-h-[2.75rem] items-center justify-between rounded-xl px-4 py-2.5 text-[13px] font-semibold text-slate-50/90 hover:bg-white/10 active:bg-white/15"
                 >
-                  <span>Promotions</span>
+                  <span>Loyalty progress</span>
                   <span className="text-[10px] text-emerald-300">Free rides</span>
                 </Link>
                 <Link
@@ -281,16 +284,16 @@ export function AppShell({ children }: AppShellProps) {
                   onClick={() => setMobileNavOpen(false)}
                   className="flex min-h-[2.75rem] items-center justify-between rounded-xl px-4 py-2.5 text-[13px] font-semibold text-slate-50/90 hover:bg-white/10 active:bg-white/15"
                 >
-                  <span>My rides</span>
+                  <span>My trips</span>
                   <span className="text-[10px] text-slate-400">History</span>
                 </Link>
                 <Link
-                  href="/map"
+                  href="/gallery"
                   onClick={() => setMobileNavOpen(false)}
                   className="flex min-h-[2.75rem] items-center justify-between rounded-xl px-4 py-2.5 text-[13px] font-semibold text-slate-50/90 hover:bg-white/10 active:bg-white/15"
                 >
-                  <span>Safety</span>
-                  <span className="text-[10px] text-slate-400">Live map</span>
+                  <span>Gallery</span>
+                  <span className="text-[10px] text-slate-400">Matatus</span>
                 </Link>
                 <Link
                   href="/profile"

@@ -150,7 +150,7 @@ export default function WalletDashboard() {
   };
 
   return (
-    <section className="rounded-xl border border-slate-800 bg-slate-900/85 p-4 text-xs shadow-soft">
+    <section className="space-y-4 text-xs">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-sm font-semibold text-slate-50">Wallet yako</h2>
@@ -168,9 +168,7 @@ export default function WalletDashboard() {
       </div>
 
       {error && (
-        <div className="mt-2 rounded-md border border-red-500/50 bg-red-500/10 p-2 text-[11px] text-red-100">
-          {error}
-        </div>
+        <p className="mt-1 text-[11px] text-red-300">{error}</p>
       )}
 
       <div className="mt-3 flex flex-wrap gap-2 text-[11px]">
@@ -200,19 +198,23 @@ export default function WalletDashboard() {
         </button>
       </div>
 
-      <div className="mt-4 grid gap-3 md:grid-cols-2">
-        <div className="rounded-lg border border-slate-800 bg-slate-950/60 p-3">
-          <div className="text-[11px] text-slate-400">Loyalty points</div>
-          <div className="mt-1 text-base font-semibold text-amber-300">
+      <div className="mt-4 grid gap-3 border-t border-slate-800/70 pt-3 md:grid-cols-2">
+        <div className="space-y-1 md:border-r md:border-slate-800/70 md:pr-4">
+          <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+            Loyalty points
+          </div>
+          <div className="text-base font-semibold text-amber-300">
             {wallet?.loyaltyPoints ?? 0}
           </div>
-          <p className="mt-1 text-[11px] text-slate-400">
+          <p className="text-[11px] text-slate-400">
             Kwa kila 1500 umetumia kama fare, unapata points 50.
           </p>
         </div>
-        <div className="rounded-lg border border-slate-800 bg-slate-950/60 p-3">
-          <div className="text-[11px] text-slate-400">Total fare spent</div>
-          <div className="mt-1 text-base font-semibold text-slate-100">
+        <div className="space-y-1 md:pl-4">
+          <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+            Total fare spent
+          </div>
+          <div className="text-base font-semibold text-slate-100">
             KES {totalFareSpent}
           </div>
         </div>
@@ -229,7 +231,7 @@ export default function WalletDashboard() {
       {paymentConfirmEnabled &&
         confirmations &&
         confirmations.length > 0 && (
-          <div className="mt-4 rounded-lg border border-slate-800 bg-slate-950/60 p-3 text-[11px]">
+          <section className="mt-4 space-y-3 text-[11px]">
             <div className="flex items-center justify-between">
               <div>
                 <div className="font-semibold text-slate-100">
@@ -239,12 +241,12 @@ export default function WalletDashboard() {
                   STK and wallet payments linked to your account.
                 </div>
               </div>
-              <span className="rounded-full bg-slate-900 px-2 py-0.5 text-[10px] text-slate-300">
+              <span className="rounded-full bg-slate-900/60 px-2 py-0.5 text-[10px] text-slate-300">
                 {confirmations.filter((item) => !item.seenAt).length} new
               </span>
             </div>
 
-            <div className="mt-3 space-y-1.5">
+            <div className="divide-y divide-slate-800/80">
               {confirmations.map((item) => {
                 const created = new Date(item.createdAt);
                 const isNew = !item.seenAt;
@@ -255,14 +257,14 @@ export default function WalletDashboard() {
                     key={item._id}
                     type="button"
                     onClick={() => handleMarkConfirmationSeen(item._id)}
-                    className="flex w-full items-center justify-between rounded-md border border-slate-800 bg-slate-950/80 px-3 py-2 text-left hover:border-slate-600 hover:bg-slate-900"
+                    className="flex w-full items-center justify-between py-2 text-left hover:bg-slate-900/40"
                   >
                     <div>
                       <div className="flex items-center gap-2">
                         <span className="text-[11px] font-semibold text-slate-50">
                           KES {item.amount}
                         </span>
-                        <span className="rounded-full bg-slate-800 px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-slate-300">
+                        <span className="rounded-full bg-slate-800/80 px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-slate-300">
                           {item.channel || "mpesa"}
                         </span>
                       </div>
@@ -280,16 +282,16 @@ export default function WalletDashboard() {
                       <span
                         className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${
                           statusLabel === "success"
-                            ? "bg-emerald-500/15 text-emerald-300"
+                            ? "bg-emerald-500/10 text-emerald-300"
                             : statusLabel === "failed"
-                              ? "bg-red-500/15 text-red-300"
-                              : "bg-slate-800 text-slate-200"
+                              ? "bg-red-500/10 text-red-300"
+                              : "bg-slate-800/80 text-slate-200"
                         }`}
                       >
                         {statusLabel}
                       </span>
                       {isNew && (
-                        <span className="rounded-full bg-sky-500/20 px-1.5 py-0.5 text-[9px] text-sky-300">
+                        <span className="rounded-full bg-sky-500/15 px-1.5 py-0.5 text-[9px] text-sky-300">
                           New
                         </span>
                       )}
@@ -298,7 +300,7 @@ export default function WalletDashboard() {
                 );
               })}
             </div>
-          </div>
+          </section>
         )}
 
       {statusMessage && (
