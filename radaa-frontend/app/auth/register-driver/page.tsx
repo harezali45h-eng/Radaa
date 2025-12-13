@@ -68,6 +68,17 @@ export default function RegisterDriverPage() {
       </div>
 
       {driverOnboardEnabled && (
+        <div className="mt-2 rounded-md border border-emerald-500/50 bg-emerald-500/10 px-3 py-2 text-[11px] text-emerald-100">
+          <div className="font-semibold">Fast pilot onboarding</div>
+          <p className="mt-0.5">
+            After you sign up, you can go live on the map immediately. SACCO/
+            admin verification is still required before any payouts or
+            subscriptions are released.
+          </p>
+        </div>
+      )}
+
+      {driverOnboardEnabled && (
         <section className="grid gap-2 text-[11px] text-slate-300 md:grid-cols-3">
           <div className="rounded-lg border border-slate-800 bg-slate-900/80 px-3 py-2">
             <div className="text-slate-400">Step 1</div>

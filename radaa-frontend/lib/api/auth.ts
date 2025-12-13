@@ -20,6 +20,7 @@ export interface AuthUser {
     profilePhotoUrl?: string;
   };
   driverVerificationStatus?: "pending" | "approved" | "rejected" | string;
+  driverStatus?: "provisional" | "active" | "suspended" | string;
   saccoProfile?: {
     saccoName?: string;
     registrationNumber?: string;

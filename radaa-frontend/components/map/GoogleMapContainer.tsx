@@ -40,11 +40,75 @@ const defaultCenter: LatLng = {
   lng: 36.817223,
 };
 
+const darkMapStyles: google.maps.MapTypeStyle[] = [
+  {
+    elementType: "geometry",
+    stylers: [{ color: "#0b1722" }],
+  },
+  {
+    elementType: "labels.text.fill",
+    stylers: [{ color: "#9fb3c8" }],
+  },
+  {
+    elementType: "labels.text.stroke",
+    stylers: [{ color: "#020617" }],
+  },
+  {
+    featureType: "poi",
+    elementType: "labels.text.fill",
+    stylers: [{ color: "#59738a" }],
+  },
+  {
+    featureType: "poi.business",
+    stylers: [{ visibility: "off" }],
+  },
+  {
+    featureType: "poi.park",
+    elementType: "geometry",
+    stylers: [{ color: "#102a1f" }],
+  },
+  {
+    featureType: "poi.park",
+    elementType: "labels.text.fill",
+    stylers: [{ color: "#4caf50" }],
+  },
+  {
+    featureType: "road",
+    elementType: "geometry",
+    stylers: [{ color: "#304155" }],
+  },
+  {
+    featureType: "road.arterial",
+    elementType: "geometry",
+    stylers: [{ color: "#3f546b" }],
+  },
+  {
+    featureType: "road.highway",
+    elementType: "geometry",
+    stylers: [{ color: "#4b6584" }],
+  },
+  {
+    featureType: "road.highway",
+    elementType: "labels.text.fill",
+    stylers: [{ color: "#d1e4ff" }],
+  },
+  {
+    featureType: "transit",
+    stylers: [{ visibility: "off" }],
+  },
+  {
+    featureType: "water",
+    elementType: "geometry",
+    stylers: [{ color: "#061018" }],
+  },
+];
+
 const mapOptions: google.maps.MapOptions = {
   disableDefaultUI: true,
   zoomControl: true,
   clickableIcons: false,
   backgroundColor: "#020617",
+  styles: darkMapStyles,
 };
 
 export default function GoogleMapContainer({
@@ -66,6 +130,7 @@ export default function GoogleMapContainer({
   const { isLoaded, loadError } = useLoadScript({
     googleMapsApiKey: apiKey,
     id: "radaa-google-maps-script",
+    libraries: ["places"],
   });
 
   const center = useMemo<LatLng>(() => {
@@ -111,12 +176,37 @@ export default function GoogleMapContainer({
         >
           {matatus.map((m) => {
             if (!m.location) return null;
+
+            let icon: google.maps.Icon | undefined;
+
+            if (
+              typeof window !== "undefined" &&
+              typeof window.btoa === "function"
+            ) {
+              const svg = window.btoa(
+                `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+                   <g fill="none" fill-rule="evenodd">
+                     <circle cx="16" cy="16" r="14" fill="#020617" fill-opacity="0.9"/>
+                     <path d="M8 19.5c0-4.5 2.7-8.5 8-8.5s8 4 8 8.5c0 1.1-.9 2-2 2H10c-1.1 0-2-.9-2-2z" fill="#FFD400"/>
+                     <rect x="11" y="12" width="10" height="5" rx="2" fill="#1F2937"/>
+                   </g>
+                 </svg>`,
+              );
+
+              icon = {
+                url: `data:image/svg+xml;base64,${svg}`,
+                scaledSize: new google.maps.Size(36, 36),
+                anchor: new google.maps.Point(18, 18),
+              };
+            }
+
             return (
               <Marker
                 key={m.id}
                 position={m.location}
                 onClick={() => onSelectMatatu(m.id)}
                 title={m.plate || m.numberPlate || "Matatu"}
+                icon={icon}
               />
             );
           })}
@@ -129,10 +219,10 @@ export default function GoogleMapContainer({
               icon={{
                 path: google.maps.SymbolPath.CIRCLE,
                 scale: 4,
-                fillColor: "#FBBF24",
+                fillColor: "#00BFFF",
                 fillOpacity: 1,
-                strokeColor: "#1F2937",
-                strokeWeight: 1,
+                strokeColor: "#0B1F2A",
+                strokeWeight: 2,
               }}
             />
           ))}
@@ -143,10 +233,10 @@ export default function GoogleMapContainer({
               title="You"
               icon={{
                 path: google.maps.SymbolPath.CIRCLE,
-                scale: 5.5,
-                fillColor: "#0EA5E9",
+                scale: 5,
+                fillColor: "#EAF6FF",
                 fillOpacity: 1,
-                strokeColor: "#FFFFFF",
+                strokeColor: "#00BFFF",
                 strokeWeight: 2,
               }}
             />

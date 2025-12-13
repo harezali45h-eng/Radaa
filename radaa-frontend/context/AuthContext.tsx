@@ -31,6 +31,7 @@ interface User {
     vehicleRegistration?: string;
   };
   driverVerificationStatus?: "pending" | "approved" | "rejected" | string;
+  driverStatus?: "provisional" | "active" | "suspended" | string;
   saccoProfile?: {
     saccoName?: string;
     registrationNumber?: string;
@@ -224,6 +225,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         enabled: (loginResult as any).enabled,
         driverProfile: (loginResult as any).driverProfile,
         driverVerificationStatus: (loginResult as any).driverVerificationStatus,
+        driverStatus: (loginResult as any).driverStatus,
         saccoProfile: (loginResult as any).saccoProfile,
       };
 
@@ -295,6 +297,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         enabled: (result as any).enabled,
         driverProfile: (result as any).driverProfile,
         driverVerificationStatus: (result as any).driverVerificationStatus,
+        driverStatus: (result as any).driverStatus,
         saccoProfile: (result as any).saccoProfile,
       };
 

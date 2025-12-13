@@ -1,7 +1,10 @@
 import mongoose from "mongoose";
 import DriverWallet from "../models/DriverWallet.js";
 import AuditLog from "../models/AuditLog.js";
+import User from "../models/User.js";
 import { ValidationError } from "../utils/errors.js";
+import { isFeatureEnabled } from "../utils/featureFlags.js";
+import { FEATURE_FLAG_KEYS } from "../config/featureFlags.js";
 
 const PLATFORM_CUT_FLAT = Number(process.env.PLATFORM_CUT_FLAT || 4);
 
@@ -64,6 +67,27 @@ export const creditDriverWalletFromFare = async (
   }
 
   const normalizedAmount = Math.round(Number(amount));
+
+  const pilotEnabled = await isFeatureEnabled(
+    FEATURE_FLAG_KEYS.DRIVER_PILOT_V1,
+    driverId,
+  );
+
+  if (pilotEnabled) {
+    const driver = await User.findById(driverId).select(
+      "role driverStatus driverVerificationStatus enabled",
+    );
+
+    if (!driver || driver.role !== "driver" || driver.enabled === false) {
+      throw new ValidationError("Driver is not eligible for payouts");
+    }
+
+    if (driver.driverStatus !== "active") {
+      throw new ValidationError(
+        "Driver verification must be approved before fare credits are applied",
+      );
+    }
+  }
   const wallet = await getOrCreateDriverWallet(driverId, session);
 
   wallet.walletBalance += normalizedAmount;
@@ -130,6 +154,27 @@ export const requestDriverWithdrawal = async ({
 
   try {
     await session.withTransaction(async () => {
+      const pilotEnabled = await isFeatureEnabled(
+        FEATURE_FLAG_KEYS.DRIVER_PILOT_V1,
+        driverId,
+      );
+
+      if (pilotEnabled) {
+        const driver = await User.findById(driverId)
+          .select("role driverStatus driverVerificationStatus enabled")
+          .session(session);
+
+        if (!driver || driver.role !== "driver" || driver.enabled === false) {
+          throw new ValidationError("Driver is not eligible for withdrawals");
+        }
+
+        if (driver.driverStatus !== "active") {
+          throw new ValidationError(
+            "Driver verification must be approved before withdrawals are allowed",
+          );
+        }
+      }
+
       const wallet = await getOrCreateDriverWallet(driverId, session);
 
       if (wallet.walletBalance < normalizedAmount) {

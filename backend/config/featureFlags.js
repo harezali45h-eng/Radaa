@@ -19,6 +19,7 @@ export const FEATURE_FLAG_KEYS = {
   FARE_SUGGESTIONS_V1: "ff_fare_suggestions",
   PAYMENT_CONFIRM_V1: "ff_payment_confirm",
   BOLT_LIVE_MAP_V1: "ff_bolt_live_map",
+  DRIVER_PILOT_V1: "ff_driver_pilot_v1",
 };
 
 const parseBoolEnv = (value) => {
@@ -106,6 +107,10 @@ export const featureFlagDefaults = {
   },
   [FEATURE_FLAG_KEYS.BOLT_LIVE_MAP_V1]: {
     enabled: parseBoolEnv(process.env.FEATURE_BOLT_LIVE_MAP),
+    rolloutPercent: 0
+  },
+  [FEATURE_FLAG_KEYS.DRIVER_PILOT_V1]: {
+    enabled: parseBoolEnv(process.env.FEATURE_FALLBACK_DRIVER_PILOT_V1),
     rolloutPercent: 0
   }
 };

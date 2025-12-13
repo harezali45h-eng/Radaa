@@ -60,7 +60,7 @@ export function MatatuSwipeDeck({ items, onSelect }: MatatuSwipeDeckProps) {
   if (!active) {
     return (
       <div className="rounded-xl border border-slate-800 bg-slate-900/80 p-4 text-xs text-slate-300">
-        No nearby matatus to show right now.
+        No nearby matatus to show right now. Kaa Radaa ujue mat yako iko wapi — check again in a few minutes.
       </div>
     );
   }

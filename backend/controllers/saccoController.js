@@ -1,5 +1,6 @@
 import User from "../models/User.js";
 import Matatu from "../models/Matatu.js";
+import AuditLog from "../models/AuditLog.js";
 import { AuthError, ValidationError } from "../utils/errors.js";
 import { getSaccoOverview as getSaccoOverviewService } from "../services/saccoAnalyticsService.js";
 
@@ -27,10 +28,6 @@ export const setDriverEnabled = async (req, res, next) => {
       },
       { new: true }
     ).select("_id username email phone role enabled driverProfile driverVerificationStatus");
-
-    if (!driver) {
-      return res.status(404).json({ success: false, message: "Driver not found" });
-    }
 
     return res.json({ success: true, data: driver });
   } catch (error) {
@@ -183,15 +180,45 @@ export const setDriverVerificationStatus = async (req, res, next) => {
       throw new ValidationError("status must be pending, approved, or rejected");
     }
 
-    const driver = await User.findByIdAndUpdate(
-      driverId,
-      {
-        $set: {
-          driverVerificationStatus: status
+    const driver = await User.findById(driverId).select(
+      "_id username email phone role enabled driverProfile driverVerificationStatus driverStatus"
+    );
+
+    if (!driver) {
+      return res.status(404).json({ success: false, message: "Driver not found" });
+    }
+
+    const previousVerification = driver.driverVerificationStatus || "pending";
+    const previousStatus = driver.driverStatus || "provisional";
+
+    driver.driverVerificationStatus = status;
+
+    let nextStatus = previousStatus;
+    if (status === "approved") {
+      nextStatus = "active";
+    } else if (status === "rejected") {
+      nextStatus = "suspended";
+    } else if (status === "pending" && !driver.driverStatus) {
+      nextStatus = "provisional";
+    }
+
+    driver.driverStatus = nextStatus;
+
+    await driver.save();
+
+    if (previousStatus !== nextStatus) {
+      await AuditLog.create({
+        type: "driver_status_change",
+        userId: driver._id,
+        reason: "sacco_driver_verification_update",
+        meta: {
+          fromVerification: previousVerification,
+          toVerification: status,
+          fromStatus: previousStatus,
+          toStatus: nextStatus
         }
-      },
-      { new: true }
-    ).select("_id username email phone role enabled driverProfile driverVerificationStatus");
+      });
+    }
 
     if (!driver) {
       return res.status(404).json({ success: false, message: "Driver not found" });
@@ -223,18 +250,45 @@ export const setMatatuApprovalStatus = async (req, res, next) => {
       throw new ValidationError("status must be pending, approved, or rejected");
     }
 
-    const matatu = await Matatu.findByIdAndUpdate(
-      matatuId,
-      {
-        $set: {
-          approvalStatus: status
-        }
-      },
-      { new: true }
-    ).select("plate route numberPlate sacco driver approvalStatus photos");
+    const matatu = await Matatu.findById(matatuId).select(
+      "plate route numberPlate sacco driver approvalStatus photos driverStatus"
+    );
 
     if (!matatu) {
       return res.status(404).json({ success: false, message: "Matatu not found" });
+    }
+
+    const previousApproval = matatu.approvalStatus || "pending";
+    const previousStatus = matatu.driverStatus || "provisional";
+
+    matatu.approvalStatus = status;
+
+    let nextStatus = previousStatus;
+    if (status === "approved") {
+      nextStatus = "active";
+    } else if (status === "rejected") {
+      nextStatus = "suspended";
+    } else if (status === "pending" && !matatu.driverStatus) {
+      nextStatus = "provisional";
+    }
+
+    matatu.driverStatus = nextStatus;
+
+    await matatu.save();
+
+    if (previousStatus !== nextStatus) {
+      await AuditLog.create({
+        type: "driver_vehicle_status_change",
+        reason: "sacco_matatu_approval_update",
+        meta: {
+          matatuId: matatu._id,
+          plate: matatu.plate,
+          fromApproval: previousApproval,
+          toApproval: status,
+          fromStatus: previousStatus,
+          toStatus: nextStatus
+        }
+      });
     }
 
     return res.json({ success: true, data: matatu });

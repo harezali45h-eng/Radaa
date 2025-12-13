@@ -48,6 +48,13 @@ interface Bounds {
   maxLng: number;
 }
 
+type RiderStatus = "idle" | "waiting";
+
+interface PlacesSuggestion {
+  placeId: string;
+  description: string;
+}
+
 const BACKEND_URL =
   process.env.NEXT_PUBLIC_API_URL ||
   process.env.NEXT_PUBLIC_BACKEND_URL ||
@@ -99,6 +106,16 @@ export default function MapPage() {
   );
   const [routeMatatus, setRouteMatatus] = useState<Matatu[]>([]);
   const [loadingRouteMatatus, setLoadingRouteMatatus] = useState(false);
+
+  const [destinationQuery, setDestinationQuery] = useState("");
+  const [destinationSuggestions, setDestinationSuggestions] = useState<
+    PlacesSuggestion[]
+  >([]);
+  const [destinationPlaceId, setDestinationPlaceId] = useState<string | null>(
+    null,
+  );
+  const [destinationDescription, setDestinationDescription] = useState("");
+  const [riderStatus, setRiderStatus] = useState<RiderStatus>("idle");
 
   useEffect(() => {
     let cancelled = false;
@@ -530,6 +547,50 @@ export default function MapPage() {
     return { distanceMeters, etaMinutes };
   }, [selectedMatatu, userLocation]);
 
+  useEffect(() => {
+    const query = destinationQuery.trim();
+    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? "";
+
+    if (!query || !apiKey) {
+      setDestinationSuggestions([]);
+      return;
+    }
+
+    let cancelled = false;
+    const timeoutId = window.setTimeout(async () => {
+      try {
+        const params = new URLSearchParams();
+        params.set("input", query);
+        params.set("key", apiKey);
+
+        const res = await fetch(
+          `https://maps.googleapis.com/maps/api/place/autocomplete/json?${params.toString()}`,
+        );
+        const data: any = await res.json();
+        if (cancelled) return;
+
+        const predictions = Array.isArray(data?.predictions)
+          ? data.predictions
+          : [];
+
+        setDestinationSuggestions(
+          predictions.map((p: any) => ({
+            placeId: String(p.place_id ?? ""),
+            description: String(p.description ?? ""),
+          })),
+        );
+      } catch {
+        if (cancelled) return;
+        setDestinationSuggestions([]);
+      }
+    }, 250);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timeoutId);
+    };
+  }, [destinationQuery]);
+
   const handleSelectMatatu = useCallback((id: string) => {
     setSelectedMatatuId(id);
   }, []);
@@ -557,6 +618,54 @@ export default function MapPage() {
       },
     );
   };
+
+  const handleRequestMatatu = () => {
+    if (!destinationPlaceId || !destinationDescription) return;
+
+    if (typeof window === "undefined" || !navigator.geolocation) {
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const pickup = {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        };
+
+        if (selectedRoute) {
+          setTrackingId(null);
+        }
+
+        setUserLocation(pickup);
+        setRiderStatus("waiting");
+      },
+      () => {
+        // ignore errors for now; user can try again
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+      },
+    );
+
+    const description = destinationDescription.trim();
+    if (description) {
+      void (async () => {
+        try {
+          const routes = await searchRoutes(description);
+          if (Array.isArray(routes) && routes.length > 0) {
+            const top = routes[0];
+            setSelectedRoute(top);
+            setRouteQuery(top.name);
+          }
+        } catch {
+          // ignore route lookup errors; visibility will remain global
+        }
+      })();
+    }
+  };
+
   const totalMatatus = matatusWithFlags.length;
   const totalPassengers = passengers.length;
 
@@ -804,7 +913,7 @@ export default function MapPage() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 md:space-y-4">
       <header className="flex flex-col gap-1 md:flex-row md:items-baseline md:justify-between">
         <div>
           <h1 className="text-lg font-semibold">Live Matatu Map</h1>
@@ -842,34 +951,109 @@ export default function MapPage() {
       </header>
 
       <section className="relative overflow-hidden rounded-2xl border border-slate-800 bg-slate-950">
-        <div className="p-4 pb-3">
-          {globalMapEnabled ? (
-            <GoogleMapContainer
-              matatus={matatusWithFlags}
-              passengers={passengers}
-              userLocation={userLocation}
-              onCenterOnMe={handleCenterOnMe}
-              onSelectMatatu={handleSelectMatatu}
-              isLoading={loading}
-              hasAnyLocation={hasAnyLocation}
-              driverMode={driverOnline}
-            />
-          ) : (
-            <MapContainer
-              matatus={matatusWithFlags}
-              passengers={passengers}
-              userLocation={userLocation}
-              displayPositions={displayPositions}
-              project={project}
-              onCenterOnMe={handleCenterOnMe}
-              onSelectMatatu={handleSelectMatatu}
-              isLoading={loading}
-              hasAnyLocation={hasAnyLocation}
-              driverMode={driverOnline}
-            />
-          )}
+        <div className="p-0 md:p-4 md:pb-3">
+          <div className="relative h-[calc(100vh-12rem)] md:h-auto">
+            <div className="absolute inset-x-4 top-4 z-20 flex flex-col gap-2 md:static md:mb-3 md:mt-4">
+              <div className="inline-flex items-center justify-between rounded-full border border-slate-700/70 bg-slate-950/90 px-3 py-1.5 text-[11px] text-slate-200 shadow-soft">
+                <span className="font-medium">Where to?</span>
+                <span className="text-[10px] text-slate-400">
+                  Route-based view only
+                </span>
+              </div>
+              <div className="rounded-2xl border border-slate-700/80 bg-slate-950/95 px-3 py-2 text-[11px] shadow-soft">
+                <input
+                  type="text"
+                  value={destinationQuery}
+                  onChange={(event) => {
+                    setDestinationQuery(event.target.value);
+                    setDestinationPlaceId(null);
+                    setDestinationDescription("");
+                  }}
+                  placeholder="Search a destination, stage, or landmark"
+                  className="w-full bg-transparent text-slate-50 placeholder:text-slate-500 outline-none"
+                />
+                {destinationSuggestions.length > 0 && (
+                  <ul className="mt-2 max-h-40 space-y-1 overflow-auto rounded-xl border border-slate-800 bg-slate-950/95 px-2 py-1">
+                    {destinationSuggestions.map((s) => (
+                      <li key={s.placeId}>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setDestinationPlaceId(s.placeId);
+                            setDestinationDescription(s.description || "");
+                            setDestinationQuery(s.description || "");
+                            setDestinationSuggestions([]);
+                          }}
+                          className="w-full rounded-lg px-2 py-1 text-left text-[11px] text-slate-100 hover:bg-slate-800/80"
+                        >
+                          {s.description}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </div>
+
+            <div className="absolute inset-0 pt-20 md:static md:pt-0">
+              <div className="h-full w-full">
+                {globalMapEnabled ? (
+                  <GoogleMapContainer
+                    matatus={matatusWithFlags}
+                    passengers={passengers}
+                    userLocation={userLocation}
+                    onCenterOnMe={handleCenterOnMe}
+                    onSelectMatatu={handleSelectMatatu}
+                    isLoading={loading}
+                    hasAnyLocation={hasAnyLocation}
+                    driverMode={driverOnline}
+                  />
+                ) : (
+                  <MapContainer
+                    matatus={matatusWithFlags}
+                    passengers={passengers}
+                    userLocation={userLocation}
+                    displayPositions={displayPositions}
+                    project={project}
+                    onCenterOnMe={handleCenterOnMe}
+                    onSelectMatatu={handleSelectMatatu}
+                    isLoading={loading}
+                    hasAnyLocation={hasAnyLocation}
+                    driverMode={driverOnline}
+                  />
+                )}
+              </div>
+            </div>
+          </div>
         </div>
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-slate-950 to-transparent" />
+      </section>
+
+      <section className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-800/80 bg-slate-950/95 backdrop-blur md:static md:mt-3 md:rounded-2xl md:border md:border-slate-800/80 md:bg-slate-950/90">
+        <div className="radaa-shell flex items-center justify-between gap-3 py-3 text-[11px] text-slate-100 md:py-2">
+          <div className="flex flex-col">
+            <span className="font-semibold">
+              {destinationDescription || "Set your destination"}
+            </span>
+            <span className="text-[10px] text-slate-400">
+              {riderStatus === "waiting"
+                ? "Waiting for a matatu on this route"
+                : "We use this to show matatus along your route"}
+            </span>
+          </div>
+          <button
+            type="button"
+            disabled={!destinationPlaceId || riderStatus === "waiting"}
+            onClick={handleRequestMatatu}
+            className={`inline-flex items-center rounded-full px-4 py-1.5 text-[11px] font-semibold shadow-soft transition disabled:cursor-not-allowed disabled:opacity-60 ${
+              destinationPlaceId && riderStatus !== "waiting"
+                ? "bg-amber-400 text-slate-950 hover:bg-amber-300"
+                : "bg-slate-800 text-slate-300"
+            }`}
+          >
+            {riderStatus === "waiting" ? "Waiting…" : "Request Matatu"}
+          </button>
+        </div>
       </section>
 
       {!liveOnlyMapEnabled && (

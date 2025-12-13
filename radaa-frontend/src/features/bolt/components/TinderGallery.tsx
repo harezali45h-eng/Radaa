@@ -74,7 +74,7 @@ export function TinderGallery({ items, onOpenOnMap }: TinderGalleryProps) {
   if (!active) {
     return (
       <div className={`${boltCardClass} p-4 text-xs text-slate-300`}>
-        No nearby matatus to show right now.
+        No nearby matatus to show right now. Kaa Radaa ujue mat yako iko wapi — check again in a few minutes.
       </div>
     );
   }

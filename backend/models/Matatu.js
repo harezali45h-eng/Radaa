@@ -46,7 +46,16 @@ const matatuSchema = new mongoose.Schema({
   },
   speed: { type: Number, default: 0 },
   isOnline: { type: Boolean, default: false },
-  lastUpdated: { type: Date, default: Date.now }
+  lastUpdated: { type: Date, default: Date.now },
+  driverStatus: {
+    type: String,
+    enum: ["provisional", "active", "suspended"],
+    default: "provisional"
+  },
+  unverifiedMedia: {
+    type: Boolean,
+    default: true
+  }
 });
 
 matatuSchema.index({ lastLocation: "2dsphere" });

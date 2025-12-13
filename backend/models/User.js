@@ -44,6 +44,11 @@ const userSchema = new mongoose.Schema({
     type: String,
     enum: ["pending", "approved", "rejected"],
     default: "pending"
+  },
+  driverStatus: {
+    type: String,
+    enum: ["provisional", "active", "suspended"],
+    default: "provisional"
   }
 });
 

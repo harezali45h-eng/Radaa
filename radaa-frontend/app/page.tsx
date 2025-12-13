@@ -50,6 +50,9 @@ export default function HomePage() {
         <h1 className="text-3xl font-semibold tracking-tight">
           Welcome to Radaa
         </h1>
+        <p className="text-sm font-semibold text-emerald-300">
+          Kaa Radaa ujue mat yako iko wapi
+        </p>
         <p className="max-w-2xl text-sm text-slate-300">
           Track live matatus, manage your rides, and unlock free trips through
           the built-in loyalty program.

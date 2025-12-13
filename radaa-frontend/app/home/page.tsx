@@ -5,7 +5,7 @@ export default function AboutPage() {
     <main className="space-y-10 text-xs">
       <section className="space-y-3">
         <p className="inline-flex rounded-full bg-emerald-500/10 px-3 py-1 text-[11px] font-medium text-emerald-300">
-          Built for Nairobi matatu culture
+          Kaa Radaa ujue mat yako iko wapi
         </p>
         <h1 className="text-3xl font-semibold tracking-tight">
           Radaa is your live matatu radar.

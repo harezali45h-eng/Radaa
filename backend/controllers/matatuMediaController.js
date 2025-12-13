@@ -107,10 +107,19 @@ export const approveMatatuPhoto = async (req, res, next) => {
         }
       },
       { new: true }
-    ).select("photos");
+    ).select("photos unverifiedMedia");
 
     if (!matatu) {
       return res.status(404).json({ success: false, message: "Photo not found" });
+    }
+
+    const hasApproved = Array.isArray(matatu.photos)
+      ? matatu.photos.some((p) => p && p.status === "approved")
+      : false;
+
+    if (matatu.unverifiedMedia !== !hasApproved) {
+      matatu.unverifiedMedia = !hasApproved;
+      await matatu.save();
     }
 
     return res.json({ success: true, data: matatu.photos });
@@ -135,10 +144,19 @@ export const rejectMatatuPhoto = async (req, res, next) => {
         }
       },
       { new: true }
-    ).select("photos");
+    ).select("photos unverifiedMedia");
 
     if (!matatu) {
       return res.status(404).json({ success: false, message: "Photo not found" });
+    }
+
+    const hasApproved = Array.isArray(matatu.photos)
+      ? matatu.photos.some((p) => p && p.status === "approved")
+      : false;
+
+    if (matatu.unverifiedMedia !== !hasApproved) {
+      matatu.unverifiedMedia = !hasApproved;
+      await matatu.save();
     }
 
     return res.json({ success: true, data: matatu.photos });

@@ -2,12 +2,10 @@
 
 import { useRouter } from "next/navigation";
 import { useRealtime } from "@/context/realtimeContext";
-import { useTheme } from "@/context/ThemeContext";
 
 export default function BackToDashboardButton() {
   const router = useRouter();
   const { activeMode } = useRealtime();
-  const { primaryButtonClass } = useTheme();
 
   const handleClick = () => {
     const target =
@@ -20,7 +18,7 @@ export default function BackToDashboardButton() {
     <button
       type="button"
       onClick={handleClick}
-      className={`${primaryButtonClass} gap-1 text-xs`}
+      className="radaa-glass-pill gap-1 text-xs"
     >
       <span className="mr-1">&#8592;</span>
       Back to Dashboard

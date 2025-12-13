@@ -26,14 +26,13 @@ export default function DriverMatatuPhotosHubPage() {
       <header className="space-y-1">
         <h1 className="text-2xl font-semibold tracking-tight">My matatu photos</h1>
         <p className="text-xs text-slate-300">
-          Open the photos page for a specific matatu assigned to you.
+          Open the photos page for a specific matatu assigned to you. Adding clear photos is recommended but not required to go live during the pilot.
         </p>
       </header>
 
       <section className="space-y-3 rounded-xl border border-slate-800 bg-slate-900/80 p-4 text-xs">
         <p className="text-[11px] text-slate-300">
-          To upload photos for a matatu, you currently need its matatu ID in the
-          URL. If you know the ID, open the corresponding photos page:
+          To upload photos for a matatu, you currently need its matatu ID in the URL. If you know the ID, open the corresponding photos page:
         </p>
         <pre className="rounded-md bg-slate-950/80 px-3 py-2 text-[11px] text-slate-100">
           /dashboard/driver/matatu/&lt;matatuId&gt;/photos

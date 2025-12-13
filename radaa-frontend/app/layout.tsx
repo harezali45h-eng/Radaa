@@ -8,8 +8,8 @@ import { ThemeProvider } from "@/context/ThemeContext";
 import { AppRootClient } from "@/components/layout/AppRootClient";
 
 export const metadata: Metadata = {
-  title: "Radaa",
-  description: "Live matatu tracking and loyalty rides",
+  title: "Radaa – Kaa Radaa ujue mat yako iko wapi",
+  description: "Kaa Radaa ujue mat yako iko wapi",
 };
 
 export default function RootLayout({

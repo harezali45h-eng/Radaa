@@ -1,6 +1,7 @@
 import express from "express";
 import requireAuth from "../middleware/requireAuth.js";
 import { getDriverWallet, postDriverWithdrawal } from "../controllers/driverWalletController.js";
+import { changeDriverVehicle } from "../controllers/driverController.js";
 
 const router = express.Router();
 
@@ -18,5 +19,6 @@ router.use(requireAuth, requireDriverRole);
 
 router.get("/wallet", getDriverWallet);
 router.post("/withdraw", postDriverWithdrawal);
+router.post("/vehicle/change", changeDriverVehicle);
 
 export default router;

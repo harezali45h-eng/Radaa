@@ -32,7 +32,7 @@ const mapOptions: google.maps.MapOptions = {
   streetViewControl: false,
   mapTypeControl: false,
   fullscreenControl: false,
-  backgroundColor: "#020617",
+  backgroundColor: "#09141A",
 };
 
 export function LiveRadarMap({
@@ -111,7 +111,7 @@ export function LiveRadarMap({
   );
 
   return (
-    <div className="pointer-events-none fixed inset-0 -z-10 bg-[#020617]">
+    <div className="pointer-events-none fixed inset-0 -z-10 bg-[#09141A]">
       {(!isLoaded || loading) && !loadError && apiKey && (
         <div className="pointer-events-none absolute inset-0 animate-pulse bg-gradient-to-br from-slate-900 via-slate-950 to-slate-900" />
       )}

@@ -129,7 +129,7 @@ export default function BoltDashboardPage() {
   const driversOnline = matatus.length;
 
   return (
-    <div className="relative min-h-screen bg-slate-950 pb-24 pt-3">
+    <div className="relative min-h-screen bg-slate-950 pb-20 pt-3">
       {/* Map background */}
       <LiveRadarMap
         matatus={matatus}
@@ -163,8 +163,8 @@ export default function BoltDashboardPage() {
             }}
             className={`group relative flex h-32 flex-col justify-between overflow-hidden rounded-3xl border px-3 py-3 text-left text-xs transition-all duration-200 ease-snappy sm:h-40 ${
               activeTab === "map"
-                ? "border-emerald-400/80 bg-[radial-gradient(circle_at_0%_0%,rgba(248,181,0,0.85),transparent),radial-gradient(circle_at_100%_100%,rgba(236,72,153,0.9),transparent)] shadow-glow-mint"
-                : "border-slate-800/80 bg-[radial-gradient(circle_at_0%_0%,rgba(15,23,42,0.95),transparent),radial-gradient(circle_at_100%_100%,rgba(15,23,42,0.92),transparent)] opacity-85 hover:opacity-100 hover:border-emerald-400/70"
+                ? "border-emerald-400/80 bg-[radial-gradient(circle_at_0%_0%,rgba(255,138,0,0.85),transparent),radial-gradient(circle_at_100%_100%,rgba(184,76,255,0.9),transparent)] shadow-glow-mint"
+                : "border-slate-800/80 bg-[radial-gradient(circle_at_0%_0%,rgba(9,20,26,0.95),transparent),radial-gradient(circle_at_100%_100%,rgba(9,20,26,0.92),transparent)] opacity-85 hover:opacity-100 hover:border-emerald-400/70"
             }`}
           >
             <div>
@@ -200,8 +200,8 @@ export default function BoltDashboardPage() {
             }}
             className={`group relative flex h-32 flex-col justify-between overflow-hidden rounded-3xl border px-3 py-3 text-left text-xs transition-all duration-200 ease-snappy sm:h-40 ${
               activeTab === "gallery"
-                ? "border-amber-300/80 bg-[radial-gradient(circle_at_0%_0%,rgba(248,181,0,0.9),transparent),radial-gradient(circle_at_100%_100%,rgba(236,72,153,0.85),transparent)] shadow-soft"
-                : "border-slate-800/80 bg-[radial-gradient(circle_at_0%_0%,rgba(15,23,42,0.95),transparent),radial-gradient(circle_at_100%_100%,rgba(15,23,42,0.92),transparent)] opacity-85 hover:opacity-100 hover:border-amber-300/70"
+                ? "border-amber-300/80 bg-[radial-gradient(circle_at_0%_0%,rgba(255,138,0,0.9),transparent),radial-gradient(circle_at_100%_100%,rgba(184,76,255,0.85),transparent)] shadow-soft"
+                : "border-slate-800/80 bg-[radial-gradient(circle_at_0%_0%,rgba(9,20,26,0.95),transparent),radial-gradient(circle_at_100%_100%,rgba(9,20,26,0.92),transparent)] opacity-85 hover:opacity-100 hover:border-amber-300/70"
             }`}
           >
             <div>

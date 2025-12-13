@@ -55,6 +55,12 @@ export default function DriverLiveDashboardPage() {
 
   const role = (user as any)?.role as string | undefined;
   const isDriver = role === "driver";
+  const driverStatus = (user as any)?.driverStatus as
+    | "provisional"
+    | "active"
+    | "suspended"
+    | string
+    | undefined;
 
   const driverOnboardEnabled = useIsFeatureEnabled("driver_onboard_v1", false);
 
@@ -340,6 +346,47 @@ export default function DriverLiveDashboardPage() {
   const hasIncoming = incoming.length > 0;
   const hasAssigned = assigned.length > 0;
 
+  const routeDemand = useMemo(
+    () => {
+      if (!hasIncoming) {
+        return [] as Array<{ id: string; label: string; riderCount: number }>;
+      }
+
+      const buckets = new Map<string, { id: string; label: string; riderCount: number }>();
+
+      incoming.forEach((ride) => {
+        const anyRide = ride as any;
+        const pickup = anyRide.pickup || anyRide.pickupLocation || anyRide.location || null;
+
+        let routeId = "sim-route-default";
+        let label = "Sample corridor (simulated)";
+
+        if (pickup && Array.isArray(pickup.coordinates) && pickup.coordinates.length === 2) {
+          const [lng, lat] = pickup.coordinates as [number, number];
+
+          if (typeof lat === "number" && typeof lng === "number") {
+            const hash = Math.abs(Math.round(lat * 100) + Math.round(lng * 100));
+            const idx = (hash % 3) + 1;
+            routeId = `sim-route-${idx}`;
+            label = `Simulated route ${idx}`;
+          }
+        }
+
+        const existing = buckets.get(routeId) || {
+          id: routeId,
+          label,
+          riderCount: 0,
+        };
+
+        existing.riderCount += 1;
+        buckets.set(routeId, existing);
+      });
+
+      return Array.from(buckets.values()).sort((a, b) => b.riderCount - a.riderCount);
+    },
+    [incoming, hasIncoming],
+  );
+
   const passengerMarkers = useMemo(
     () =>
       incoming
@@ -461,6 +508,18 @@ export default function DriverLiveDashboardPage() {
             New driver experience is enabled for your account.
           </p>
         )}
+        {driverStatus === "provisional" && (
+          <p className="text-[11px] text-amber-200">
+            You are live while we verify your details. Mpesa payouts and paid
+            features unlock after SACCO/admin approval.
+          </p>
+        )}
+        {driverStatus === "suspended" && (
+          <p className="text-[11px] text-red-300">
+            Your driver account is currently suspended. Contact your SACCO or
+            support for assistance.
+          </p>
+        )}
         <div className="mt-2 flex items-center justify-between gap-3">
           <div className="inline-flex items-center gap-2 text-[11px] text-slate-400">
             <span
@@ -546,6 +605,50 @@ export default function DriverLiveDashboardPage() {
           driverMode
           showCenterOnMe
         />
+      </section>
+
+      <section className="rounded-xl border border-slate-800 bg-slate-900/80 p-3 text-xs">
+        <div className="mb-2 flex items-center justify-between gap-2">
+          <div>
+            <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+              Route-based rider demand (simulated)
+            </div>
+            <p className="text-[11px] text-slate-400">
+              Riders are grouped into sample routes based on pickup location. Counts are simulated
+              for this MVP.
+            </p>
+          </div>
+          <span className="rounded-full bg-slate-800 px-2 py-0.5 text-[10px] text-slate-200">
+            {routeDemand.reduce((sum, r) => sum + r.riderCount, 0)} riders total
+          </span>
+        </div>
+
+        {routeDemand.length === 0 && (
+          <p className="text-[11px] text-slate-400">
+            No riders waiting on the sampled routes right now.
+          </p>
+        )}
+
+        {routeDemand.length > 0 && (
+          <ul className="divide-y divide-slate-800/80">
+            {routeDemand.map((route) => (
+              <li key={route.id} className="flex items-center justify-between gap-3 py-2">
+                <div className="space-y-0.5 text-[11px]">
+                  <div className="font-semibold text-slate-100">{route.label}</div>
+                  <div className="text-[10px] text-slate-500">Route ID: {route.id}</div>
+                </div>
+                <div className="text-right text-[11px] font-medium text-slate-100">
+                  {route.riderCount} riders waiting on this route
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        <p className="mt-2 text-[10px] text-slate-500">
+          This view is powered by an in-memory grouping of nearby requests and is clearly marked as
+          simulated while full route analytics are still under construction.
+        </p>
       </section>
 
       {error && (

@@ -57,6 +57,12 @@ export const registerUser = async (req, res) => {
       email: user.email,
       phone: user.phone,
       handle: user.handle,
+      role: user.role,
+      enabled: user.enabled,
+      driverProfile: user.driverProfile,
+      driverVerificationStatus: user.driverVerificationStatus,
+      driverStatus: user.driverStatus,
+      saccoProfile: user.saccoProfile,
       token,
     });
   } catch (err) {
@@ -99,6 +105,12 @@ export const loginUser = async (req, res) => {
       username: user.username,
       phone: user.phone,
       handle: user.handle,
+      role: user.role,
+      enabled: user.enabled,
+      driverProfile: user.driverProfile,
+      driverVerificationStatus: user.driverVerificationStatus,
+      driverStatus: user.driverStatus,
+      saccoProfile: user.saccoProfile,
       token,
     });
   } catch (err) {
@@ -123,6 +135,12 @@ export const getProfile = async (req, res) => {
       email: user.email,
       phone: user.phone,
       handle: user.handle,
+      role: user.role,
+      enabled: user.enabled,
+      driverProfile: user.driverProfile,
+      driverVerificationStatus: user.driverVerificationStatus,
+      driverStatus: user.driverStatus,
+      saccoProfile: user.saccoProfile,
       createdAt: user.createdAt,
     });
   } catch (err) {

@@ -17,6 +17,12 @@ export default function DriverWalletDashboardPage() {
 
   const role = (user as any)?.role as string | undefined;
   const isDriver = role === "driver";
+  const driverStatus = (user as any)?.driverStatus as
+    | "provisional"
+    | "active"
+    | "suspended"
+    | string
+    | undefined;
 
   const [wallet, setWallet] = useState<DriverWallet | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -139,6 +145,17 @@ export default function DriverWalletDashboardPage() {
           View your ride earnings, pending withdrawals, and request Mpesa payouts.
         </p>
       </header>
+
+      {driverStatus === "provisional" && (
+        <div className="rounded-md border border-amber-500/50 bg-amber-500/10 px-3 py-2 text-[11px] text-amber-100">
+          <div className="font-semibold">Live – verification in progress</div>
+          <p className="mt-0.5 text-amber-100/90">
+            Unaweza kuonekana kwa ramani na kupokea requests sasa hivi. Malipo na
+            withdrawals za Mpesa zitafunguliwa mara tu uhakiki wa driver
+            utakapoidhinishwa na SACCO/admin.
+          </p>
+        </div>
+      )}
 
       {loading && (
         <div className="space-y-2">

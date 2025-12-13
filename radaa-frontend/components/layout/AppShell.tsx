@@ -216,9 +216,9 @@ export function AppShell({ children }: AppShellProps) {
       </header>
 
       <main className="flex-1">
-        <div className="mx-auto max-w-6xl px-4 py-6">
+        <div className="mx-auto max-w-6xl px-4 py-4 md:py-6">
           {showBackToDashboard && (
-            <div className="mb-4 flex justify-end">
+            <div className="mb-3 flex justify-start">
               <BackToDashboardButton />
             </div>
           )}
@@ -337,14 +337,14 @@ export function AppShell({ children }: AppShellProps) {
         </div>
       )}
       {isBottomNavEligible && (
-        <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-800/80 bg-slate-950/95 backdrop-blur-md md:hidden">
-          <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-2.5 text-[11px]">
+        <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-slate-800/80 bg-[rgba(9,20,26,0.96)] backdrop-blur-md">
+          <div className="mx-auto flex max-w-6xl items-center justify-between px-4 md:px-6 py-2.5 text-[11px]">
             <div className="flex w-full items-center justify-between gap-4">
               <Link
                 href="/dashboard"
                 className={`flex flex-1 flex-col items-center gap-0.5 rounded-full px-2 py-1.5 ${
                   pathname === "/dashboard"
-                    ? "text-sky-300"
+                    ? "text-sky-400"
                     : "text-slate-400 hover:text-slate-200"
                 }`}
               >
@@ -360,7 +360,7 @@ export function AppShell({ children }: AppShellProps) {
                 }
                 className={`flex flex-1 flex-col items-center gap-0.5 rounded-full px-2 py-1.5 ${
                   liveTabActive
-                    ? "text-sky-300"
+                    ? "text-sky-400"
                     : "text-slate-400 hover:text-slate-200"
                 }`}
               >
@@ -370,7 +370,7 @@ export function AppShell({ children }: AppShellProps) {
                 href="/profile"
                 className={`flex flex-1 flex-col items-center gap-0.5 rounded-full px-2 py-1.5 ${
                   pathname.startsWith("/profile")
-                    ? "text-sky-300"
+                    ? "text-sky-400"
                     : "text-slate-400 hover:text-slate-200"
                 }`}
               >
