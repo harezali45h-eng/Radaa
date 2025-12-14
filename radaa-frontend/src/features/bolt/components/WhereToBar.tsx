@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useLoadScript } from "@react-google-maps/api";
 import type { BoltLatLng, BoltSuggestion } from "@/src/features/bolt/types";
 import {
   boltBottomBarClass,
@@ -9,6 +8,7 @@ import {
   boltPrimaryButtonClass,
 } from "@/src/features/bolt/utils/theme";
 import { useBoltSuggestions } from "@/src/features/bolt/hooks/useBoltSuggestions";
+import { useGoogleMaps } from "@/context/GoogleMapsContext";
 
 interface WhereToBarProps {
   onSelectSuggestion?: (item: BoltSuggestion) => void;
@@ -30,17 +30,7 @@ export function WhereToBar({
   const { query, setQuery, suggestions, recent, loading } = useBoltSuggestions();
   const [placeSuggestions, setPlaceSuggestions] = useState<BoltSuggestion[]>([]);
 
-  const rawKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? "";
-  const apiKey =
-    rawKey && rawKey.toLowerCase().includes("your-google-maps-api-key")
-      ? ""
-      : rawKey;
-
-  const { isLoaded } = useLoadScript({
-    googleMapsApiKey: apiKey,
-    id: "radaa-where-to-places-script",
-    libraries: ["places"],
-  });
+  const { isLoaded, apiKey } = useGoogleMaps();
 
   useEffect(() => {
     const trimmed = query.trim();
@@ -51,7 +41,12 @@ export function WhereToBar({
 
     let cancelled = false;
     const service = new google.maps.places.AutocompleteService();
-    service.getPlacePredictions({ input: trimmed }, (predictions) => {
+    service.getPlacePredictions(
+      {
+        input: trimmed,
+        componentRestrictions: { country: "ke" },
+      },
+      (predictions) => {
       if (cancelled) return;
       if (!predictions || !Array.isArray(predictions)) {
         setPlaceSuggestions([]);
@@ -67,7 +62,8 @@ export function WhereToBar({
         location: null,
       }));
       setPlaceSuggestions(mapped);
-    });
+    },
+    );
 
     return () => {
       cancelled = true;

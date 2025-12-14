@@ -1,7 +1,8 @@
 "use client";
 
 import { useMemo } from "react";
-import { GoogleMap, Marker, useLoadScript } from "@react-google-maps/api";
+import { GoogleMap, Marker } from "@react-google-maps/api";
+import { useGoogleMaps } from "@/context/GoogleMapsContext";
 import type { LatLng, MatatuLike } from "@/lib/map/markerHelpers";
 
 interface PassengerPoint {
@@ -57,16 +58,7 @@ export default function GoogleMapContainer({
   hasAnyLocation,
   showCenterOnMe = true,
 }: GoogleMapContainerProps) {
-  const rawKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? "";
-  const apiKey =
-    rawKey && rawKey.toLowerCase().includes("your-google-maps-api-key")
-      ? ""
-      : rawKey;
-
-  const { isLoaded, loadError } = useLoadScript({
-    googleMapsApiKey: apiKey,
-    id: "radaa-google-maps-script",
-  });
+  const { isLoaded, loadError, apiKey } = useGoogleMaps();
 
   const center = useMemo<LatLng>(() => {
     if (userLocation) return userLocation;

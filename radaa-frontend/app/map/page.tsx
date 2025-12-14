@@ -7,6 +7,7 @@ import MapContainer from "@/components/map/MapContainer";
 import GoogleMapContainer from "@/components/map/GoogleMapContainer";
 import { useRealtime } from "@/context/realtimeContext";
 import { useIsFeatureEnabled } from "@/context/FeatureFlagContext";
+import { useGoogleMaps } from "@/context/GoogleMapsContext";
 import {
   searchRoutes,
   getMatatusOnRoute,
@@ -88,6 +89,8 @@ export default function MapPage() {
   const globalMapEnabled = useIsFeatureEnabled("global_map_v1", false);
   const liveOnlyMapEnabled = useIsFeatureEnabled("ff_live_only_map", false);
 
+  const { isLoaded: mapsLoaded, apiKey } = useGoogleMaps();
+
   const [matatus, setMatatus] = useState<Matatu[]>([]);
   const [passengers, setPassengers] = useState<PassengerMarker[]>([]);
   const [selectedMatatuId, setSelectedMatatuId] = useState<string | null>(null);
@@ -115,6 +118,7 @@ export default function MapPage() {
     null,
   );
   const [destinationDescription, setDestinationDescription] = useState("");
+  const [, setDestinationLatLng] = useState<LatLng | null>(null);
   const [riderStatus, setRiderStatus] = useState<RiderStatus>("idle");
 
   useEffect(() => {
@@ -549,47 +553,39 @@ export default function MapPage() {
 
   useEffect(() => {
     const query = destinationQuery.trim();
-    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? "";
 
-    if (!query || !apiKey) {
+    if (!mapsLoaded || !apiKey || query.length < 3) {
       setDestinationSuggestions([]);
       return;
     }
 
     let cancelled = false;
-    const timeoutId = window.setTimeout(async () => {
-      try {
-        const params = new URLSearchParams();
-        params.set("input", query);
-        params.set("key", apiKey);
-
-        const res = await fetch(
-          `https://maps.googleapis.com/maps/api/place/autocomplete/json?${params.toString()}`,
-        );
-        const data: any = await res.json();
+    const service = new google.maps.places.AutocompleteService();
+    service.getPlacePredictions(
+      {
+        input: query,
+        componentRestrictions: { country: "ke" },
+      },
+      (predictions) => {
         if (cancelled) return;
-
-        const predictions = Array.isArray(data?.predictions)
-          ? data.predictions
-          : [];
+        if (!predictions || !Array.isArray(predictions)) {
+          setDestinationSuggestions([]);
+          return;
+        }
 
         setDestinationSuggestions(
-          predictions.map((p: any) => ({
+          predictions.map((p) => ({
             placeId: String(p.place_id ?? ""),
             description: String(p.description ?? ""),
           })),
         );
-      } catch {
-        if (cancelled) return;
-        setDestinationSuggestions([]);
-      }
-    }, 250);
+      },
+    );
 
     return () => {
       cancelled = true;
-      window.clearTimeout(timeoutId);
     };
-  }, [destinationQuery]);
+  }, [apiKey, destinationQuery, mapsLoaded]);
 
   const handleSelectMatatu = useCallback((id: string) => {
     setSelectedMatatuId(id);
@@ -1055,9 +1051,11 @@ export default function MapPage() {
                   type="text"
                   value={destinationQuery}
                   onChange={(event) => {
-                    setDestinationQuery(event.target.value);
+                    const next = event.target.value;
+                    setDestinationQuery(next);
                     setDestinationPlaceId(null);
-                    setDestinationDescription(event.target.value);
+                    setDestinationDescription(next);
+                    setDestinationLatLng(null);
                   }}
                   placeholder="Search a destination, stage, or landmark"
                   className="w-full bg-transparent text-slate-50 placeholder:text-slate-500 outline-none"
@@ -1073,6 +1071,44 @@ export default function MapPage() {
                             setDestinationDescription(s.description || "");
                             setDestinationQuery(s.description || "");
                             setDestinationSuggestions([]);
+
+                            if (mapsLoaded && apiKey && s.placeId) {
+                              const element = document.createElement("div");
+                              const service = new google.maps.places.PlacesService(
+                                element,
+                              );
+                              service.getDetails(
+                                {
+                                  placeId: s.placeId,
+                                  fields: [
+                                    "geometry",
+                                    "name",
+                                    "formatted_address",
+                                  ],
+                                },
+                                (result, status) => {
+                                  if (
+                                    !result ||
+                                    status !==
+                                      google.maps.places.PlacesServiceStatus.OK ||
+                                    !result.geometry ||
+                                    !result.geometry.location
+                                  ) {
+                                    setDestinationLatLng(null);
+                                    return;
+                                  }
+
+                                  const loc: LatLng = {
+                                    lat: result.geometry.location.lat(),
+                                    lng: result.geometry.location.lng(),
+                                  };
+
+                                  setDestinationLatLng(loc);
+                                },
+                              );
+                            } else {
+                              setDestinationLatLng(null);
+                            }
                           }}
                           className="w-full rounded-lg px-2 py-1 text-left text-[11px] text-slate-100 hover:bg-slate-800/80"
                         >

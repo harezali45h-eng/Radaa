@@ -5,6 +5,7 @@ import { NotificationProvider } from "@/context/NotificationContext";
 import { RealtimeProvider } from "@/context/realtimeContext";
 import { FeatureFlagProvider } from "@/context/FeatureFlagContext";
 import { ThemeProvider } from "@/context/ThemeContext";
+import { GoogleMapsProvider } from "@/context/GoogleMapsContext";
 import { AppRootClient } from "@/components/layout/AppRootClient";
 
 export const metadata: Metadata = {
@@ -25,7 +26,9 @@ export default function RootLayout({
             <AuthProvider>
               <RealtimeProvider>
                 <ThemeProvider>
-                  <AppRootClient>{children}</AppRootClient>
+                  <GoogleMapsProvider>
+                    <AppRootClient>{children}</AppRootClient>
+                  </GoogleMapsProvider>
                 </ThemeProvider>
               </RealtimeProvider>
             </AuthProvider>

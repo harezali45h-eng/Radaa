@@ -1,7 +1,8 @@
 "use client";
 
 import { useMemo, useRef } from "react";
-import { GoogleMap, Marker, useLoadScript } from "@react-google-maps/api";
+import { GoogleMap, Marker } from "@react-google-maps/api";
+import { useGoogleMaps } from "@/context/GoogleMapsContext";
 import type { BoltBounds, BoltLatLng, BoltLiveMatatu } from "@/src/features/bolt/types";
 
 interface LiveRadarMapProps {
@@ -33,6 +34,8 @@ const mapOptions: google.maps.MapOptions = {
   mapTypeControl: false,
   fullscreenControl: false,
   backgroundColor: "#09141A",
+  // Home dashboard background map should not capture gestures.
+  gestureHandling: "none",
 };
 
 export function LiveRadarMap({
@@ -44,16 +47,7 @@ export function LiveRadarMap({
   focusedMatatuId,
   loading,
 }: LiveRadarMapProps) {
-  const rawKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? "";
-  const apiKey =
-    rawKey && rawKey.toLowerCase().includes("your-google-maps-api-key")
-      ? ""
-      : rawKey;
-
-  const { isLoaded, loadError } = useLoadScript({
-    googleMapsApiKey: apiKey,
-    id: "radaa-bolt-google-maps-script",
-  });
+  const { isLoaded, loadError, apiKey } = useGoogleMaps();
 
   const mapRef = useRef<google.maps.Map | null>(null);
 
