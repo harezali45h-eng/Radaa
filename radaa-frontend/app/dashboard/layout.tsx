@@ -87,13 +87,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                   <span className="text-[10px] text-slate-400">History</span>
                 </Link>
                 <Link
-                  href="/profile"
-                  className="flex items-center justify-between rounded-md px-3 py-2 text-slate-300 transition hover:bg-slate-800/80 hover:text-white"
-                >
-                  <span>Support</span>
-                  <span className="text-[10px] text-slate-400">Profile</span>
-                </Link>
-                <Link
                   href="/home"
                   className="flex items-center justify-between rounded-md px-3 py-2 text-slate-300 transition hover:bg-slate-800/80 hover:text-white"
                 >

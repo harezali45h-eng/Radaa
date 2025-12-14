@@ -72,7 +72,8 @@ export function AppShell({ children }: AppShellProps) {
     pathname.startsWith("/profile") ||
     pathname.startsWith("/payments") ||
     pathname.startsWith("/track") ||
-    pathname === "/gallery";
+    pathname === "/gallery" ||
+    pathname === "/free-ride";
 
   const isShellNavContext = !isAuthRoute && !isMarketingHome && isShellRouteCore;
 
@@ -123,14 +124,16 @@ export function AppShell({ children }: AppShellProps) {
               <button
                 type="button"
                 onClick={() => setMobileNavOpen(true)}
-                className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-slate-700 text-slate-200 hover:border-sky-500 hover:text-sky-200"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-600 bg-slate-900/70 text-slate-100 shadow-soft hover:border-emerald-400 hover:bg-slate-900 hover:text-emerald-200"
                 aria-label="Open navigation menu"
                 aria-expanded={mobileNavOpen}
                 aria-controls="radaa-mobile-nav"
               >
-                <span className="block h-0.5 w-4 rounded bg-slate-200" />
-                <span className="mt-1 block h-0.5 w-4 rounded bg-slate-200" />
-                <span className="mt-1 block h-0.5 w-4 rounded bg-slate-200" />
+                <span className="flex h-4 w-1 flex-col items-center justify-between">
+                  <span className="h-0.5 w-0.5 rounded-full bg-slate-100" />
+                  <span className="h-0.5 w-0.5 rounded-full bg-slate-100" />
+                  <span className="h-0.5 w-0.5 rounded-full bg-slate-100" />
+                </span>
               </button>
             )}
             <Link
@@ -254,7 +257,7 @@ export function AppShell({ children }: AppShellProps) {
           {children}
         </div>
       </main>
-      {isShellNavContext && mobileNavOpen && !simplifiedNavEnabled && (
+      {isShellNavContext && mobileNavOpen && (
         <div
           className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm md:hidden"
           role="dialog"
@@ -328,14 +331,6 @@ export function AppShell({ children }: AppShellProps) {
                 >
                   <span>Gallery</span>
                   <span className="text-[10px] text-slate-400">Matatus</span>
-                </Link>
-                <Link
-                  href="/profile"
-                  onClick={() => setMobileNavOpen(false)}
-                  className="flex min-h-[2.75rem] items-center justify-between rounded-xl px-4 py-2.5 text-[13px] font-semibold text-slate-50/90 hover:bg-white/10 active:bg-white/15"
-                >
-                  <span>Support</span>
-                  <span className="text-[10px] text-slate-400">Profile</span>
                 </Link>
                 <Link
                   href="/home"

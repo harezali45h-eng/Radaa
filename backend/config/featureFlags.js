@@ -20,6 +20,11 @@ export const FEATURE_FLAG_KEYS = {
   PAYMENT_CONFIRM_V1: "ff_payment_confirm",
   BOLT_LIVE_MAP_V1: "ff_bolt_live_map",
   DRIVER_PILOT_V1: "ff_driver_pilot_v1",
+  RIDES_CORE_V1: "FEATURE_RIDES_ENABLED",
+  WHERE_TO_CORE_V1: "FEATURE_WHERE_TO_ENABLED",
+  LIVE_DRIVERS_CORE_V1: "FEATURE_LIVE_DRIVERS_ENABLED",
+  MAPS_CORE_V1: "FEATURE_MAPS_ENABLED",
+  DASHBOARD_CORE_V1: "FEATURE_DASHBOARD_ENABLED",
 };
 
 const parseBoolEnv = (value) => {
@@ -112,5 +117,35 @@ export const featureFlagDefaults = {
   [FEATURE_FLAG_KEYS.DRIVER_PILOT_V1]: {
     enabled: parseBoolEnv(process.env.FEATURE_FALLBACK_DRIVER_PILOT_V1),
     rolloutPercent: 0
+  },
+  [FEATURE_FLAG_KEYS.RIDES_CORE_V1]: {
+    enabled: process.env.FEATURE_RIDES_ENABLED
+      ? parseBoolEnv(process.env.FEATURE_RIDES_ENABLED)
+      : true,
+    rolloutPercent: 100
+  },
+  [FEATURE_FLAG_KEYS.WHERE_TO_CORE_V1]: {
+    enabled: process.env.FEATURE_WHERE_TO_ENABLED
+      ? parseBoolEnv(process.env.FEATURE_WHERE_TO_ENABLED)
+      : true,
+    rolloutPercent: 100
+  },
+  [FEATURE_FLAG_KEYS.LIVE_DRIVERS_CORE_V1]: {
+    enabled: process.env.FEATURE_LIVE_DRIVERS_ENABLED
+      ? parseBoolEnv(process.env.FEATURE_LIVE_DRIVERS_ENABLED)
+      : true,
+    rolloutPercent: 100
+  },
+  [FEATURE_FLAG_KEYS.MAPS_CORE_V1]: {
+    enabled: process.env.FEATURE_MAPS_ENABLED
+      ? parseBoolEnv(process.env.FEATURE_MAPS_ENABLED)
+      : true,
+    rolloutPercent: 100
+  },
+  [FEATURE_FLAG_KEYS.DASHBOARD_CORE_V1]: {
+    enabled: process.env.FEATURE_DASHBOARD_ENABLED
+      ? parseBoolEnv(process.env.FEATURE_DASHBOARD_ENABLED)
+      : true,
+    rolloutPercent: 100
   }
 };

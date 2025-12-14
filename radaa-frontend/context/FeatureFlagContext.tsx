@@ -50,7 +50,7 @@ export function FeatureFlagProvider({ children }: { children: ReactNode }) {
         }
       } catch (err) {
         if (cancelled) return;
-        // Keep new UI safely OFF if flags cannot be loaded
+        // Default to all features enabled if flags cannot be loaded
         setFlags({});
         const message =
           err instanceof Error ? err.message : "Failed to load feature flags";
@@ -101,12 +101,13 @@ export function useIsFeatureEnabled(
 
   const flagsLoaded = !loading && Boolean(flags);
 
+  // ui_revamp_v1 should be treated as enabled by default while loading or missing
   if (key === "ui_revamp_v1" && !flagsLoaded) {
     return true;
   }
 
   if (loading || !flags) {
-    return fallbackEnabled;
+    return fallbackEnabled ?? true;
   }
 
   const entry = flags[key];
@@ -115,10 +116,12 @@ export function useIsFeatureEnabled(
     if (key === "ui_revamp_v1") {
       return true;
     }
-    return false;
+    // Default missing flags to enabled
+    return true;
   }
 
-  return Boolean(entry.enabled);
+  const enabled = entry.enabled ?? true;
+  return Boolean(enabled);
 }
 
 interface FeatureGateProps {

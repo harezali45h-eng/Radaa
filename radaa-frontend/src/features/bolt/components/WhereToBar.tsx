@@ -121,6 +121,9 @@ export function WhereToBar({
     return merged;
   }, [placeSuggestions, suggestions]);
 
+  const isQueryReady = query.trim().length > 0;
+  const effectiveCanRequestRide = isQueryReady || Boolean(canRequestRide);
+
   const containerClass = inline
     ? "mt-4"
     : boltBottomBarClass;
@@ -222,7 +225,7 @@ export function WhereToBar({
             )}
           </div>
         )}
-        {canRequestRide && (
+        {effectiveCanRequestRide && (
           <button
             type="button"
             onClick={onRequestRide}

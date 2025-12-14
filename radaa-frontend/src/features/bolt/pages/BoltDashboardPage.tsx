@@ -107,11 +107,8 @@ export default function BoltDashboardPage() {
   };
 
   const handleRequestRide = async () => {
-    if (!intent.destination) {
-      return;
-    }
-
-    const dest: BoltLatLng = intent.destination;
+    const dest: BoltLatLng =
+      intent.destination ?? { lat: 0.0, lng: 0.0 };
     const routeName =
       selectedDestination?.primaryText ?? intent.label ?? undefined;
 
@@ -173,8 +170,10 @@ export default function BoltDashboardPage() {
               setActiveTab("gallery");
               router.push(galleryHref);
             }}
-            className={`group ${boltCardClass} h-32 text-xs transition-transform duration-200 ease-snappy hover:-translate-y-1 hover:scale-[1.01] sm:h-40 ${
-              activeTab === "gallery" ? "shadow-glow-kenya" : "opacity-85"
+            className={`group ${boltCardClass} h-32 text-xs transition-transform duration-200 ease-snappy hover:-translate-y-1 hover:scale-[1.01] sm:h-40 cursor-pointer ${
+              activeTab === "gallery"
+                ? "shadow-glow-kenya bg-emerald-500/20 border-emerald-400/60"
+                : "opacity-90 hover:bg-emerald-500/10 hover:border-emerald-300/50"
             }`}
           >
             <div className="relative z-10 flex h-full flex-col justify-between px-3 py-3 text-left">

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { getLoyaltyStatus } from "@/lib/api";
+import BackToDashboardButton from "@/components/BackToDashboardButton";
 
 interface LoyaltyStatus {
   userId: string;
@@ -73,6 +74,9 @@ export default function FreeRidePage() {
 
   return (
     <div className="space-y-8 text-xs">
+      <div className="mb-3">
+        <BackToDashboardButton />
+      </div>
       <header className="space-y-2">
         <h1 className="text-2xl font-semibold tracking-tight">Loyalty Progress</h1>
         <p className="max-w-md text-slate-300">
