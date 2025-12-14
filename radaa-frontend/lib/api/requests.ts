@@ -78,6 +78,8 @@ export interface EphemeralRequestMeta {
   tags?: string[];
   estimatedFare?: number;
   vehicleType?: string;
+  routeId?: string;
+  stageId?: string;
 }
 
 export interface EphemeralRequestSummary {
@@ -94,6 +96,8 @@ export interface EphemeralRequestSummary {
     distanceMeters: number;
     saccoId: string | null;
   } | null;
+  routeId?: string | null;
+  stageId?: string | null;
 }
 
 export interface CreateEphemeralRequestPayload {

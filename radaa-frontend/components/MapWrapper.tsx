@@ -46,6 +46,8 @@ export default function MapWrapper(props: MapWrapperProps) {
         onSelectMatatu={props.onSelectMatatu}
         isLoading={props.isLoading}
         hasAnyLocation={props.hasAnyLocation}
+        driverMode={props.driverMode}
+        mode={props.driverMode ? "driver" : "user"}
         showCenterOnMe={props.showCenterOnMe}
       />
     );

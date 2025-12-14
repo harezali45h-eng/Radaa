@@ -83,11 +83,15 @@ export interface RequestRidePayload {
   destination?: RideLocation;
   saccoId?: string;
   matatuId?: string;
+  routeId?: string;
+  stageId?: string;
 }
 
 export interface RideRequest {
   _id: string;
   status: string;
+  routeId?: string | null;
+  stageId?: string | null;
   pickup?: {
     type: string;
     coordinates: [number, number];
@@ -107,6 +111,8 @@ export interface FareEstimateRequest {
   destination?: RideLocation;
   partySize?: number;
   routeName?: string;
+  routeId?: string;
+  stageId?: string;
 }
 
 export interface FareEstimateResponse {

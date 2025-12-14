@@ -51,6 +51,9 @@ export default function MapContainer({
   showCenterOnMe = true,
 }: MapContainerProps) {
   const showEmptyState = !isLoading && !hasAnyLocation;
+  const effectiveMode: "user" | "driver" = driverMode ? "driver" : "user";
+  const showMatatus = effectiveMode === "user";
+  const showPassengers = effectiveMode === "driver";
 
   return (
     <div className="relative mt-4 min-h-[320px] h-[55vh] md:h-[65vh] overflow-hidden rounded-lg bg-slate-950">
@@ -68,28 +71,30 @@ export default function MapContainer({
 
       {!isLoading && !showEmptyState && (
         <>
-          {matatus.map((m) => {
-            const position = displayPositions[m.id] ?? m.location ?? null;
-            if (!position) return null;
+          {showMatatus &&
+            matatus.map((m) => {
+              const position = displayPositions[m.id] ?? m.location ?? null;
+              if (!position) return null;
 
-            const style = project(position);
-            const status = resolveStatus(m, driverMode);
+              const style = project(position);
+              const status = resolveStatus(m, driverMode);
 
-            return (
-              <MatatuMarker
-                key={m.id}
-                matatu={m}
-                status={status}
-                style={style}
-                onSelect={() => onSelectMatatu(m.id)}
-              />
-            );
-          })}
+              return (
+                <MatatuMarker
+                  key={m.id}
+                  matatu={m}
+                  status={status}
+                  style={style}
+                  onSelect={() => onSelectMatatu(m.id)}
+                />
+              );
+            })}
 
-          {passengers.map((p) => {
-            const style = project(p.location);
-            return <PassengerMarker key={p.id} style={style} />;
-          })}
+          {showPassengers &&
+            passengers.map((p) => {
+              const style = project(p.location);
+              return <PassengerMarker key={p.id} style={style} />;
+            })}
 
           {userLocation && (
             <div

@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ChangeEvent, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { useNotifications } from "@/context/NotificationContext";
 import { useSocket } from "@/hooks/useSocket";
@@ -14,6 +15,13 @@ import { getAssignedPassengers } from "@/lib/api/driver";
 import { useIsFeatureEnabled } from "@/context/FeatureFlagContext";
 import MapWrapper from "@/components/MapWrapper";
 import DriverRequestCard from "@/components/DriverRequestCard";
+import DriverDashboardShell from "@/components/driver/DriverDashboardShell";
+import {
+  getMatatuPhotosV2,
+  uploadMatatuPhotoV2,
+  type MatatuPhoto,
+} from "@/lib/api/matatu";
+import { getMapMarkers } from "@/lib/api";
 
 interface LatLng {
   lat: number;
@@ -39,6 +47,12 @@ function haversineDistanceMeters(a: LatLng, b: LatLng): number {
   return R * c;
 }
 
+const BACKEND_URL =
+  process.env.NEXT_PUBLIC_API_URL ||
+  process.env.NEXT_PUBLIC_BACKEND_URL ||
+  process.env.NEXT_PUBLIC_API_BASE_URL ||
+  "";
+
 export default function DriverLiveDashboardPage() {
   const { user, token, loading } = useAuth();
   const { addNotification } = useNotifications();
@@ -63,6 +77,7 @@ export default function DriverLiveDashboardPage() {
     | undefined;
 
   const driverOnboardEnabled = useIsFeatureEnabled("driver_onboard_v1", false);
+  const router = useRouter();
 
   const [coords, setCoords] = useState<LatLng | null>(null);
   const [incoming, setIncoming] = useState<RideRequest[]>([]);
@@ -70,6 +85,145 @@ export default function DriverLiveDashboardPage() {
   const [loadingIncoming, setLoadingIncoming] = useState<boolean>(true);
   const [loadingAssigned, setLoadingAssigned] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+
+  const [driverMatatuId, setDriverMatatuId] = useState<string | null>(null);
+  const [driverMatatuLabel, setDriverMatatuLabel] = useState<string | null>(
+    null,
+  );
+  const [photos, setPhotos] = useState<MatatuPhoto[]>([]);
+  const [photosLoading, setPhotosLoading] = useState(false);
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoCaption, setPhotoCaption] = useState("");
+  const [photoError, setPhotoError] = useState<string | null>(null);
+  const [photoSuccess, setPhotoSuccess] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!token || !isDriver) {
+      return;
+    }
+
+    const vehicleRegistration = (user as any)?.driverProfile
+      ?.vehicleRegistration as string | undefined;
+
+    if (!vehicleRegistration) {
+      return;
+    }
+
+    let cancelled = false;
+
+    const run = async () => {
+      try {
+        const markers: any = await getMapMarkers();
+        if (cancelled) return;
+
+        const raw = Array.isArray(markers) ? markers : [];
+        const target = vehicleRegistration.toLowerCase();
+
+        const match = raw.find((m: any) => {
+          const plate = String(m.plate ?? m.numberPlate ?? "").toLowerCase();
+          if (!plate) return false;
+          return plate.includes(target) || target.includes(plate);
+        });
+
+        if (!match) {
+          return;
+        }
+
+        const id = String(match.id ?? match._id ?? "");
+        if (!id) {
+          return;
+        }
+
+        setDriverMatatuId(id);
+        const label =
+          match.plate || match.numberPlate || id.slice(0, 6) || vehicleRegistration;
+        setDriverMatatuLabel(label);
+      } catch {
+        // Optional helper; failures should not impact core driver flows.
+      }
+    };
+
+    void run();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [token, isDriver, user]);
+
+  useEffect(() => {
+    if (!token || !isDriver || !driverMatatuId) {
+      return;
+    }
+
+    let cancelled = false;
+
+    const run = async () => {
+      try {
+        setPhotosLoading(true);
+        setPhotoError(null);
+        const next = await getMatatuPhotosV2(driverMatatuId, token);
+        if (cancelled) return;
+        setPhotos(Array.isArray(next) ? next : []);
+      } catch (err) {
+        if (cancelled) return;
+        const message =
+          err instanceof Error ? err.message : "Failed to load matatu photos";
+        setPhotoError(message);
+      } finally {
+        if (!cancelled) {
+          setPhotosLoading(false);
+        }
+      }
+    };
+
+    void run();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [driverMatatuId, token, isDriver]);
+
+  const handlePhotoFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+    if (!event.target.files || event.target.files.length === 0) {
+      setPhotoFile(null);
+      return;
+    }
+    const [file] = Array.from(event.target.files);
+    setPhotoFile(file ?? null);
+  };
+
+  const handleUploadPhoto = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (!token || !isDriver || !driverMatatuId || !photoFile) {
+      return;
+    }
+
+    try {
+      setPhotosLoading(true);
+      setPhotoError(null);
+      setPhotoSuccess(null);
+
+      const next = await uploadMatatuPhotoV2(
+        driverMatatuId,
+        photoFile,
+        { caption: photoCaption || undefined },
+        token,
+      );
+
+      setPhotos(Array.isArray(next) ? next : []);
+      setPhotoCaption("");
+      setPhotoFile(null);
+      setPhotoSuccess("Photo uploaded and pending review.");
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Failed to upload matatu photo";
+      setPhotoError(message);
+      setPhotoSuccess(null);
+    } finally {
+      setPhotosLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (!token || !isDriver) {
@@ -501,21 +655,24 @@ export default function DriverLiveDashboardPage() {
 
   if (loading || !user || !isDriver) {
     return (
-      <div className="space-y-4 text-xs">
-        <header className="space-y-1">
-          <h1 className="text-2xl font-semibold tracking-tight">
-            Driver live dashboard
-          </h1>
-          <p className="text-slate-300">
-            You must be signed in as a driver to view this dashboard.
-          </p>
-        </header>
-      </div>
+      <DriverDashboardShell active="live">
+        <div className="space-y-4 text-xs">
+          <header className="space-y-1">
+            <h1 className="text-2xl font-semibold tracking-tight">
+              Driver live dashboard
+            </h1>
+            <p className="text-slate-300">
+              You must be signed in as a driver to view this dashboard.
+            </p>
+          </header>
+        </div>
+      </DriverDashboardShell>
     );
   }
 
   return (
-    <div className="space-y-6 text-xs">
+    <DriverDashboardShell active="live">
+      <div className="space-y-6 text-xs">
       <header className="space-y-2">
         <h1 className="text-2xl font-semibold tracking-tight">
           Driver live dashboard
@@ -639,37 +796,102 @@ export default function DriverLiveDashboardPage() {
               for this MVP.
             </p>
           </div>
-          <span className="rounded-full bg-slate-800 px-2 py-0.5 text-[10px] text-slate-200">
-            {routeDemand.reduce((sum, r) => sum + r.riderCount, 0)} riders total
-          </span>
+          <button
+            type="button"
+            onClick={() => router.push("/gallery")}
+            className="rounded-full border border-slate-700 bg-slate-900/80 px-3 py-1 text-[11px] font-medium text-slate-100 hover:border-genz-accent hover:text-genz-accent"
+          >
+            Open gallery
+          </button>
         </div>
 
-        {routeDemand.length === 0 && (
-          <p className="text-[11px] text-slate-400">
-            No riders waiting on the sampled routes right now.
+        {!driverMatatuId && (
+          <p className="mt-2 text-[11px] text-slate-400">
+            We couldn’t automatically match your vehicle to a registered matatu yet.
+            You can continue driving normally while your SACCO links your account.
           </p>
         )}
 
-        {routeDemand.length > 0 && (
-          <ul className="divide-y divide-slate-800/80">
-            {routeDemand.map((route) => (
-              <li key={route.id} className="flex items-center justify-between gap-3 py-2">
-                <div className="space-y-0.5 text-[11px]">
-                  <div className="font-semibold text-slate-100">{route.label}</div>
-                  <div className="text-[10px] text-slate-500">Route ID: {route.id}</div>
-                </div>
-                <div className="text-right text-[11px] font-medium text-slate-100">
-                  {route.riderCount} riders waiting on this route
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
+        {driverMatatuId && (
+          <div className="mt-2 space-y-3">
+            <div className="text-[11px] text-slate-300">
+              Matatu: <span className="font-semibold text-slate-50">{driverMatatuLabel}</span>
+            </div>
 
-        <p className="mt-2 text-[10px] text-slate-500">
-          This view is powered by an in-memory grouping of nearby requests and is clearly marked as
-          simulated while full route analytics are still under construction.
-        </p>
+            <form onSubmit={handleUploadPhoto} className="space-y-2">
+              <div className="grid gap-2 md:grid-cols-[1.5fr,1.5fr]">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handlePhotoFileChange}
+                  className="block w-full cursor-pointer text-[11px] text-slate-300 file:mr-3 file:rounded-md file:border-0 file:bg-slate-800 file:px-2 file:py-1 file:text-[11px] file:font-medium file:text-slate-100 hover:file:bg-slate-700"
+                />
+                <input
+                  type="text"
+                  value={photoCaption}
+                  onChange={(event) => setPhotoCaption(event.target.value)}
+                  placeholder="Optional caption, e.g. ‘Front view near CBD’"
+                  className="w-full rounded-md border border-slate-700 bg-slate-950 px-2 py-1 text-[11px] text-slate-50 outline-none placeholder:text-slate-500 focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={!photoFile || photosLoading}
+                className="inline-flex items-center rounded-md bg-sky-600 px-3 py-1.5 text-[11px] font-medium text-white shadow-sm transition hover:bg-sky-500 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {photosLoading ? "Uploading…" : "Upload photo"}
+              </button>
+            </form>
+
+            {photoError && (
+              <p className="text-[11px] text-amber-200">{photoError}</p>
+            )}
+
+            {photoSuccess && (
+              <p className="text-[11px] text-emerald-200">{photoSuccess}</p>
+            )}
+
+            <div className="mt-1 grid grid-cols-3 gap-2">
+              {photos.length === 0 && !photosLoading && (
+                <p className="col-span-3 text-[11px] text-slate-400">
+                  No photos uploaded yet. Start with a clear exterior shot.
+                </p>
+              )}
+
+              {photos.map((photo) => {
+                const fullUrl = photo.url.startsWith("http")
+                  ? photo.url
+                  : `${BACKEND_URL}${photo.url}`;
+
+                return (
+                  <div
+                    key={photo._id}
+                    className="relative overflow-hidden rounded-md border border-slate-800 bg-slate-950"
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={fullUrl}
+                      alt={photo.caption || "Matatu photo"}
+                      className="h-20 w-full object-cover"
+                    />
+                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/90 to-transparent px-1.5 pb-1 pt-2 text-[9px] text-slate-200">
+                      <div className="flex items-center justify-between gap-1">
+                        <span className="truncate">
+                          {photo.caption || "Uploaded photo"}
+                        </span>
+                        {photo.status && (
+                          <span className="ml-1 shrink-0 rounded-full bg-slate-900/80 px-1.5 py-0.5 text-[8px] uppercase tracking-wide text-slate-300">
+                            {photo.status}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </section>
 
       {error && (
@@ -848,5 +1070,6 @@ export default function DriverLiveDashboardPage() {
         </div>
       </section>
     </div>
+    </DriverDashboardShell>
   );
 }

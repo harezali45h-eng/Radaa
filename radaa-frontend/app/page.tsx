@@ -4,12 +4,10 @@ import { useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
-import { useRealtime } from "@/context/realtimeContext";
 
 export default function HomePage() {
   const { user, token, loading } = useAuth();
   const router = useRouter();
-  const { activeMode } = useRealtime();
 
   useEffect(() => {
     if (loading) return;
@@ -24,15 +22,11 @@ export default function HomePage() {
 
     if (role === "admin") {
       target = "/dashboard/sacco";
-    } else if (role === "driver" && activeMode === "driver") {
-      target = "/dashboard/driver/live";
-    } else {
-      target = "/dashboard";
     }
 
-    console.log("[mode] root redirect", { role, activeMode, target });
+    console.log("[mode] root redirect", { role, target });
     router.replace(target);
-  }, [loading, user, token, router, activeMode]);
+  }, [loading, user, token, router]);
 
   const showLanding = !user && !token;
 

@@ -8,6 +8,7 @@ import GoogleMapContainer from "@/components/map/GoogleMapContainer";
 import { useRealtime } from "@/context/realtimeContext";
 import { useIsFeatureEnabled } from "@/context/FeatureFlagContext";
 import { useGoogleMaps } from "@/context/GoogleMapsContext";
+import { useAuth } from "@/context/AuthContext";
 import {
   searchRoutes,
   getMatatusOnRoute,
@@ -82,6 +83,7 @@ function haversineDistanceMeters(a: LatLng, b: LatLng): number {
 }
 
 export default function MapPage() {
+  const { user } = useAuth();
   const { connect, on, off } = useSocket();
   const { driverOnline, setDriverOnline } = useRealtime();
 
@@ -90,6 +92,10 @@ export default function MapPage() {
   const liveOnlyMapEnabled = useIsFeatureEnabled("ff_live_only_map", false);
 
   const { isLoaded: mapsLoaded, apiKey } = useGoogleMaps();
+
+  const role = (user as any)?.role as string | undefined;
+  const isDriver = role === "driver";
+  const mapDriverMode = isDriver && driverOnline;
 
   const [matatus, setMatatus] = useState<Matatu[]>([]);
   const [passengers, setPassengers] = useState<PassengerMarker[]>([]);
@@ -768,7 +774,7 @@ export default function MapPage() {
               onSelectMatatu={handleSelectMatatu}
               isLoading={loading}
               hasAnyLocation={hasAnyLocation}
-              driverMode={driverOnline}
+              driverMode={mapDriverMode}
             />
           ) : (
             <MapContainer
@@ -781,7 +787,7 @@ export default function MapPage() {
               onSelectMatatu={handleSelectMatatu}
               isLoading={loading}
               hasAnyLocation={hasAnyLocation}
-              driverMode={driverOnline}
+              driverMode={mapDriverMode}
             />
           )}
         </div>
@@ -798,32 +804,38 @@ export default function MapPage() {
           </p>
 
           <div className="mt-3 flex items-center justify-between text-[11px]">
-            <div className="inline-flex rounded-md border border-slate-700 bg-slate-950/60 p-0.5">
-              <button
-                type="button"
-                onClick={() => setDriverOnline(false)}
-                className={`rounded-sm px-2 py-0.5 text-[11px] ${
-                  !driverOnline
-                    ? "bg-slate-800 text-slate-100"
-                    : "text-slate-400 hover:text-slate-100"
-                }`}
-              >
-                Passenger
-              </button>
-              <button
-                type="button"
-                onClick={() => setDriverOnline(true)}
-                className={`ml-1 rounded-sm px-2 py-0.5 text-[11px] ${
-                  driverOnline
-                    ? "bg-emerald-600/70 text-emerald-50"
-                    : "text-slate-400 hover:text-slate-100"
-                }`}
-              >
-                Driver
-              </button>
-            </div>
+            {isDriver ? (
+              <div className="inline-flex rounded-md border border-slate-700 bg-slate-950/60 p-0.5">
+                <button
+                  type="button"
+                  onClick={() => setDriverOnline(false)}
+                  className={`rounded-sm px-2 py-0.5 text-[11px] ${
+                    !mapDriverMode
+                      ? "bg-slate-800 text-slate-100"
+                      : "text-slate-400 hover:text-slate-100"
+                  }`}
+                >
+                  Passenger
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDriverOnline(true)}
+                  className={`ml-1 rounded-sm px-2 py-0.5 text-[11px] ${
+                    mapDriverMode
+                      ? "bg-emerald-600/70 text-emerald-50"
+                      : "text-slate-400 hover:text-slate-100"
+                  }`}
+                >
+                  Driver
+                </button>
+              </div>
+            ) : (
+              <div className="inline-flex rounded-md border border-slate-700 bg-slate-950/60 px-2 py-0.5 text-[11px] text-slate-400">
+                Passenger view
+              </div>
+            )}
             <span className="text-[10px] text-slate-400">
-              Mode: {driverOnline ? "Driver" : "Passenger"}
+              Mode: {mapDriverMode ? "Driver" : "Passenger"}
             </span>
           </div>
 
@@ -874,7 +886,7 @@ export default function MapPage() {
               onSelectMatatu={handleSelectMatatu}
               isLoading={loading}
               hasAnyLocation={hasAnyLocation}
-              driverMode={driverOnline}
+              driverMode={mapDriverMode}
             />
           ) : (
             <MapContainer
@@ -887,7 +899,7 @@ export default function MapPage() {
               onSelectMatatu={handleSelectMatatu}
               isLoading={loading}
               hasAnyLocation={hasAnyLocation}
-              driverMode={driverOnline}
+              driverMode={mapDriverMode}
             />
           )}
 
@@ -1132,7 +1144,7 @@ export default function MapPage() {
                     onSelectMatatu={handleSelectMatatu}
                     isLoading={loading}
                     hasAnyLocation={hasAnyLocation}
-                    driverMode={driverOnline}
+                    driverMode={mapDriverMode}
                   />
                 ) : (
                   <MapContainer
@@ -1145,7 +1157,7 @@ export default function MapPage() {
                     onSelectMatatu={handleSelectMatatu}
                     isLoading={loading}
                     hasAnyLocation={hasAnyLocation}
-                    driverMode={driverOnline}
+                    driverMode={mapDriverMode}
                   />
                 )}
               </div>

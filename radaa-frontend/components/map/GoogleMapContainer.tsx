@@ -24,7 +24,16 @@ interface GoogleMapContainerProps {
   onSelectMatatu: (id: string) => void;
   isLoading: boolean;
   hasAnyLocation: boolean;
+  /**
+   * Deprecated: prefer using `mode` for clarity.
+   * When true, the map behaves as a driver map.
+   */
   driverMode?: boolean;
+  /**
+   * Explicit role mode for the map. When set to "user", only matatus are
+   * rendered; when set to "driver", only passengers are rendered.
+   */
+  mode?: "user" | "driver";
   showCenterOnMe?: boolean;
 }
 
@@ -119,8 +128,15 @@ export default function GoogleMapContainer({
   onSelectMatatu,
   isLoading,
   hasAnyLocation,
+  driverMode,
+  mode,
   showCenterOnMe = true,
 }: GoogleMapContainerProps) {
+  const effectiveMode: "user" | "driver" =
+    mode ?? (driverMode ? "driver" : "user");
+  const showMatatus = effectiveMode === "user";
+  const showPassengers = effectiveMode === "driver";
+
   const rawKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? "";
   const apiKey =
     rawKey && rawKey.toLowerCase().includes("your-google-maps-api-key")
@@ -174,58 +190,60 @@ export default function GoogleMapContainer({
           zoom={13}
           options={mapOptions}
         >
-          {matatus.map((m) => {
-            if (!m.location) return null;
+          {showMatatus &&
+            matatus.map((m) => {
+              if (!m.location) return null;
 
-            let icon: google.maps.Icon | undefined;
+              let icon: google.maps.Icon | undefined;
 
-            if (
-              typeof window !== "undefined" &&
-              typeof window.btoa === "function"
-            ) {
-              const svg = window.btoa(
-                `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
-                   <g fill="none" fill-rule="evenodd">
-                     <circle cx="16" cy="16" r="14" fill="#020617" fill-opacity="0.9"/>
-                     <path d="M8 19.5c0-4.5 2.7-8.5 8-8.5s8 4 8 8.5c0 1.1-.9 2-2 2H10c-1.1 0-2-.9-2-2z" fill="#FFD400"/>
-                     <rect x="11" y="12" width="10" height="5" rx="2" fill="#1F2937"/>
-                   </g>
-                 </svg>`,
+              if (
+                typeof window !== "undefined" &&
+                typeof window.btoa === "function"
+              ) {
+                const svg = window.btoa(
+                  `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+                     <g fill="none" fill-rule="evenodd">
+                       <circle cx="16" cy="16" r="14" fill="#020617" fill-opacity="0.9"/>
+                       <path d="M8 19.5c0-4.5 2.7-8.5 8-8.5s8 4 8 8.5c0 1.1-.9 2-2 2H10c-1.1 0-2-.9-2-2z" fill="#FFD400"/>
+                       <rect x="11" y="12" width="10" height="5" rx="2" fill="#1F2937"/>
+                     </g>
+                   </svg>`,
+                );
+
+                icon = {
+                  url: `data:image/svg+xml;base64,${svg}`,
+                  scaledSize: new google.maps.Size(36, 36),
+                  anchor: new google.maps.Point(18, 18),
+                };
+              }
+
+              return (
+                <Marker
+                  key={m.id}
+                  position={m.location}
+                  onClick={() => onSelectMatatu(m.id)}
+                  title={m.plate || m.numberPlate || "Matatu"}
+                  icon={icon}
+                />
               );
+            })}
 
-              icon = {
-                url: `data:image/svg+xml;base64,${svg}`,
-                scaledSize: new google.maps.Size(36, 36),
-                anchor: new google.maps.Point(18, 18),
-              };
-            }
-
-            return (
+          {showPassengers &&
+            passengers.map((p) => (
               <Marker
-                key={m.id}
-                position={m.location}
-                onClick={() => onSelectMatatu(m.id)}
-                title={m.plate || m.numberPlate || "Matatu"}
-                icon={icon}
+                key={p.id}
+                position={p.location}
+                title="Passenger"
+                icon={{
+                  path: google.maps.SymbolPath.CIRCLE,
+                  scale: 4,
+                  fillColor: "#22C55E",
+                  fillOpacity: 1,
+                  strokeColor: "#166534",
+                  strokeWeight: 2,
+                }}
               />
-            );
-          })}
-
-          {passengers.map((p) => (
-            <Marker
-              key={p.id}
-              position={p.location}
-              title="Passenger"
-              icon={{
-                path: google.maps.SymbolPath.CIRCLE,
-                scale: 4,
-                fillColor: "#00BFFF",
-                fillOpacity: 1,
-                strokeColor: "#0B1F2A",
-                strokeWeight: 2,
-              }}
-            />
-          ))}
+            ))}
 
           {userLocation && (
             <Marker
