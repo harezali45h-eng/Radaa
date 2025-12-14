@@ -111,7 +111,7 @@ export function LiveRadarMap({
   );
 
   return (
-    <div className="pointer-events-none fixed inset-0 -z-10 bg-[#09141A]">
+    <div className="pointer-events-none fixed inset-0 -z-10">
       {(!isLoaded || loading) && !loadError && apiKey && (
         <div className="pointer-events-none absolute inset-0 animate-pulse bg-gradient-to-br from-slate-900 via-slate-950 to-slate-900" />
       )}

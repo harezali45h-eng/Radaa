@@ -115,11 +115,11 @@ export function AppShell({ children }: AppShellProps) {
   };
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-dvh flex-col">
       <header className={`${headerBgClass} relative z-30`}>
         <div className="radaa-shell flex items-center justify-between py-3">
           <div className="flex items-center gap-3">
-            {isShellNavContext && !simplifiedNavEnabled && (
+            {isShellNavContext && (
               <button
                 type="button"
                 onClick={() => setMobileNavOpen(true)}

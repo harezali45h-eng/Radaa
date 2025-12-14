@@ -23,8 +23,8 @@ export function TinderGallery({ items, onOpenOnMap }: TinderGalleryProps) {
   }, [active]);
 
   const subtitle = useMemo(() => {
-    if (!active) return "Swipe when matatus become available";
-    return active.sacco || "Swipe through nearby matatus";
+    if (!active) return "Check back when matatus become available";
+    return active.sacco || "Browse nearby matatus";
   }, [active]);
 
   const handleAdvance = () => {
@@ -175,14 +175,14 @@ export function TinderGallery({ items, onOpenOnMap }: TinderGalleryProps) {
             onClick={handleSkip}
             className={`${boltSecondaryButtonClass} flex-1`}
           >
-            Skip
+            Next matatu
           </button>
           <button
             type="button"
             onClick={handleLike}
             className="flex-1 rounded-full bg-genz-accent px-4 py-1.5 text-[11px] font-semibold text-slate-950 shadow-glow-mint hover:bg-emerald-400"
           >
-            Like
+            Save
           </button>
           <button
             type="button"

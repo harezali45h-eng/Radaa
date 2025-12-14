@@ -19,7 +19,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="min-h-screen">
+      <body className="min-h-dvh">
         <FeatureFlagProvider>
           <NotificationProvider>
             <AuthProvider>

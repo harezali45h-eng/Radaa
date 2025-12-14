@@ -137,9 +137,12 @@ export function WhereToBar({
             ●
           </div>
           <div className="flex-1">
-            <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-200 sm:text-xs">
+            <div className="text-xs font-semibold tracking-tight text-slate-50 sm:text-sm">
               Where to?
             </div>
+            <p className="mt-0.5 text-[10px] text-slate-400">
+              Choose your stage or landmark to get matched routes.
+            </p>
             <input
               type="text"
               value={query}
@@ -147,6 +150,11 @@ export function WhereToBar({
               placeholder="Search destination, stage, or landmark"
               className="mt-1 w-full rounded-2xl border border-slate-700 bg-slate-950 px-3 py-2 text-[12px] text-slate-50 outline-none placeholder:text-slate-500 focus:border-genz-accent focus:ring-1 focus:ring-genz-accent sm:text-sm"
             />
+            {selectedLabel && (
+              <p className="mt-1 text-[10px] text-slate-400">
+                Selected: {selectedLabel}
+              </p>
+            )}
           </div>
           {loading && (
             <span className="flex-none text-[10px] text-slate-400">Searching…</span>

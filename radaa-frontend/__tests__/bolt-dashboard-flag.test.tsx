@@ -64,9 +64,9 @@ jest.mock("@/context/FeatureFlagContext", () => ({
 import BoltDashboardPage from "@/src/features/bolt/pages/BoltDashboardPage";
 
 describe("BoltDashboardPage", () => {
-  it("renders Bolt live radar header", () => {
+  it("renders Bolt dashboard headline", () => {
     render(<BoltDashboardPage />);
 
-    expect(screen.getByText(/Move Smart/i)).toBeInTheDocument();
+    expect(screen.getByText(/Live matatus/i)).toBeInTheDocument();
   });
 });

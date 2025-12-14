@@ -129,7 +129,7 @@ export default function BoltDashboardPage() {
   const driversOnline = matatus.length;
 
   return (
-    <div className="relative min-h-screen bg-slate-950 pb-20 pt-3">
+    <div className="relative min-h-dvh pb-20 pt-3">
       {/* Map background */}
       <LiveRadarMap
         matatus={matatus}
@@ -144,12 +144,12 @@ export default function BoltDashboardPage() {
       {/* Foreground content */}
       <main className="relative z-10 mx-auto flex max-w-md flex-col gap-4 px-3 sm:px-4">
         {/* Tagline header */}
-        <header className="mt-1 rounded-3xl bg-gradient-to-r from-radaa-orange via-twilightPurple to-radaa-purple px-4 py-3 text-left text-slate-900 shadow-soft">
-          <p className="text-[11px] font-semibold tracking-tight text-slate-50">
-            Move Smart. Move in Sync.
-          </p>
-          <p className="mt-1 text-[10px] text-slate-100/80">
-            See drivers around you in real time and line up your next trip.
+        <header className="mt-2 text-left">
+          <h1 className="text-lg font-semibold tracking-tight text-slate-50">
+            Live matatus, at a glance
+          </h1>
+          <p className="mt-1 text-[11px] text-slate-400">
+            A calm live view to time your next ride.
           </p>
         </header>
 
@@ -200,8 +200,8 @@ export default function BoltDashboardPage() {
             }}
             className={`group relative flex h-32 flex-col justify-between overflow-hidden rounded-3xl border px-3 py-3 text-left text-xs transition-all duration-200 ease-snappy sm:h-40 ${
               activeTab === "gallery"
-                ? "border-amber-300/80 bg-[radial-gradient(circle_at_0%_0%,rgba(255,138,0,0.9),transparent),radial-gradient(circle_at_100%_100%,rgba(184,76,255,0.85),transparent)] shadow-soft"
-                : "border-slate-800/80 bg-[radial-gradient(circle_at_0%_0%,rgba(9,20,26,0.95),transparent),radial-gradient(circle_at_100%_100%,rgba(9,20,26,0.92),transparent)] opacity-85 hover:opacity-100 hover:border-amber-300/70"
+                ? "border-sky-300/80 bg-[radial-gradient(circle_at_0%_0%,rgba(56,189,248,0.9),transparent),radial-gradient(circle_at_100%_100%,rgba(59,130,246,0.9),transparent)] shadow-soft"
+                : "border-slate-800/80 bg-[radial-gradient(circle_at_0%_0%,rgba(9,20,26,0.96),transparent),radial-gradient(circle_at_100%_100%,rgba(15,23,42,0.96),transparent)] opacity-85 hover:opacity-100 hover:border-sky-300/70"
             }`}
           >
             <div>
@@ -209,12 +209,12 @@ export default function BoltDashboardPage() {
                 Gallery
               </div>
               <div className="mt-1 text-[11px] text-slate-100/90">
-                Swipe through rich matatu profiles and photos.
+                Browse rich matatu profiles and photos.
               </div>
             </div>
             <div className="mt-2 flex items-end justify-between gap-2">
               <div className="text-[10px] text-slate-100/90">
-                Smart Tinder-style cards
+                Route-ready gallery view
               </div>
               {GALLERY_TILE_IMAGE && (
                 <div className="relative h-12 w-16 overflow-hidden rounded-2xl border border-white/10 bg-slate-950/40">

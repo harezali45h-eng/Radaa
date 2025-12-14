@@ -20,7 +20,7 @@ export function AppRootClient({ children }: AppRootClientProps) {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -6 }}
           transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-          className="min-h-screen"
+          className="min-h-dvh"
         >
           <div className="radaa-shell py-4 md:py-6 lg:py-8">{children}</div>
         </motion.main>
