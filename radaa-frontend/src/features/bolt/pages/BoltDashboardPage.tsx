@@ -1,15 +1,15 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import { useMemo, useState } from "react";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { useRealtime } from "@/context/realtimeContext";
 import { useIsFeatureEnabled } from "@/context/FeatureFlagContext";
+import { useRideIntent } from "@/context/RideIntentContext";
 import { useBoltLiveRadar } from "@/src/features/bolt/hooks/useBoltLiveRadar";
 import { useBoltRideRequest } from "@/src/features/bolt/hooks/useBoltRideRequest";
 import type {
-  BoltBounds,
   BoltLatLng,
   BoltMatatuProfile,
   BoltSuggestion,
@@ -21,14 +21,8 @@ import WhereToBar from "@/src/features/bolt/components/WhereToBar";
 
 import "@/src/features/bolt/styles/theme.css";
 
-const MAP_TILE_IMAGE = process.env.NEXT_PUBLIC_BOLT_MAP_TILE_URL || "";
 const GALLERY_TILE_IMAGE =
   process.env.NEXT_PUBLIC_BOLT_GALLERY_TILE_URL || "";
-
-const LiveRadarMap = dynamic(
-  () => import("@/src/features/bolt/components/LiveRadarMap"),
-  { ssr: false },
-);
 
 const TinderGallery = dynamic(
   () => import("@/src/features/bolt/components/TinderGallery"),
@@ -48,12 +42,10 @@ export default function BoltDashboardPage() {
 
   const { requestRideTo, loading: rideRequestLoading } = useBoltRideRequest();
 
+  const { intent, setIntent } = useRideIntent();
+
   const {
     matatus,
-    displayPositions,
-    bounds,
-    setBounds,
-    loading,
   } = useBoltLiveRadar();
 
   const galleryItems: BoltMatatuProfile[] = useMemo(() => {
@@ -72,8 +64,7 @@ export default function BoltDashboardPage() {
 
   const galleryHref = "/gallery";
 
-  const hasSelectedDestination =
-    selectedDestination != null && selectedDestination.location != null;
+  const hasSelectedDestination = intent.destination != null;
 
   const selectedProfile: BoltMatatuProfile | null = useMemo(() => {
     if (!selectedMatatuId) return null;
@@ -83,12 +74,20 @@ export default function BoltDashboardPage() {
     return fromLive ? { ...fromLive } : null;
   }, [selectedMatatuId, routeMatatus, matatus]);
 
-  const handleBoundsChange = (next: BoltBounds | null) => {
-    setBounds(next);
-  };
-
   const handleSelectSuggestion = async (item: BoltSuggestion) => {
     setSelectedDestination(item);
+
+    if (item.location) {
+      setIntent({
+        destination: item.location,
+        label: item.primaryText,
+      });
+    } else {
+      setIntent({
+        destination: null,
+        label: item.primaryText || null,
+      });
+    }
 
     if (item.type === "route" && (item.routeId || item.id)) {
       const routeId = item.routeId || item.id;
@@ -108,12 +107,15 @@ export default function BoltDashboardPage() {
   };
 
   const handleRequestRide = async () => {
-    if (!selectedDestination || !selectedDestination.location) {
+    if (!intent.destination) {
       return;
     }
 
-    const dest: BoltLatLng = selectedDestination.location;
-    await requestRideTo(dest, { routeName: selectedDestination.primaryText });
+    const dest: BoltLatLng = intent.destination;
+    const routeName =
+      selectedDestination?.primaryText ?? intent.label ?? undefined;
+
+    await requestRideTo(dest, { routeName });
   };
 
   const handleOpenOnMap = (id: string) => {
@@ -121,28 +123,11 @@ export default function BoltDashboardPage() {
     setActiveTab("map");
   };
 
-  const handleSelectMatatuOnMap = (id: string) => {
-    setSelectedMatatuId(id);
-    setActiveTab("gallery");
-  };
-
   const driversOnline = matatus.length;
 
   return (
-    <div className="relative min-h-dvh pb-20 pt-3">
-      {/* Map background */}
-      <LiveRadarMap
-        matatus={matatus}
-        displayPositions={displayPositions}
-        bounds={bounds}
-        onBoundsChange={handleBoundsChange}
-        onSelectMatatu={handleSelectMatatuOnMap}
-        focusedMatatuId={selectedMatatuId}
-        loading={loading}
-      />
-
-      {/* Foreground content */}
-      <main className="relative z-10 mx-auto flex max-w-md flex-col gap-4 px-3 sm:px-4">
+    <div className="min-h-dvh pb-20 pt-3">
+      <main className="mx-auto flex max-w-md flex-col gap-4 px-3 sm:px-4">
         {/* Tagline header */}
         <header className="mt-2 text-left">
           <h1 className="text-lg font-semibold tracking-tight text-slate-50">
@@ -161,10 +146,10 @@ export default function BoltDashboardPage() {
               setActiveTab("map");
               router.push(liveHref);
             }}
-            className={`group relative flex h-32 flex-col justify-between overflow-hidden rounded-3xl border px-3 py-3 text-left text-xs transition-all duration-200 ease-snappy sm:h-40 ${
+            className={`group ${boltCardClass} relative flex h-32 flex-col justify-between overflow-hidden px-3 py-3 text-left text-xs transition-transform duration-200 ease-snappy hover:-translate-y-1 hover:scale-[1.01] sm:h-40 ${
               activeTab === "map"
                 ? "border-emerald-400/80 bg-[radial-gradient(circle_at_0%_0%,rgba(255,138,0,0.85),transparent),radial-gradient(circle_at_100%_100%,rgba(184,76,255,0.9),transparent)] shadow-glow-mint"
-                : "border-slate-800/80 bg-[radial-gradient(circle_at_0%_0%,rgba(9,20,26,0.95),transparent),radial-gradient(circle_at_100%_100%,rgba(9,20,26,0.92),transparent)] opacity-85 hover:opacity-100 hover:border-emerald-400/70"
+                : "bg-[radial-gradient(circle_at_0%_0%,rgba(9,20,26,0.95),transparent),radial-gradient(circle_at_100%_100%,rgba(9,20,26,0.92),transparent)] opacity-85 hover:opacity-100 hover:border-emerald-400/70"
             }`}
           >
             <div>
@@ -179,16 +164,6 @@ export default function BoltDashboardPage() {
               <div className="text-[10px] text-emerald-100/90">
                 {driversOnline} online
               </div>
-              {MAP_TILE_IMAGE && (
-                <div className="relative h-12 w-16 overflow-hidden rounded-2xl border border-white/10 bg-slate-950/40">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={MAP_TILE_IMAGE}
-                    alt="Live map preview"
-                    className="h-full w-full object-cover"
-                  />
-                </div>
-              )}
             </div>
           </button>
 
@@ -198,7 +173,7 @@ export default function BoltDashboardPage() {
               setActiveTab("gallery");
               router.push(galleryHref);
             }}
-            className={`group radaa-neon-card h-32 text-xs transition-transform duration-200 ease-snappy hover:-translate-y-1 hover:scale-[1.01] sm:h-40 ${
+            className={`group ${boltCardClass} h-32 text-xs transition-transform duration-200 ease-snappy hover:-translate-y-1 hover:scale-[1.01] sm:h-40 ${
               activeTab === "gallery" ? "shadow-glow-kenya" : "opacity-85"
             }`}
           >
@@ -267,7 +242,9 @@ export default function BoltDashboardPage() {
             canRequestRide={hasSelectedDestination}
             onRequestRide={handleRequestRide}
             requesting={rideRequestLoading}
-            selectedLabel={selectedDestination?.primaryText}
+            selectedLabel={
+              selectedDestination?.primaryText ?? intent.label ?? undefined
+            }
           />
 
           <div className="mt-1 flex flex-wrap gap-2 text-[11px]">

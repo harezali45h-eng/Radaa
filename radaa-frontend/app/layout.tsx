@@ -6,6 +6,7 @@ import { RealtimeProvider } from "@/context/realtimeContext";
 import { FeatureFlagProvider } from "@/context/FeatureFlagContext";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { GoogleMapsProvider } from "@/context/GoogleMapsContext";
+import { RideIntentProvider } from "@/context/RideIntentContext";
 import { AppRootClient } from "@/components/layout/AppRootClient";
 
 export const metadata: Metadata = {
@@ -27,7 +28,9 @@ export default function RootLayout({
               <RealtimeProvider>
                 <ThemeProvider>
                   <GoogleMapsProvider>
-                    <AppRootClient>{children}</AppRootClient>
+                    <RideIntentProvider>
+                      <AppRootClient>{children}</AppRootClient>
+                    </RideIntentProvider>
                   </GoogleMapsProvider>
                 </ThemeProvider>
               </RealtimeProvider>

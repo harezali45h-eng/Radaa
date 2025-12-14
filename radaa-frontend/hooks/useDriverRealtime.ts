@@ -5,6 +5,8 @@ import { useSocket } from "@/hooks/useSocket";
 import { useAuth } from "@/context/AuthContext";
 import { useRealtime } from "@/context/realtimeContext";
 import { useNotifications } from "@/context/NotificationContext";
+import { useIsFeatureEnabled } from "@/context/FeatureFlagContext";
+import { useRideIntent } from "@/context/RideIntentContext";
 
 export interface DriverRequestLocation {
   lat: number;
@@ -36,6 +38,8 @@ export function useDriverRealtime(): UseDriverRealtimeResult {
   const { driverOnline, setDriverOnline } = useRealtime();
   const { connect, emit, on, off } = useSocket();
   const { addNotification } = useNotifications();
+  const { intent } = useRideIntent();
+  const requireDestinationForLive = useIsFeatureEnabled("driver_onboard_v1", false);
 
   const [currentRequest, setCurrentRequest] = useState<DriverAssignedRequest | null>(
     null,
@@ -246,13 +250,30 @@ export function useDriverRealtime(): UseDriverRealtimeResult {
       return;
     }
 
+    if (requireDestinationForLive && !intent.destination) {
+      addNotification({
+        type: "system",
+        title: "Destination required",
+        message:
+          "Set a passenger destination in the dashboard before going live.",
+      });
+      return;
+    }
+
     setDriverOnline(true);
 
     emit("driver:availability", {
       state: "available",
       available: true,
     });
-  }, [emit, setDriverOnline, user]);
+  }, [
+    emit,
+    setDriverOnline,
+    user,
+    intent.destination,
+    addNotification,
+    requireDestinationForLive,
+  ]);
 
   const goOffline = useCallback(() => {
     const role = (user as any)?.role as string | undefined;
