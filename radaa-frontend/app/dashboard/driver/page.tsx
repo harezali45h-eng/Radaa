@@ -275,7 +275,7 @@ export default function DriverWalletDashboardPage() {
                               {new Date(tx.createdAt).toLocaleString()}
                             </td>
                           </tr>
-                        ))
+                        ))}
                     </tbody>
                   </table>
                 </div>
@@ -389,7 +389,7 @@ export default function DriverWalletDashboardPage() {
                                 {new Date(w.createdAt).toLocaleString()}
                               </td>
                             </tr>
-                          ))
+                          ))}
                       </tbody>
                     </table>
                   </div>
