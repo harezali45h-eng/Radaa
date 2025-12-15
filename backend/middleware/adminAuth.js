@@ -19,7 +19,21 @@ export const adminAuth = async (req, res, next) => {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    const admin = await Admin.findById(decoded.id).select("-password");
+    const adminId = decoded && (decoded.id || decoded.sub || decoded._id);
+
+    if (!adminId) {
+      return next(
+        new AuthError("Not authorized, invalid admin token payload", 401),
+      );
+    }
+
+    const role = decoded.role ? String(decoded.role).trim().toLowerCase() : undefined;
+
+    if (role !== "admin") {
+      return next(new AuthError("Not authorized as admin", 401));
+    }
+
+    const admin = await Admin.findById(adminId).select("-password");
 
     if (!admin || admin.role !== "admin") {
       return next(new AuthError("Not authorized as admin", 401));

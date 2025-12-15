@@ -41,97 +41,50 @@ import { notFound, errorHandler } from "./middleware/errorMiddleware.js";
 
 const app = express();
 
-/* -------------------------------------------
-   TRUST PROXY (Render, Vercel, Nginx)
--------------------------------------------- */
 app.set("trust proxy", 1);
 
 /* -------------------------------------------
-   CORS
+   GLOBAL REQUEST LOGGING + CORS
 -------------------------------------------- */
-const parseOrigins = (value) => {
-  if (!value) return [];
-  return String(value)
-    .split(",")
-    .map((item) => item.trim())
-    .filter(Boolean);
-};
-
-const nodeEnv = process.env.NODE_ENV || "development";
-
-const envOriginValue =
-  process.env.CLIENT_ORIGIN ||
-  process.env.CORS_ORIGIN ||
-  "";
-
-const baseOrigins = parseOrigins(envOriginValue);
-
-if (nodeEnv === "production") {
-  const defaultProdOrigins = [
-    "https://radaa-dvpr.vercel.app",
-    "https://radaa-frontend.vercel.app",
-  ];
-
-  defaultProdOrigins.forEach((origin) => {
-    if (!baseOrigins.includes(origin)) {
-      baseOrigins.push(origin);
-    }
-  });
-
-  if (!baseOrigins.includes("*.vercel.app")) {
-    baseOrigins.push("*.vercel.app");
-  }
-} else {
-  // Always allow localhost for local development
-  baseOrigins.push("http://localhost:3000", "http://localhost:5173");
-}
-
-const wildcardOrigins = baseOrigins.filter((origin) => origin.startsWith("*."));
-const exactOrigins = baseOrigins.filter((origin) => !origin.startsWith("*."));
-
-const isAllowedOrigin = (origin) => {
+app.use((req, res, next) => {
+  console.log("[REQ]", req.method, req.path, req.headers.origin || "");
+  next();
+});
+const isAllowedOrigin = origin => {
   if (!origin) return true;
 
-  if (exactOrigins.includes(origin)) {
-    return true;
-  }
+  try {
+    const url = new URL(origin);
+    const hostname = url.hostname || "";
+    const port = url.port || "";
 
-  if (wildcardOrigins.length) {
-    try {
-      const url = new URL(origin);
-      const hostname = url.hostname;
-
-      return wildcardOrigins.some((pattern) => {
-        const suffix = pattern.slice(1).replace(/^\./, "");
-        return hostname === suffix || hostname.endsWith(`.${suffix}`);
-      });
-    } catch {
-      return false;
+    if (hostname === "localhost" && (port === "3000" || port === "")) {
+      return true;
     }
-  }
 
-  return false;
+    if (hostname.endsWith(".vercel.app")) {
+      return true;
+    }
+
+    return false;
+  } catch {
+    return false;
+  }
 };
 
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      // Allow same-origin or non-browser requests
-      if (!origin) {
-        return callback(null, true);
-      }
+const corsOptions = {
+  origin: (origin, cb) => {
+    if (isAllowedOrigin(origin)) return cb(null, true);
+    return cb(new Error("CORS blocked: " + origin));
+  },
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true,
+};
 
-      if (isAllowedOrigin(origin)) {
-        return callback(null, true);
-      }
+app.use(cors(corsOptions));
 
-      return callback(new Error("Not allowed by CORS"));
-    },
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  })
-);
+app.options("*", cors(corsOptions));
 
 /* -------------------------------------------
    SECURITY + PERFORMANCE

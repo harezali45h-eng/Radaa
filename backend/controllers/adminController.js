@@ -26,7 +26,7 @@ export const adminLogin = async (req, res, next) => {
       throw new AuthError("Invalid admin credentials", 401);
     }
 
-    const token = generateToken(admin._id);
+    const token = generateToken(admin._id, admin.role || "admin");
 
     res.json({
       _id: admin._id,

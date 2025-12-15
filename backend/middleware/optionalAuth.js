@@ -17,9 +17,21 @@ export const optionalAuth = async (req, res, next) => {
 
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      const user = await User.findById(decoded.id).select("-password");
+
+      const userId = decoded && (decoded.id || decoded.sub || decoded._id);
+      const role = decoded.role ? String(decoded.role).trim().toLowerCase() : undefined;
+
+      if (!userId || !role) {
+        // Invalid or legacy token without role: treat as unauthenticated
+        return next();
+      }
+
+      const user = await User.findById(userId).select("-password");
 
       if (user) {
+        if (!user.role || user.role !== role) {
+          user.role = (user.role || role).toLowerCase();
+        }
         req.user = user;
       }
     } catch {

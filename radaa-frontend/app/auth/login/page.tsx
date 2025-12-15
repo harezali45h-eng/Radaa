@@ -77,7 +77,16 @@ export default function LoginPage() {
 
       await login(payload as any, { remember });
 
-      router.push("/dashboard");
+      const rawRole = (payload as any)?.role as string | undefined;
+      const normalizedRole = rawRole ? rawRole.toLowerCase() : undefined;
+
+      if (normalizedRole === "driver") {
+        router.push("/dashboard/driver/live");
+      } else if (normalizedRole === "admin") {
+        router.push("/dashboard/sacco");
+      } else {
+        router.push("/dashboard");
+      }
     } catch (err: any) {
       console.error(err);
       const message = err?.message || "Login failed";

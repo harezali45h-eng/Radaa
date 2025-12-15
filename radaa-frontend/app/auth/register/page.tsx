@@ -29,6 +29,7 @@ export default function RegisterPage() {
         password,
         phone: phone || undefined,
         handle: handle || undefined,
+        role: "user",
       });
 
       router.push("/dashboard");

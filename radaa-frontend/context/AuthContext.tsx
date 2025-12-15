@@ -213,6 +213,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         throw new Error(message);
       }
 
+      const normalizedRole = (loginResult as any).role
+        ? String((loginResult as any).role).toLowerCase()
+        : undefined;
+
       const userData: User = {
         _id: loginResult._id,
         email: loginResult.email,
@@ -221,7 +225,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         handle: loginResult.handle,
         phone: loginResult.phone,
         createdAt: loginResult.createdAt,
-        role: (loginResult as any).role,
+        role: normalizedRole,
         enabled: (loginResult as any).enabled,
         driverProfile: (loginResult as any).driverProfile,
         driverVerificationStatus: (loginResult as any).driverVerificationStatus,
@@ -285,6 +289,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setLoading(true);
     try {
       const result = await apiRegister(payload as any);
+      const normalizedRole = (result as any).role
+        ? String((result as any).role).toLowerCase()
+        : undefined;
       const userData: User = {
         _id: result._id,
         email: result.email,
@@ -293,7 +300,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         handle: result.handle,
         phone: result.phone,
         createdAt: result.createdAt,
-        role: (result as any).role,
+        role: normalizedRole,
         enabled: (result as any).enabled,
         driverProfile: (result as any).driverProfile,
         driverVerificationStatus: (result as any).driverVerificationStatus,

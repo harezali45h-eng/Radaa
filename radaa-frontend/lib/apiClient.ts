@@ -7,6 +7,12 @@ const RAW_API_BASE_URL =
 
 const API_BASE_URL = RAW_API_BASE_URL.replace(/\/+$/, "");
 
+if (!API_BASE_URL && process.env.NODE_ENV !== "test") {
+  throw new Error(
+    "NEXT_PUBLIC_API_BASE_URL is not configured. Check next.config.mjs and your deployment environment.",
+  );
+}
+
 if (API_BASE_URL) {
   axios.defaults.baseURL = API_BASE_URL;
 }

@@ -2,16 +2,36 @@ import { Server } from "socket.io";
 import jwt from "jsonwebtoken";
 import { attachRealtimeHandlers } from "../controllers/realtimeController.js";
 
-const allowedOrigins = [
-  process.env.FRONTEND_ORIGIN,
-  "https://radaa-frontend.vercel.app",
-  "http://localhost:5173",
-  "http://localhost:3000",
-].filter((value) => value && value.length > 0);
+const isAllowedSocketOrigin = (origin) => {
+  if (!origin) return true;
+
+  try {
+    const url = new URL(origin);
+    const hostname = url.hostname || "";
+    const port = url.port || "";
+
+    if (hostname === "localhost" && (port === "3000" || port === "")) {
+      return true;
+    }
+
+    if (hostname.endsWith(".vercel.app")) {
+      return true;
+    }
+
+    return false;
+  } catch {
+    return false;
+  }
+};
 
 const socketCors = {
-  origin: allowedOrigins,
-  credentials: true
+  origin: (origin, cb) => {
+    if (isAllowedSocketOrigin(origin)) {
+      return cb(null, true);
+    }
+    return cb(new Error("CORS blocked: " + origin));
+  },
+  credentials: true,
 };
 
 // In-memory maps for realtime state. These are intentionally process-local
@@ -129,7 +149,21 @@ export const initSocket = (server) => {
       }
 
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      socket.user = decoded;
+
+      const userId = decoded && (decoded.id || decoded.sub || decoded._id);
+      const role = decoded.role ? String(decoded.role).trim().toLowerCase() : undefined;
+
+      if (!userId || !role) {
+        return next(new Error("invalid token payload"));
+      }
+
+      socket.user = {
+        ...decoded,
+        id: userId,
+        sub: userId,
+        role,
+      };
+
       return next();
     } catch (err) {
       return next(new Error("invalid token"));

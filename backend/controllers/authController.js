@@ -1,23 +1,65 @@
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
 import User from "../models/User.js";
+import { generateToken } from "../utils/helpers.js";
 
 // ============================
 // REGISTER
 // ============================
 export const registerUser = async (req, res) => {
   try {
-    const { username, email, password, phone, handle: rawHandle } = req.body;
+    console.log("[AUTH] /auth/register body:", JSON.stringify(req.body));
 
-    if (!username || !email || !password) {
+    const {
+      username,
+      email,
+      password,
+      phone,
+      handle: rawHandle,
+      role: rawRole,
+      saccoName,
+      vehicleRegistration,
+      licenseNumber,
+    } = req.body || {};
+
+    if (!username || typeof username !== "string") {
       return res
         .status(400)
-        .json({ message: "Username, email, and password are required" });
+        .json({ message: "Username is required" });
     }
 
-    const existingUser = await User.findOne({ email });
-    if (existingUser)
-      return res.status(400).json({ message: "Email already exists" });
+    if (!email || typeof email !== "string") {
+      return res
+        .status(400)
+        .json({ message: "Email is required" });
+    }
+
+    if (!password || typeof password !== "string") {
+      return res
+        .status(400)
+        .json({ message: "Password is required" });
+    }
+
+    if (password.length < 8) {
+      return res
+        .status(400)
+        .json({ message: "Password must be at least 8 characters long" });
+    }
+
+    const role = (rawRole ? String(rawRole) : "user").trim().toLowerCase();
+
+    if (!["user", "driver"].includes(role)) {
+      return res
+        .status(400)
+        .json({ message: "Invalid role. Must be 'user' or 'driver'" });
+    }
+
+    const normalizedEmail = email.toLowerCase();
+
+    const existingUser = await User.findOne({ email: normalizedEmail });
+    if (existingUser) {
+      const msg = "Email already exists";
+      return res.status(400).json({ error: msg, message: msg });
+    }
 
     let handle = rawHandle;
 
@@ -36,20 +78,32 @@ export const registerUser = async (req, res) => {
 
     const existingHandle = await User.findOne({ handle });
     if (existingHandle) {
-      return res.status(400).json({ message: "Handle already exists" });
+      const msg = "Handle already exists";
+      return res.status(400).json({ error: msg, message: msg });
     }
 
-    const user = await User.create({
+    const userData = {
       username,
-      email,
+      email: normalizedEmail,
       password,
       phone,
       handle,
-    });
+      role,
+    };
 
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-      expiresIn: "7d",
-    });
+    if (role === "driver") {
+      userData.driverProfile = {
+        saccoName: saccoName || undefined,
+        vehicleRegistration: vehicleRegistration || undefined,
+        licenseNumber: licenseNumber || undefined,
+      };
+    }
+
+    const user = await User.create(userData);
+
+    const normalizedRole = (user.role || role || "user").toLowerCase();
+
+    const token = generateToken(user._id, normalizedRole);
 
     res.status(201).json({
       _id: user._id,
@@ -57,7 +111,7 @@ export const registerUser = async (req, res) => {
       email: user.email,
       phone: user.phone,
       handle: user.handle,
-      role: user.role,
+      role: normalizedRole,
       enabled: user.enabled,
       driverProfile: user.driverProfile,
       driverVerificationStatus: user.driverVerificationStatus,
@@ -71,9 +125,9 @@ export const registerUser = async (req, res) => {
     // Duplicate key (e.g. race condition on email/handle uniqueness)
     if (err && err.code === 11000) {
       const key = Object.keys(err.keyPattern || {})[0] || "field";
-      return res
-        .status(400)
-        .json({ message: `${key.charAt(0).toUpperCase()}${key.slice(1)} already exists` });
+      const base = `${key.charAt(0).toUpperCase()}${key.slice(1)} already exists`;
+      const msg = key === "email" ? "Email already exists" : base;
+      return res.status(400).json({ error: msg, message: msg });
     }
 
     res.status(500).json({ message: "Register server error" });
@@ -85,9 +139,19 @@ export const registerUser = async (req, res) => {
 // ============================
 export const loginUser = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password } = req.body || {};
 
-    const user = await User.findOne({ email }).select("+password");
+    console.log("[AUTH] /auth/login body:", JSON.stringify({ email }));
+
+    if (!email || typeof email !== "string" || !password) {
+      return res
+        .status(400)
+        .json({ message: "Email and password are required" });
+    }
+
+    const normalizedEmail = email.toLowerCase();
+
+    const user = await User.findOne({ email: normalizedEmail }).select("+password");
 
     if (!user) return res.status(401).json({ message: "User not found" });
 
@@ -95,9 +159,32 @@ export const loginUser = async (req, res) => {
     if (!isMatch)
       return res.status(401).json({ message: "Invalid credentials" });
 
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-      expiresIn: "7d",
-    });
+    const normalizedRole = (user.role || "user").toLowerCase();
+
+    if (normalizedRole === "driver") {
+      let shouldSave = false;
+
+      if (!user.driverProfile || typeof user.driverProfile !== "object") {
+        user.driverProfile = {};
+        shouldSave = true;
+      }
+
+      if (!user.driverVerificationStatus) {
+        user.driverVerificationStatus = "pending";
+        shouldSave = true;
+      }
+
+      if (!user.driverStatus) {
+        user.driverStatus = "provisional";
+        shouldSave = true;
+      }
+
+      if (shouldSave) {
+        await user.save();
+      }
+    }
+
+    const token = generateToken(user._id, normalizedRole);
 
     res.json({
       _id: user._id,
@@ -105,7 +192,7 @@ export const loginUser = async (req, res) => {
       username: user.username,
       phone: user.phone,
       handle: user.handle,
-      role: user.role,
+      role: normalizedRole,
       enabled: user.enabled,
       driverProfile: user.driverProfile,
       driverVerificationStatus: user.driverVerificationStatus,
@@ -124,10 +211,37 @@ export const loginUser = async (req, res) => {
 // ============================
 export const getProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select("-password");
+    const userId = req.user?._id || req.user?.id;
+
+    const user = await User.findById(userId).select("-password");
 
     if (!user)
       return res.status(404).json({ message: "User not found" });
+
+    const normalizedRole = (user.role || "user").toLowerCase();
+
+    if (normalizedRole === "driver") {
+      let shouldSave = false;
+
+      if (!user.driverProfile || typeof user.driverProfile !== "object") {
+        user.driverProfile = {};
+        shouldSave = true;
+      }
+
+      if (!user.driverVerificationStatus) {
+        user.driverVerificationStatus = "pending";
+        shouldSave = true;
+      }
+
+      if (!user.driverStatus) {
+        user.driverStatus = "provisional";
+        shouldSave = true;
+      }
+
+      if (shouldSave) {
+        await user.save();
+      }
+    }
 
     res.json({
       _id: user._id,
@@ -135,7 +249,7 @@ export const getProfile = async (req, res) => {
       email: user.email,
       phone: user.phone,
       handle: user.handle,
-      role: user.role,
+      role: normalizedRole,
       enabled: user.enabled,
       driverProfile: user.driverProfile,
       driverVerificationStatus: user.driverVerificationStatus,

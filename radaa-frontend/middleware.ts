@@ -31,6 +31,38 @@ export async function middleware(request: NextRequest) {
       return response;
     }
 
+    const payload: any = verification.payload || {};
+    const rawRole = payload.role;
+    const role = rawRole ? String(rawRole).trim().toLowerCase() : undefined;
+    const userId =
+      payload.id || payload.sub || payload._id || null;
+
+    if (!userId || !role) {
+      const response = NextResponse.redirect(
+        new URL("/auth/login", request.url),
+      );
+      response.cookies.delete(TOKEN_COOKIE_NAME);
+      return response;
+    }
+
+    const isDriver = role === "driver";
+
+    const isDriverDashboardPath =
+      pathname.startsWith("/dashboard/driver") ||
+      pathname.startsWith("/dashboard/drivers");
+
+    if (isDriverDashboardPath && !isDriver) {
+      return NextResponse.redirect(new URL("/dashboard", request.url));
+    }
+
+    const isPassengerDashboardPath = pathname.startsWith("/dashboard/passenger");
+
+    if (isPassengerDashboardPath && isDriver) {
+      return NextResponse.redirect(
+        new URL("/dashboard/driver/live", request.url),
+      );
+    }
+
     return NextResponse.next();
   } catch {
     const response = NextResponse.redirect(new URL("/auth/login", request.url));
