@@ -1,8 +1,9 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useEffect, useState, useCallback } from "react";
 import { GoogleMap, Marker, useLoadScript } from "@react-google-maps/api";
 import type { LatLng, MatatuLike } from "@/lib/map/markerHelpers";
+import { getStagesGeoJson } from "@/lib/api";
 
 interface PassengerPoint {
   id: string;
@@ -36,6 +37,11 @@ interface GoogleMapContainerProps {
   mode?: "user" | "driver";
   showCenterOnMe?: boolean;
 }
+
+type StagesFeatureCollection = {
+  type: "FeatureCollection";
+  features: any[];
+};
 
 const containerStyle: google.maps.MapOptions["backgroundColor"] extends never
   ? { width: string; height: string }
@@ -132,6 +138,97 @@ export default function GoogleMapContainer({
   mode,
   showCenterOnMe = true,
 }: GoogleMapContainerProps) {
+  const [stagesData, setStagesData] = useState<StagesFeatureCollection | null>(
+    null,
+  );
+  const [mapInstance, setMapInstance] = useState<google.maps.Map | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadStages = async () => {
+      try {
+        const data = await getStagesGeoJson();
+
+        if (cancelled) return;
+
+        if (
+          data &&
+          typeof data === "object" &&
+          (data as any).type === "FeatureCollection" &&
+          Array.isArray((data as any).features)
+        ) {
+          setStagesData(data as StagesFeatureCollection);
+        } else {
+          // eslint-disable-next-line no-console
+          console.warn("[map] /stages returned unexpected payload", data);
+        }
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error("[map] Failed to load stages GeoJSON", error);
+      }
+    };
+
+    void loadStages();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!mapInstance || !stagesData) return;
+
+    const dataLayer = mapInstance.data;
+
+    dataLayer.forEach((feature) => {
+      dataLayer.remove(feature);
+    });
+
+    dataLayer.addGeoJson(stagesData as any);
+
+    dataLayer.setStyle((feature) => {
+      const geometry = feature.getGeometry();
+      const type = geometry?.getType();
+
+      if (type === "Point") {
+        return {
+          icon: {
+            path: google.maps.SymbolPath.CIRCLE,
+            scale: 4,
+            fillColor: "#2563EB",
+            fillOpacity: 0.9,
+            strokeColor: "#BFDBFE",
+            strokeWeight: 1,
+          },
+        } as google.maps.Data.StyleOptions;
+      }
+
+      if (type === "LineString") {
+        return {
+          strokeColor: "#60A5FA",
+          strokeOpacity: 0.5,
+          strokeWeight: 3,
+        } as google.maps.Data.StyleOptions;
+      }
+
+      return {
+        strokeColor: "#4B5563",
+        strokeOpacity: 0.4,
+        strokeWeight: 2,
+      } as google.maps.Data.StyleOptions;
+    });
+
+    return () => {
+      dataLayer.forEach((feature) => {
+        dataLayer.remove(feature);
+      });
+    };
+  }, [mapInstance, stagesData]);
+
+  const handleMapLoad = useCallback((map: google.maps.Map) => {
+    setMapInstance(map);
+  }, []);
   const effectiveMode: "user" | "driver" =
     mode ?? (driverMode ? "driver" : "user");
   const showMatatus = effectiveMode === "user";
@@ -189,6 +286,7 @@ export default function GoogleMapContainer({
           center={center}
           zoom={13}
           options={mapOptions}
+          onLoad={handleMapLoad}
         >
           {showMatatus &&
             matatus.map((m) => {

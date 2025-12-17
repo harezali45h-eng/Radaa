@@ -14,6 +14,16 @@ export const getLiveMatatus = async () => {
   }
 };
 
+export const getStagesGeoJson = async () => {
+  try {
+    const res = await API.get("/stages");
+    return res.data;
+  } catch (error: any) {
+    console.error("API ERROR:", (error as any)?.response?.data || error);
+    throw error;
+  }
+};
+
 export const getWallet = async () => {
   try {
     const res = await API.get("/wallet");

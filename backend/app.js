@@ -10,6 +10,7 @@ import swaggerUi from "swagger-ui-express";
 import { sanitizeInput } from "./middleware/sanitizeMiddleware.js";
 import { openapiSpec } from "./utils/openapi.js";
 import { connectDB } from "./config/db.js";
+import { initPg } from "./config/pg.js";
 import { initSocket } from "./realtime/socket.js";
 import { getLiveMatatus } from "./controllers/matatuController.js";
 
@@ -36,6 +37,7 @@ import saccoRoutes from "./routes/saccoRoutes.js";
 import featureFlagRoutes from "./routes/featureFlagRoutes.js";
 import driverRoutes from "./routes/driverRoutes.js";
 import boltRoutes from "./routes/boltRoutes.js";
+import stagesRoutes from "./routes/stagesRoutes.js";
 
 import { notFound, errorHandler } from "./middleware/errorMiddleware.js";
 
@@ -127,6 +129,7 @@ app.use("/api/rides", rideRoutes);
 app.use("/api/routes", routesRoutes);
 app.use("/api/requests", requestsRoutes);
 app.use("/api/map", mapRoutes);
+app.use("/api/stages", stagesRoutes);
 
 app.use("/api/feature-flags", featureFlagRoutes);
 app.use("/api/ratings", ratingRoutes);
@@ -160,6 +163,7 @@ app.use(errorHandler);
 const PORT = process.env.PORT || 5000;
 
 connectDB();
+initPg();
 
 const startServer = (port, triedFallback = false) => {
   const server = http.createServer(app);
