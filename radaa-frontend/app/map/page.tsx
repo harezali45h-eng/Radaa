@@ -1024,12 +1024,27 @@ export default function MapPage() {
   );
 
   const matatusForDisplay = useMemo(
-    () =>
-      riderStatus === "waiting" &&
-      activeRoutePath &&
-      discoveryMatatus.length > 0
-        ? discoveryMatatus
-        : matatusWithFlags,
+    () => {
+      const hasLiveMatatus = matatusWithFlags.some((m) => {
+        const loc = m.location;
+        return (
+          !!loc &&
+          typeof loc.lat === "number" &&
+          typeof loc.lng === "number"
+        );
+      });
+
+      if (
+        riderStatus === "waiting" &&
+        activeRoutePath &&
+        discoveryMatatus.length > 0 &&
+        !hasLiveMatatus
+      ) {
+        return discoveryMatatus;
+      }
+
+      return matatusWithFlags;
+    },
     [
       riderStatus,
       activeRoutePath,

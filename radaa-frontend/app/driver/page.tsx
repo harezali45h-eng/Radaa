@@ -1,12 +1,5 @@
-"use client";
-
-import dynamic from "next/dynamic";
-
-const DriverLiveDashboardPage = dynamic(
-  () => import("@/app/dashboard/driver/live/page"),
-  { ssr: false },
-);
+import { redirect } from "next/navigation";
 
 export default function DriverEntryPage() {
-  return <DriverLiveDashboardPage />;
+  redirect("/dashboard/driver/live");
 }

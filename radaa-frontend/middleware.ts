@@ -37,8 +37,7 @@ export async function middleware(request: NextRequest) {
     const payload: any = verification.payload || {};
     const rawRole = payload.role;
     const role = rawRole ? String(rawRole).trim().toLowerCase() : undefined;
-    const userId =
-      payload.id || payload.sub || payload._id || null;
+    const userId = payload.id || payload.sub || payload._id || null;
 
     if (!userId || !role) {
       const response = NextResponse.redirect(
@@ -55,8 +54,14 @@ export async function middleware(request: NextRequest) {
       pathname.startsWith("/dashboard/drivers") ||
       pathname.startsWith("/driver");
 
-    if (isDriverDashboardPath && !isDriver) {
-      return NextResponse.redirect(new URL("/dashboard", request.url));
+    if (isDriverDashboardPath) {
+      if (!isDriver) {
+        return NextResponse.redirect(new URL("/dashboard", request.url));
+      }
+
+      // eslint-disable-next-line no-console
+      console.log("[middleware] allowing driver route:", pathname);
+      return NextResponse.next();
     }
 
     const isPassengerDashboardPath = pathname.startsWith("/dashboard/passenger");

@@ -15,14 +15,24 @@ export function AppRootClient({ children }: AppRootClientProps) {
   const { activeMode } = useRealtime();
 
   useEffect(() => {
-    if (!pathname.startsWith("/driver")) {
+    const isDriverDashboardPath =
+      pathname.startsWith("/dashboard/driver") || pathname.startsWith("/driver");
+
+    if (!isDriverDashboardPath) {
       return;
     }
 
     if (activeMode !== "driver") {
-      console.error("[driver] incorrect dashboard rendered");
+      // eslint-disable-next-line no-console
+      console.error("[driver] incorrect dashboard rendered", {
+        pathname,
+        activeMode,
+      });
     } else {
-      console.log("[driver] dashboard mounted successfully");
+      // eslint-disable-next-line no-console
+      console.log("[driver] driver dashboard mounted successfully", {
+        pathname,
+      });
     }
   }, [pathname, activeMode]);
 
