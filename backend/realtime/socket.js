@@ -180,14 +180,22 @@ export const initSocket = (server) => {
       setDriverState(userId, "available");
       socket.join("drivers:nearby");
       socket.join(`driver:${userId}`);
+
+      // eslint-disable-next-line no-console
+      console.log(`[driver-live] driver online: ${userId}`);
+
       socket.on("driver:online", () => {
         setDriverState(userId, "available");
         socket.join("drivers:nearby");
+        // eslint-disable-next-line no-console
+        console.log(`[driver-live] driver online: ${userId}`);
       });
 
       socket.on("driver:offline", () => {
         setDriverState(userId, "offline");
         socket.leave("drivers:nearby");
+        // eslint-disable-next-line no-console
+        console.log(`[driver-live] driver offline: ${userId}`);
       });
     }
     if (userId && (role === "user" || role === "passenger")) {
@@ -275,6 +283,8 @@ export const initSocket = (server) => {
 
         const entityId = matatuId || id;
 
+        const updatedAt = payload.updatedAt || new Date().toISOString();
+
         const updatePayload = {
           id: entityId ? entityId.toString() : undefined,
           location: { lat, lng },
@@ -282,14 +292,20 @@ export const initSocket = (server) => {
           lat,
           lng,
           saccoId: saccoId || null,
-          matatuId: matatuId || null
+          matatuId: matatuId || null,
+          updatedAt
         };
 
         // Broadcast in a generic shape that frontend map/realtime contexts can merge by id
         realtime.emit("matatu:live_update", updatePayload);
         realtime.emit("matatus:live_update", updatePayload);
+
+        // Dedicated stream for live drivers. This is additive and mirrors the
+        // matatu payload so passenger maps can subscribe explicitly.
+        realtime.emit("drivers_live", updatePayload);
+
         // eslint-disable-next-line no-console
-        console.log("[socket] driver:update_location broadcast", updatePayload);
+        console.log("[driver-live] location update sent", updatePayload);
         if (matatuRoom) {
           realtime.to(matatuRoom).emit("matatu:live_update", updatePayload);
         }
@@ -324,6 +340,8 @@ export const initSocket = (server) => {
       console.log(`Socket disconnected: ${disconnectedUserId}`);
       if (disconnectedUserId && role === "driver") {
         setDriverState(disconnectedUserId, "offline");
+        // eslint-disable-next-line no-console
+        console.log(`[driver-live] driver offline: ${disconnectedUserId}`);
       }
     });
   });

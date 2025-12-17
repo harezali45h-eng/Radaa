@@ -65,6 +65,11 @@ export function useDriverRealtime(): UseDriverRealtimeResult {
     let cancelled = false;
     let watchId: number | null = null;
 
+    if (typeof console !== "undefined") {
+      // eslint-disable-next-line no-console
+      console.log("[driver-live] broadcast started", { driverId });
+    }
+
     watchId = navigator.geolocation.watchPosition(
       (position) => {
         if (cancelled) return;
@@ -81,8 +86,40 @@ export function useDriverRealtime(): UseDriverRealtimeResult {
           lng: next.lng,
         });
       },
-      () => {
+      (error) => {
         if (cancelled) return;
+
+        let message: string;
+        const code =
+          error && typeof error.code === "number" ? (error.code as number) : 0;
+
+        if (code === 1) {
+          message =
+            "Location access is blocked. Please allow location for Radaa in your browser settings and try again.";
+        } else if (code === 2) {
+          message =
+            "We couldn't get a GPS fix. Check that location is turned on and you have a good network signal.";
+        } else if (code === 3) {
+          message =
+            "It is taking a bit long to find you. Move closer to a window or check your network, then try again.";
+        } else {
+          message =
+            error?.message ||
+            "Unable to fetch your current location. Turn on location so nearby riders can see you.";
+        }
+
+        setDriverOnline(false);
+
+        emit("driver:availability", {
+          state: "offline",
+          available: false,
+        });
+
+        addNotification({
+          type: "system",
+          title: "Location error",
+          message,
+        });
       },
       {
         enableHighAccuracy: true,
@@ -101,7 +138,7 @@ export function useDriverRealtime(): UseDriverRealtimeResult {
         navigator.geolocation.clearWatch(watchId);
       }
     };
-  }, [driverOnline, emit]);
+  }, [driverOnline, emit, driverId, setDriverOnline, addNotification]);
 
   useEffect(() => {
     if (!currentRequest || !expiresAt) {

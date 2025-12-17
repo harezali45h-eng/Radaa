@@ -7,6 +7,8 @@ interface DriverRequestCardProps {
   timeLeftSeconds: number | null;
   onAccept: () => void;
   onReject: () => void;
+  pickupStageName?: string | null;
+  destinationStageName?: string | null;
 }
 
 function formatLatLng(value: { lat: number; lng: number } | null): string {
@@ -19,6 +21,8 @@ export default function DriverRequestCard({
   timeLeftSeconds,
   onAccept,
   onReject,
+  pickupStageName,
+  destinationStageName,
 }: DriverRequestCardProps) {
   const distanceLabel = (() => {
     const meters = request.distanceMeters;
@@ -39,6 +43,22 @@ export default function DriverRequestCard({
     const clamped = Math.max(0, timeLeftSeconds);
     return `${clamped}s`;
   })();
+
+  const pickupPrimaryLabel =
+    pickupStageName && pickupStageName.trim().length > 0
+      ? pickupStageName
+      : formatLatLng(request.pickup);
+  const pickupSecondaryLabel =
+    pickupStageName && request.pickup ? formatLatLng(request.pickup) : null;
+
+  const destinationPrimaryLabel =
+    destinationStageName && destinationStageName.trim().length > 0
+      ? destinationStageName
+      : formatLatLng(request.destination);
+  const destinationSecondaryLabel =
+    destinationStageName && request.destination
+      ? formatLatLng(request.destination)
+      : null;
 
   return (
     <div className="space-y-2 text-xs text-emerald-50">
@@ -65,14 +85,28 @@ export default function DriverRequestCard({
       <div className="mt-1 grid gap-1 border-t border-emerald-700/60 pt-2 text-[11px]">
         <div className="flex items-center justify-between">
           <span className="text-emerald-300/90">Pickup</span>
-          <span className="font-mono text-emerald-100">
-            {formatLatLng(request.pickup)}
+          <span className="text-right">
+            <span className="block font-semibold text-emerald-50">
+              {pickupPrimaryLabel}
+            </span>
+            {pickupSecondaryLabel && (
+              <span className="block font-mono text-[10px] text-emerald-200/80">
+                {pickupSecondaryLabel}
+              </span>
+            )}
           </span>
         </div>
         <div className="flex items-center justify-between">
           <span className="text-emerald-300/90">Destination</span>
-          <span className="font-mono text-emerald-100">
-            {formatLatLng(request.destination)}
+          <span className="text-right">
+            <span className="block font-semibold text-emerald-50">
+              {destinationPrimaryLabel}
+            </span>
+            {destinationSecondaryLabel && (
+              <span className="block font-mono text-[10px] text-emerald-200/80">
+                {destinationSecondaryLabel}
+              </span>
+            )}
           </span>
         </div>
       </div>

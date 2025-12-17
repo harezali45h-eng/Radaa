@@ -29,6 +29,10 @@ export interface MapWrapperProps {
   hasAnyLocation: boolean;
   driverMode?: boolean;
   showCenterOnMe?: boolean;
+  routePath?: LatLng[];
+  heatmapPoints?: LatLng[];
+  heatmapEnabled?: boolean;
+  onMapClick?: (location: LatLng) => void;
 }
 
 const rawKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? "";
@@ -49,6 +53,10 @@ export default function MapWrapper(props: MapWrapperProps) {
         driverMode={props.driverMode}
         mode={props.driverMode ? "driver" : "user"}
         showCenterOnMe={props.showCenterOnMe}
+        routePath={props.routePath}
+        heatmapPoints={props.heatmapPoints}
+        heatmapEnabled={props.heatmapEnabled}
+        onMapClick={props.onMapClick}
       />
     );
   }
@@ -66,6 +74,10 @@ export default function MapWrapper(props: MapWrapperProps) {
       hasAnyLocation={props.hasAnyLocation}
       driverMode={props.driverMode}
       showCenterOnMe={props.showCenterOnMe}
+      routePath={props.routePath}
+      heatmapPoints={props.heatmapPoints}
+      heatmapEnabled={props.heatmapEnabled}
+      onMapClick={props.onMapClick}
     />
   );
 }

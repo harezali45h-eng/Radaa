@@ -1,8 +1,9 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { usePathname } from "next/navigation";
+import { useRealtime } from "@/context/realtimeContext";
 
 interface AppRootClientProps {
   children: ReactNode;
@@ -10,6 +11,20 @@ interface AppRootClientProps {
 
 export function AppRootClient({ children }: AppRootClientProps) {
   const pathname = usePathname();
+
+  const { activeMode } = useRealtime();
+
+  useEffect(() => {
+    if (!pathname.startsWith("/driver")) {
+      return;
+    }
+
+    if (activeMode !== "driver") {
+      console.error("[driver] incorrect dashboard rendered");
+    } else {
+      console.log("[driver] dashboard mounted successfully");
+    }
+  }, [pathname, activeMode]);
 
   return (
     <div className="font-[Inter]">

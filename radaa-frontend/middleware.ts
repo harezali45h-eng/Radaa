@@ -8,7 +8,10 @@ export async function middleware(request: NextRequest) {
   const { nextUrl, cookies } = request;
   const pathname = nextUrl.pathname;
 
-  if (!pathname.startsWith("/dashboard")) {
+  const isDashboardPath = pathname.startsWith("/dashboard");
+  const isDriverRootPath = pathname.startsWith("/driver");
+
+  if (!isDashboardPath && !isDriverRootPath) {
     return NextResponse.next();
   }
 
@@ -49,7 +52,8 @@ export async function middleware(request: NextRequest) {
 
     const isDriverDashboardPath =
       pathname.startsWith("/dashboard/driver") ||
-      pathname.startsWith("/dashboard/drivers");
+      pathname.startsWith("/dashboard/drivers") ||
+      pathname.startsWith("/driver");
 
     if (isDriverDashboardPath && !isDriver) {
       return NextResponse.redirect(new URL("/dashboard", request.url));
@@ -72,5 +76,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*"],
+  matcher: ["/dashboard/:path*", "/driver/:path*"],
 };

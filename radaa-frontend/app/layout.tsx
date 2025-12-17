@@ -10,8 +10,8 @@ import { RideIntentProvider } from "@/context/RideIntentContext";
 import { AppRootClient } from "@/components/layout/AppRootClient";
 
 export const metadata: Metadata = {
-  title: "Radaa – Kaa Radaa ujue mat yako iko wapi",
-  description: "Kaa Radaa ujue mat yako iko wapi",
+  title: "Radaa — the modern matatu matchmaker",
+  description: "Radaa — the modern matatu matchmaker",
 };
 
 export default function RootLayout({

@@ -1,7 +1,13 @@
 "use client";
 
 import { useMemo, useEffect, useState, useCallback } from "react";
-import { GoogleMap, Marker, useLoadScript } from "@react-google-maps/api";
+import {
+  GoogleMap,
+  Marker,
+  Polyline,
+  Circle,
+  useLoadScript,
+} from "@react-google-maps/api";
 import type { LatLng, MatatuLike } from "@/lib/map/markerHelpers";
 import { getStagesGeoJson } from "@/lib/api";
 
@@ -36,6 +42,10 @@ interface GoogleMapContainerProps {
    */
   mode?: "user" | "driver";
   showCenterOnMe?: boolean;
+  routePath?: LatLng[] | null;
+  heatmapPoints?: LatLng[] | null;
+  heatmapEnabled?: boolean;
+  onMapClick?: (location: LatLng) => void;
 }
 
 type StagesFeatureCollection = {
@@ -137,6 +147,10 @@ export default function GoogleMapContainer({
   driverMode,
   mode,
   showCenterOnMe = true,
+  routePath,
+  heatmapPoints,
+  heatmapEnabled,
+  onMapClick,
 }: GoogleMapContainerProps) {
   const [stagesData, setStagesData] = useState<StagesFeatureCollection | null>(
     null,
@@ -234,6 +248,15 @@ export default function GoogleMapContainer({
   const showMatatus = effectiveMode === "user";
   const showPassengers = effectiveMode === "driver";
 
+  const effectiveRoutePath = Array.isArray(routePath) && routePath.length >= 2
+    ? routePath
+    : null;
+
+  const effectiveHeatmapPoints =
+    heatmapEnabled && Array.isArray(heatmapPoints) && heatmapPoints.length > 0
+      ? heatmapPoints
+      : [];
+
   const rawKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? "";
   const apiKey =
     rawKey && rawKey.toLowerCase().includes("your-google-maps-api-key")
@@ -287,7 +310,33 @@ export default function GoogleMapContainer({
           zoom={13}
           options={mapOptions}
           onLoad={handleMapLoad}
+          onClick={
+            onMapClick
+              ? (event) => {
+                  if (!event || !event.latLng) return;
+                  const lat = event.latLng.lat();
+                  const lng = event.latLng.lng();
+
+                  if (typeof lat !== "number" || typeof lng !== "number") {
+                    return;
+                  }
+
+                  onMapClick({ lat, lng });
+                }
+              : undefined
+          }
         >
+          {effectiveRoutePath && (
+            <Polyline
+              path={effectiveRoutePath}
+              options={{
+                strokeColor: "#FCD34D",
+                strokeOpacity: 0.95,
+                strokeWeight: 4,
+              }}
+            />
+          )}
+
           {showMatatus &&
             matatus.map((m) => {
               if (!m.location) return null;
@@ -357,6 +406,23 @@ export default function GoogleMapContainer({
               }}
             />
           )}
+
+          {effectiveHeatmapPoints.map((point, index) => (
+            <Circle
+              // eslint-disable-next-line react/no-array-index-key
+              key={`heat-${index}`}
+              center={point}
+              radius={150}
+              options={{
+                strokeColor: "#F97316",
+                strokeOpacity: 0,
+                strokeWeight: 0,
+                fillColor: "#F97316",
+                fillOpacity: 0.22,
+                clickable: false,
+              }}
+            />
+          ))}
         </GoogleMap>
       )}
 

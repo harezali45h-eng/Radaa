@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSocket } from "@/hooks/useSocket";
-import { getLiveMatatus, getMapMarkers } from "@/lib/api";
+import { getLiveMatatus, getMapMarkers, getStagesGeoJson } from "@/lib/api";
 import MapContainer from "@/components/map/MapContainer";
 import GoogleMapContainer from "@/components/map/GoogleMapContainer";
 import { useRealtime } from "@/context/realtimeContext";
@@ -36,11 +36,25 @@ interface Matatu {
     avgRating: number;
     count: number;
   };
+  updatedAt?: string;
 }
 
 interface PassengerMarker {
   id: string;
   location: LatLng;
+}
+
+interface StagePoint {
+  id: string;
+  name: string | null;
+  lat: number;
+  lng: number;
+}
+
+interface Corridor {
+  id: string;
+  name: string | null;
+  coordinates: LatLng[];
 }
 
 interface Bounds {
@@ -124,8 +138,29 @@ export default function MapPage() {
     null,
   );
   const [destinationDescription, setDestinationDescription] = useState("");
-  const [, setDestinationLatLng] = useState<LatLng | null>(null);
+  const [destinationLatLng, setDestinationLatLng] = useState<LatLng | null>(
+    null,
+  );
   const [riderStatus, setRiderStatus] = useState<RiderStatus>("idle");
+
+  const [stages, setStages] = useState<StagePoint[]>([]);
+  const [corridors, setCorridors] = useState<Corridor[]>([]);
+  const [activeStageRoute, setActiveStageRoute] =
+    useState<{
+      originStageId: string;
+      destinationStageId: string;
+      corridorId: string | null;
+      path: LatLng[];
+    } | null>(null);
+  const [discoveryMatatus, setDiscoveryMatatus] = useState<Matatu[]>([]);
+  const [discoveryPassengers, setDiscoveryPassengers] = useState<
+    PassengerMarker[]
+  >([]);
+  const [walkingPath, setWalkingPath] = useState<LatLng[] | null>(null);
+  const [walkingEtaMinutes, setWalkingEtaMinutes] = useState<number | null>(
+    null,
+  );
+  const [walkingStageName, setWalkingStageName] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -180,6 +215,10 @@ export default function MapPage() {
     connect();
     // eslint-disable-next-line no-console
     console.log("[map] connect realtime for map page");
+    if (typeof console !== "undefined") {
+      // eslint-disable-next-line no-console
+      console.log("[pax] subscribed to live drivers");
+    }
 
     const handleMatatuUpdate = (payload: any) => {
       const updates: Matatu[] = Array.isArray(payload) ? payload : [payload];
@@ -282,16 +321,142 @@ export default function MapPage() {
     };
 
     on("matatus:live_update", handleMatatuUpdate);
+    on("drivers_live", handleMatatuUpdate as any);
     on("ride:assigned", handleRideAssigned);
     on("passenger:live_update", handlePassengersUpdate);
 
     return () => {
       cancelled = true;
       off("matatus:live_update", handleMatatuUpdate);
+      off("drivers_live", handleMatatuUpdate as any);
       off("ride:assigned", handleRideAssigned);
       off("passenger:live_update", handlePassengersUpdate);
     };
   }, [connect, on, off]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    if (window.location.pathname.startsWith("/driver")) {
+      // eslint-disable-next-line no-console
+      console.error(
+        "[rider] rider UI mounted on /driver; check routing configuration.",
+      );
+    }
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const run = async () => {
+      try {
+        const data = await getStagesGeoJson();
+
+        if (cancelled) {
+          return;
+        }
+
+        const nextStages: StagePoint[] = [];
+        const nextCorridors: Corridor[] = [];
+
+        if (data && typeof data === "object") {
+          const anyData = data as any;
+
+          if (
+            anyData.type === "FeatureCollection" &&
+            Array.isArray(anyData.features)
+          ) {
+            anyData.features.forEach((feature: any, index: number) => {
+              if (!feature || !feature.geometry) {
+                return;
+              }
+
+              const geometry = feature.geometry;
+              const props = feature.properties || {};
+
+              if (
+                geometry.type === "Point" &&
+                Array.isArray(geometry.coordinates) &&
+                geometry.coordinates.length === 2
+              ) {
+                const [lng, lat] = geometry.coordinates as [number, number];
+                if (typeof lat === "number" && typeof lng === "number") {
+                  const name =
+                    typeof props.name === "string"
+                      ? props.name
+                      : typeof props.stage_name === "string"
+                      ? props.stage_name
+                      : null;
+                  const id = String(
+                    props.id ??
+                      props._id ??
+                      props["@id"] ??
+                      feature.id ??
+                      `stage-${index}`,
+                  );
+                  nextStages.push({ id, name, lat, lng });
+                }
+              } else if (
+                geometry.type === "LineString" &&
+                Array.isArray(geometry.coordinates)
+              ) {
+                const coords: LatLng[] = [];
+                geometry.coordinates.forEach((coord: any) => {
+                  if (
+                    Array.isArray(coord) &&
+                    coord.length === 2 &&
+                    typeof coord[1] === "number" &&
+                    typeof coord[0] === "number"
+                  ) {
+                    coords.push({ lat: coord[1], lng: coord[0] });
+                  }
+                });
+
+                if (coords.length >= 2) {
+                  const corridorId = String(
+                    props.id ??
+                      props._id ??
+                      props["@id"] ??
+                      feature.id ??
+                      `corridor-${index}`,
+                  );
+                  const corridorName =
+                    typeof props.route_name === "string"
+                      ? props.route_name
+                      : typeof props.road_name === "string"
+                      ? props.road_name
+                      : typeof props.name === "string"
+                      ? props.name
+                      : null;
+                  nextCorridors.push({
+                    id: corridorId,
+                    name: corridorName,
+                    coordinates: coords,
+                  });
+                }
+              }
+            });
+          }
+        }
+
+        setStages(nextStages);
+        setCorridors(nextCorridors);
+      } catch (error) {
+        if (typeof console !== "undefined") {
+          // eslint-disable-next-line no-console
+          console.error("[rider] Failed to load stages GeoJSON", error);
+        }
+      }
+    };
+
+    void run();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     if (!uiRevampEnabled) {
@@ -328,6 +493,307 @@ export default function MapPage() {
       window.clearTimeout(timeoutId);
     };
   }, [routeQuery, uiRevampEnabled]);
+
+  const findNearestStage = useCallback(
+    (point: LatLng | null | undefined): StagePoint | null => {
+      if (!point || stages.length === 0) {
+        return null;
+      }
+
+      let best: StagePoint | null = null;
+      let bestDistance = Number.POSITIVE_INFINITY;
+
+      for (const stage of stages) {
+        const distance = haversineDistanceMeters(
+          { lat: point.lat, lng: point.lng },
+          { lat: stage.lat, lng: stage.lng },
+        );
+
+        if (!Number.isFinite(distance)) {
+          continue;
+        }
+
+        if (distance < bestDistance) {
+          bestDistance = distance;
+          best = stage;
+        }
+      }
+
+      return best;
+    },
+    [stages],
+  );
+
+  const isNearStageOrCorridor = useCallback(
+    (
+      point: LatLng | null | undefined,
+    ): {
+      valid: boolean;
+      nearestStage: StagePoint | null;
+      nearestCorridor: Corridor | null;
+      distanceMeters: number;
+    } => {
+      if (!point) {
+        return {
+          valid: false,
+          nearestStage: null,
+          nearestCorridor: null,
+          distanceMeters: Number.POSITIVE_INFINITY,
+        };
+      }
+
+      const nearestStage = findNearestStage(point);
+
+      let bestCorridor: Corridor | null = null;
+      let bestCorridorDistance = Number.POSITIVE_INFINITY;
+
+      corridors.forEach((corridor) => {
+        const coords = corridor.coordinates;
+        if (!coords || coords.length === 0) return;
+
+        coords.forEach((coord) => {
+          const distance = haversineDistanceMeters(point, coord);
+          if (!Number.isFinite(distance)) return;
+          if (distance < bestCorridorDistance) {
+            bestCorridorDistance = distance;
+            bestCorridor = corridor;
+          }
+        });
+      });
+
+      let distanceToStage = Number.POSITIVE_INFINITY;
+      if (nearestStage) {
+        const d = haversineDistanceMeters(point, {
+          lat: nearestStage.lat,
+          lng: nearestStage.lng,
+        });
+        if (Number.isFinite(d)) {
+          distanceToStage = d;
+        }
+      }
+
+      const nearStage =
+        nearestStage &&
+        Number.isFinite(distanceToStage) &&
+        distanceToStage <= 80;
+
+      const nearCorridor =
+        bestCorridor &&
+        Number.isFinite(bestCorridorDistance) &&
+        bestCorridorDistance <= 100;
+
+      const bestDistance = Math.min(distanceToStage, bestCorridorDistance);
+
+      return {
+        valid: Boolean(nearStage || nearCorridor),
+        nearestStage: nearestStage ?? null,
+        nearestCorridor: bestCorridor,
+        distanceMeters: Number.isFinite(bestDistance)
+          ? bestDistance
+          : Number.POSITIVE_INFINITY,
+      };
+    },
+    [corridors, findNearestStage],
+  );
+
+  const buildRouteBetweenStages = useCallback(
+    (
+      originStage: StagePoint | null,
+      destinationStage: StagePoint | null,
+    ): {
+      originStageId: string;
+      destinationStageId: string;
+      corridorId: string | null;
+      path: LatLng[];
+    } | null => {
+      if (!originStage || !destinationStage) {
+        return null;
+      }
+
+      const originPoint: LatLng = {
+        lat: originStage.lat,
+        lng: originStage.lng,
+      };
+      const destinationPoint: LatLng = {
+        lat: destinationStage.lat,
+        lng: destinationStage.lng,
+      };
+
+      let bestCorridor: Corridor | null = null;
+      let bestCorridorScore = Number.POSITIVE_INFINITY;
+      let bestOriginIndex = 0;
+      let bestDestinationIndex = 0;
+      const maxSnapDistanceMeters = 400;
+
+      corridors.forEach((corridor) => {
+        const coords = corridor.coordinates;
+        if (!coords || coords.length < 2) {
+          return;
+        }
+
+        let nearestOriginIndex = -1;
+        let nearestOriginDistance = Number.POSITIVE_INFINITY;
+        let nearestDestinationIndex = -1;
+        let nearestDestinationDistance = Number.POSITIVE_INFINITY;
+
+        coords.forEach((coord, index) => {
+          const distanceToOrigin = haversineDistanceMeters(originPoint, coord);
+          const distanceToDestination = haversineDistanceMeters(
+            destinationPoint,
+            coord,
+          );
+
+          if (
+            Number.isFinite(distanceToOrigin) &&
+            distanceToOrigin < nearestOriginDistance
+          ) {
+            nearestOriginDistance = distanceToOrigin;
+            nearestOriginIndex = index;
+          }
+
+          if (
+            Number.isFinite(distanceToDestination) &&
+            distanceToDestination < nearestDestinationDistance
+          ) {
+            nearestDestinationDistance = distanceToDestination;
+            nearestDestinationIndex = index;
+          }
+        });
+
+        if (
+          nearestOriginIndex === -1 ||
+          nearestDestinationIndex === -1 ||
+          nearestOriginDistance > maxSnapDistanceMeters ||
+          nearestDestinationDistance > maxSnapDistanceMeters
+        ) {
+          return;
+        }
+
+        const score = nearestOriginDistance + nearestDestinationDistance;
+
+        if (score < bestCorridorScore) {
+          bestCorridorScore = score;
+          bestCorridor = corridor;
+          bestOriginIndex = nearestOriginIndex;
+          bestDestinationIndex = nearestDestinationIndex;
+        }
+      });
+
+      if (bestCorridor) {
+        const coords = bestCorridor.coordinates;
+        const startIndex = Math.min(bestOriginIndex, bestDestinationIndex);
+        const endIndex = Math.max(bestOriginIndex, bestDestinationIndex);
+        const path = coords.slice(startIndex, endIndex + 1);
+
+        return {
+          originStageId: originStage.id,
+          destinationStageId: destinationStage.id,
+          corridorId: bestCorridor.id,
+          path,
+        };
+      }
+
+      const fallbackPath: LatLng[] = [originPoint, destinationPoint];
+
+      return {
+        originStageId: originStage.id,
+        destinationStageId: destinationStage.id,
+        corridorId: null,
+        path: fallbackPath,
+      };
+    },
+    [corridors],
+  );
+
+  useEffect(() => {
+    if (riderStatus !== "waiting") {
+      setActiveStageRoute(null);
+      setDiscoveryMatatus([]);
+      setDiscoveryPassengers([]);
+      return;
+    }
+
+    if (!userLocation || stages.length === 0) {
+      return;
+    }
+
+    const originStage = findNearestStage(userLocation);
+    const destinationStage = destinationLatLng
+      ? findNearestStage(destinationLatLng)
+      : null;
+
+    const route = buildRouteBetweenStages(originStage, destinationStage);
+
+    if (!route) {
+      setActiveStageRoute(null);
+      setDiscoveryMatatus([]);
+      setDiscoveryPassengers([]);
+      return;
+    }
+
+    setActiveStageRoute(route);
+
+    const path = route.path;
+    if (!Array.isArray(path) || path.length < 2) {
+      setDiscoveryMatatus([]);
+      setDiscoveryPassengers([]);
+      return;
+    }
+
+    const matatuCount = Math.min(8, Math.max(4, Math.floor(path.length / 6)));
+    const step = path.length / (matatuCount + 1);
+    const syntheticMatatus: Matatu[] = [];
+
+    for (let index = 1; index <= matatuCount; index += 1) {
+      const pathIndex = Math.min(path.length - 1, Math.round(index * step));
+      const location = path[pathIndex];
+      syntheticMatatus.push({
+        id: `sim-${route.corridorId ?? "corridor"}-${index}`,
+        plate: `R-${index.toString().padStart(3, "0")}`,
+        route: selectedRoute?.name,
+        sacco: undefined,
+        location,
+        status: "online",
+      });
+    }
+
+    const heatStages: StagePoint[] = [];
+    path.forEach((point) => {
+      const nearStage = findNearestStage(point);
+      if (!nearStage) return;
+      if (heatStages.find((s) => s.id === nearStage.id)) return;
+      heatStages.push(nearStage);
+    });
+
+    const syntheticPassengers: PassengerMarker[] = heatStages.map(
+      (stage, index) => ({
+        id: `pax-${stage.id}-${index}`,
+        location: {
+          lat: stage.lat + (Math.random() - 0.5) * 0.001,
+          lng: stage.lng + (Math.random() - 0.5) * 0.001,
+        },
+      }),
+    );
+
+    setDiscoveryMatatus(syntheticMatatus);
+    setDiscoveryPassengers(syntheticPassengers);
+
+    if (typeof console !== "undefined") {
+      // eslint-disable-next-line no-console
+      console.log("[rider] route discovery mode activated", {
+        matatus: syntheticMatatus.length,
+        passengers: syntheticPassengers.length,
+      });
+    }
+  }, [
+    riderStatus,
+    userLocation,
+    destinationLatLng,
+    stages,
+    selectedRoute,
+    buildRouteBetweenStages,
+    findNearestStage,
+  ]);
 
   useEffect(() => {
     if (!selectedRoute) {
@@ -474,6 +940,8 @@ export default function MapPage() {
 
   const hasAnyLocation = useMemo(() => bounds !== null, [bounds]);
 
+  const activeRoutePath = activeStageRoute?.path ?? null;
+
   const project = useCallback(
     (location: LatLng | undefined | null) => {
       if (!location || !bounds) {
@@ -495,8 +963,21 @@ export default function MapPage() {
   );
 
   const selectedMatatu = useMemo(
-    () => matatus.find((m) => m.id === selectedMatatuId) || null,
-    [matatus, selectedMatatuId],
+    () => {
+      if (!selectedMatatuId) {
+        return null;
+      }
+
+      const live = matatus.find((m) => m.id === selectedMatatuId) || null;
+      if (live) {
+        return live;
+      }
+
+      const simulated =
+        discoveryMatatus.find((m) => m.id === selectedMatatuId) || null;
+      return simulated;
+    },
+    [matatus, discoveryMatatus, selectedMatatuId],
   );
 
   const selectedMatatuPhotoSrc = useMemo(() => {
@@ -542,6 +1023,58 @@ export default function MapPage() {
     [baseMatatusForDisplay, trackingId],
   );
 
+  const matatusForDisplay = useMemo(
+    () =>
+      riderStatus === "waiting" &&
+      activeRoutePath &&
+      discoveryMatatus.length > 0
+        ? discoveryMatatus
+        : matatusWithFlags,
+    [
+      riderStatus,
+      activeRoutePath,
+      discoveryMatatus,
+      matatusWithFlags,
+    ],
+  );
+
+  const passengersForDisplay = useMemo(
+    () =>
+      riderStatus === "waiting" &&
+      activeRoutePath &&
+      discoveryPassengers.length > 0
+        ? discoveryPassengers
+        : passengers,
+    [riderStatus, activeRoutePath, discoveryPassengers, passengers],
+  );
+
+  const routePathForMap = useMemo(
+    () => {
+      if (
+        riderStatus === "waiting" &&
+        activeRoutePath &&
+        activeRoutePath.length >= 2
+      ) {
+        return activeRoutePath;
+      }
+
+      if (walkingPath && walkingPath.length >= 2) {
+        return walkingPath;
+      }
+
+      return null;
+    },
+    [riderStatus, activeRoutePath, walkingPath],
+  );
+
+  const heatmapPointsForMap = useMemo(
+    () =>
+      riderStatus === "waiting" && activeRoutePath
+        ? discoveryPassengers.map((p) => p.location)
+        : [],
+    [riderStatus, activeRoutePath, discoveryPassengers],
+  );
+
   const selectedMatatuEta = useMemo(() => {
     if (!selectedMatatu || !selectedMatatu.location || !userLocation) {
       return null;
@@ -556,6 +1089,17 @@ export default function MapPage() {
 
     return { distanceMeters, etaMinutes };
   }, [selectedMatatu, userLocation]);
+
+  useEffect(() => {
+    if (typeof console === "undefined") {
+      return;
+    }
+
+    // eslint-disable-next-line no-console
+    console.log("[map] matatus rendered: %d", matatusForDisplay.length);
+    // eslint-disable-next-line no-console
+    console.log("[map] pax markers rendered: %d", passengersForDisplay.length);
+  }, [matatusForDisplay, passengersForDisplay]);
 
   useEffect(() => {
     const query = destinationQuery.trim();
@@ -710,6 +1254,60 @@ export default function MapPage() {
           lng: position.coords.longitude,
         };
 
+        const validity = isNearStageOrCorridor(pickup);
+
+        if (!validity.valid) {
+          const nearestStage = validity.nearestStage ?? null;
+
+          setUserLocation(pickup);
+          setRiderStatus("idle");
+          setTrackingId(null);
+
+          if (nearestStage) {
+            const stagePoint: LatLng = {
+              lat: nearestStage.lat,
+              lng: nearestStage.lng,
+            };
+            setWalkingPath([pickup, stagePoint]);
+
+            const distanceMeters = haversineDistanceMeters(pickup, stagePoint);
+            const walkingSpeedMps = 1.4;
+            const etaMinutes = Number.isFinite(distanceMeters)
+              ? Math.max(
+                  1,
+                  Math.round((distanceMeters / walkingSpeedMps) / 60),
+                )
+              : null;
+
+            setWalkingEtaMinutes(etaMinutes);
+            setWalkingStageName(
+              nearestStage.name || "nearest stage",
+            );
+          } else {
+            setWalkingPath(null);
+            setWalkingEtaMinutes(null);
+            setWalkingStageName(null);
+          }
+
+          setGeoError(
+            "You're a bit off the matatu route. Walk to the nearest stage to continue.",
+          );
+
+          if (typeof console !== "undefined") {
+            // eslint-disable-next-line no-console
+            console.log("[pax] request blocked – off corridor", {
+              pickup,
+              nearestStageName: nearestStage?.name ?? null,
+            });
+          }
+
+          return;
+        }
+
+        setWalkingPath(null);
+        setWalkingEtaMinutes(null);
+        setWalkingStageName(null);
+
         if (selectedRoute) {
           setTrackingId(null);
         }
@@ -758,8 +1356,8 @@ export default function MapPage() {
     })();
   };
 
-  const totalMatatus = matatusWithFlags.length;
-  const totalPassengers = passengers.length;
+  const totalMatatus = matatusForDisplay.length;
+  const totalPassengers = passengersForDisplay.length;
 
   if (!uiRevampEnabled) {
     if (liveOnlyMapEnabled) {
@@ -767,19 +1365,22 @@ export default function MapPage() {
         <div className="rounded-2xl border border-slate-800 bg-slate-950 p-4">
           {globalMapEnabled ? (
             <GoogleMapContainer
-              matatus={matatusWithFlags}
-              passengers={passengers}
+              matatus={matatusForDisplay}
+              passengers={passengersForDisplay}
               userLocation={userLocation}
               onCenterOnMe={handleCenterOnMe}
               onSelectMatatu={handleSelectMatatu}
               isLoading={loading}
               hasAnyLocation={hasAnyLocation}
               driverMode={mapDriverMode}
+              routePath={routePathForMap ?? undefined}
+              heatmapPoints={heatmapPointsForMap}
+              heatmapEnabled={riderStatus === "waiting"}
             />
           ) : (
             <MapContainer
-              matatus={matatusWithFlags}
-              passengers={passengers}
+              matatus={matatusForDisplay}
+              passengers={passengersForDisplay}
               userLocation={userLocation}
               displayPositions={displayPositions}
               project={project}
@@ -788,6 +1389,9 @@ export default function MapPage() {
               isLoading={loading}
               hasAnyLocation={hasAnyLocation}
               driverMode={mapDriverMode}
+              routePath={routePathForMap ?? undefined}
+              heatmapPoints={heatmapPointsForMap}
+              heatmapEnabled={riderStatus === "waiting"}
             />
           )}
         </div>
@@ -1137,19 +1741,22 @@ export default function MapPage() {
               <div className="h-full w-full">
                 {globalMapEnabled ? (
                   <GoogleMapContainer
-                    matatus={matatusWithFlags}
-                    passengers={passengers}
+                    matatus={matatusForDisplay}
+                    passengers={passengersForDisplay}
                     userLocation={userLocation}
                     onCenterOnMe={handleCenterOnMe}
                     onSelectMatatu={handleSelectMatatu}
                     isLoading={loading}
                     hasAnyLocation={hasAnyLocation}
                     driverMode={mapDriverMode}
+                    routePath={routePathForMap ?? undefined}
+                    heatmapPoints={heatmapPointsForMap}
+                    heatmapEnabled={riderStatus === "waiting"}
                   />
                 ) : (
                   <MapContainer
-                    matatus={matatusWithFlags}
-                    passengers={passengers}
+                    matatus={matatusForDisplay}
+                    passengers={passengersForDisplay}
                     userLocation={userLocation}
                     displayPositions={displayPositions}
                     project={project}
@@ -1158,6 +1765,9 @@ export default function MapPage() {
                     isLoading={loading}
                     hasAnyLocation={hasAnyLocation}
                     driverMode={mapDriverMode}
+                    routePath={routePathForMap ?? undefined}
+                    heatmapPoints={heatmapPointsForMap}
+                    heatmapEnabled={riderStatus === "waiting"}
                   />
                 )}
               </div>
@@ -1176,7 +1786,9 @@ export default function MapPage() {
             <span className="text-[10px] text-slate-400">
               {riderStatus === "waiting"
                 ? "Waiting for a matatu on this route"
-                : "We use this to show matatus along your route"}
+                : walkingEtaMinutes && walkingStageName
+                  ? `Walk ~${walkingEtaMinutes} min to ${walkingStageName}`
+                  : "We use this to show matatus along your route"}
             </span>
           </div>
           <button
@@ -1232,7 +1844,7 @@ export default function MapPage() {
         </div>
 
         <div className="grid gap-3 md:grid-cols-2">
-          {matatusWithFlags.map((m) => {
+          {matatusForDisplay.map((m) => {
             const isSelected = selectedMatatu && selectedMatatu.id === m.id;
             const isTracked = trackingId && trackingId === m.id;
 
@@ -1283,7 +1895,7 @@ export default function MapPage() {
               </button>
             );
           })}
-          {matatusWithFlags.length === 0 && (
+          {matatusForDisplay.length === 0 && (
             <p className="col-span-full text-[11px] text-slate-500">
               No matatus are online yet. They&apos;ll appear here once they come
               online.

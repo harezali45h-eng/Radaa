@@ -1,6 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useState, type ChangeEvent, type FormEvent } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type ChangeEvent,
+  type FormEvent,
+} from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { useNotifications } from "@/context/NotificationContext";
@@ -21,30 +28,49 @@ import {
   uploadMatatuPhotoV2,
   type MatatuPhoto,
 } from "@/lib/api/matatu";
-import { getMapMarkers } from "@/lib/api";
+import { getMapMarkers, getStagesGeoJson } from "@/lib/api";
+import { useRideIntent } from "@/context/RideIntentContext";
+import { haversineDistanceMeters } from "@/lib/location/distance";
 
 interface LatLng {
   lat: number;
   lng: number;
 }
 
-function haversineDistanceMeters(a: LatLng, b: LatLng): number {
-  const R = 6371000;
-  const toRad = (deg: number) => (deg * Math.PI) / 180;
+interface StagePoint {
+  id: string;
+  name: string | null;
+  lat: number;
+  lng: number;
+}
 
-  const dLat = toRad(b.lat - a.lat);
-  const dLng = toRad(b.lng - a.lng);
-  const lat1 = toRad(a.lat);
-  const lat2 = toRad(b.lat);
+interface Corridor {
+  id: string;
+  name: string | null;
+  coordinates: LatLng[];
+}
 
-  const sinDLat = Math.sin(dLat / 2);
-  const sinDLng = Math.sin(dLng / 2);
+interface ActiveStageRoute {
+  originStageId: string;
+  destinationStageId: string;
+  corridorId: string | null;
+  path: LatLng[];
+}
 
-  const h =
-    sinDLat * sinDLat + Math.cos(lat1) * Math.cos(lat2) * sinDLng * sinDLng;
-  const c = 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
+function formatStageName(stage: StagePoint | null): string | null {
+  if (!stage) return null;
+  if (stage.name && typeof stage.name === "string") {
+    return stage.name;
+  }
 
-  return R * c;
+  const lat = Number.isFinite(stage.lat) ? stage.lat.toFixed(4) : "";
+  const lng = Number.isFinite(stage.lng) ? stage.lng.toFixed(4) : "";
+
+  if (lat && lng) {
+    return `Stage ${lat}, ${lng}`;
+  }
+
+  return `Stage ${stage.id}`;
 }
 
 const BACKEND_URL =
@@ -61,11 +87,13 @@ export default function DriverLiveDashboardPage() {
     driverOnline,
     currentRequest,
     timeLeftSeconds,
+    location,
     goOnline,
     goOffline,
     acceptCurrentRequest,
     rejectCurrentRequest,
   } = useDriverRealtime();
+  const { intent, setIntent, clearIntent } = useRideIntent();
 
   const role = (user as any)?.role as string | undefined;
   const isDriver = role === "driver";
@@ -86,6 +114,12 @@ export default function DriverLiveDashboardPage() {
   const [loadingAssigned, setLoadingAssigned] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
+  const [stages, setStages] = useState<StagePoint[]>([]);
+  const [corridors, setCorridors] = useState<Corridor[]>([]);
+  const [activeRoute, setActiveRoute] = useState<ActiveStageRoute | null>(null);
+  const [whereToInput, setWhereToInput] = useState("");
+  const [heatmapEnabled, setHeatmapEnabled] = useState(false);
+
   const [driverMatatuId, setDriverMatatuId] = useState<string | null>(null);
   const [driverMatatuLabel, setDriverMatatuLabel] = useState<string | null>(
     null,
@@ -96,6 +130,353 @@ export default function DriverLiveDashboardPage() {
   const [photoCaption, setPhotoCaption] = useState("");
   const [photoError, setPhotoError] = useState<string | null>(null);
   const [photoSuccess, setPhotoSuccess] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (typeof console !== "undefined") {
+      // eslint-disable-next-line no-console
+      console.log("[driver] driver dashboard mounted successfully");
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!location) {
+      return;
+    }
+
+    setCoords({ lat: location.lat, lng: location.lng });
+  }, [location]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const run = async () => {
+      try {
+        const data = await getStagesGeoJson();
+
+        if (cancelled) {
+          return;
+        }
+
+        const nextStages: StagePoint[] = [];
+        const nextCorridors: Corridor[] = [];
+
+        if (data && typeof data === "object") {
+          const anyData = data as any;
+
+          if (
+            anyData.type === "FeatureCollection" &&
+            Array.isArray(anyData.features)
+          ) {
+            anyData.features.forEach((feature: any, index: number) => {
+              if (!feature || !feature.geometry) {
+                return;
+              }
+
+              const geometry = feature.geometry;
+              const props = feature.properties || {};
+
+              if (
+                geometry.type === "Point" &&
+                Array.isArray(geometry.coordinates) &&
+                geometry.coordinates.length === 2
+              ) {
+                const [lng, lat] = geometry.coordinates as [number, number];
+                if (typeof lat === "number" && typeof lng === "number") {
+                  const name =
+                    typeof props.name === "string"
+                      ? props.name
+                      : typeof props.stage_name === "string"
+                      ? props.stage_name
+                      : null;
+                  const id = String(
+                    props.id ??
+                      props._id ??
+                      props["@id"] ??
+                      feature.id ??
+                      `stage-${index}`,
+                  );
+                  nextStages.push({ id, name, lat, lng });
+                }
+              } else if (
+                geometry.type === "LineString" &&
+                Array.isArray(geometry.coordinates)
+              ) {
+                const coords: LatLng[] = [];
+                geometry.coordinates.forEach((coord: any) => {
+                  if (
+                    Array.isArray(coord) &&
+                    coord.length === 2 &&
+                    typeof coord[1] === "number" &&
+                    typeof coord[0] === "number"
+                  ) {
+                    coords.push({ lat: coord[1], lng: coord[0] });
+                  }
+                });
+
+                if (coords.length >= 2) {
+                  const corridorId = String(
+                    props.id ??
+                      props._id ??
+                      props["@id"] ??
+                      feature.id ??
+                      `corridor-${index}`,
+                  );
+                  const corridorName =
+                    typeof props.route_name === "string"
+                      ? props.route_name
+                      : typeof props.road_name === "string"
+                      ? props.road_name
+                      : typeof props.name === "string"
+                      ? props.name
+                      : null;
+                  nextCorridors.push({
+                    id: corridorId,
+                    name: corridorName,
+                    coordinates: coords,
+                  });
+                }
+              }
+            });
+          }
+        }
+
+        setStages(nextStages);
+        setCorridors(nextCorridors);
+
+        if (typeof console !== "undefined") {
+          console.log("[driver] stages loaded: " + nextStages.length);
+        }
+      } catch (err) {
+        if (typeof console !== "undefined") {
+          console.error("[driver] Failed to load stages GeoJSON", err);
+        }
+      }
+    };
+
+    void run();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const findNearestStage = useCallback(
+    (point: LatLng | null | undefined): StagePoint | null => {
+      if (!point || stages.length === 0) {
+        return null;
+      }
+
+      let best: StagePoint | null = null;
+      let bestDistance = Number.POSITIVE_INFINITY;
+
+      for (const stage of stages) {
+        const distance = haversineDistanceMeters(
+          { lat: point.lat, lng: point.lng },
+          { lat: stage.lat, lng: stage.lng },
+        );
+
+        if (!Number.isFinite(distance)) {
+          continue;
+        }
+
+        if (distance < bestDistance) {
+          bestDistance = distance;
+          best = stage;
+        }
+      }
+
+      return best;
+    },
+    [stages],
+  );
+
+  const buildRouteBetweenStages = useCallback(
+    (originStage: StagePoint | null, destinationStage: StagePoint | null): ActiveStageRoute | null => {
+      if (!originStage || !destinationStage) {
+        return null;
+      }
+
+      const originPoint: LatLng = {
+        lat: originStage.lat,
+        lng: originStage.lng,
+      };
+      const destinationPoint: LatLng = {
+        lat: destinationStage.lat,
+        lng: destinationStage.lng,
+      };
+
+      let bestCorridor: Corridor | null = null;
+      let bestCorridorScore = Number.POSITIVE_INFINITY;
+      let bestOriginIndex = 0;
+      let bestDestinationIndex = 0;
+      const maxSnapDistanceMeters = 400;
+
+      corridors.forEach((corridor) => {
+        const coords = corridor.coordinates;
+        if (!coords || coords.length < 2) {
+          return;
+        }
+
+        let nearestOriginIndex = -1;
+        let nearestOriginDistance = Number.POSITIVE_INFINITY;
+        let nearestDestinationIndex = -1;
+        let nearestDestinationDistance = Number.POSITIVE_INFINITY;
+
+        coords.forEach((coord, index) => {
+          const distanceToOrigin = haversineDistanceMeters(originPoint, coord);
+          const distanceToDestination = haversineDistanceMeters(
+            destinationPoint,
+            coord,
+          );
+
+          if (Number.isFinite(distanceToOrigin) && distanceToOrigin < nearestOriginDistance) {
+            nearestOriginDistance = distanceToOrigin;
+            nearestOriginIndex = index;
+          }
+
+          if (
+            Number.isFinite(distanceToDestination) &&
+            distanceToDestination < nearestDestinationDistance
+          ) {
+            nearestDestinationDistance = distanceToDestination;
+            nearestDestinationIndex = index;
+          }
+        });
+
+        if (
+          nearestOriginIndex === -1 ||
+          nearestDestinationIndex === -1 ||
+          nearestOriginDistance > maxSnapDistanceMeters ||
+          nearestDestinationDistance > maxSnapDistanceMeters
+        ) {
+          return;
+        }
+
+        const score = nearestOriginDistance + nearestDestinationDistance;
+
+        if (score < bestCorridorScore) {
+          bestCorridorScore = score;
+          bestCorridor = corridor;
+          bestOriginIndex = nearestOriginIndex;
+          bestDestinationIndex = nearestDestinationIndex;
+        }
+      });
+
+      if (bestCorridor) {
+        const coords = bestCorridor.coordinates;
+        const startIndex = Math.min(bestOriginIndex, bestDestinationIndex);
+        const endIndex = Math.max(bestOriginIndex, bestDestinationIndex);
+        const path = coords.slice(startIndex, endIndex + 1);
+
+        if (typeof console !== "undefined") {
+          const label =
+            bestCorridor.name ||
+            `${bestCorridor.id} (${path.length.toString()} points)`;
+          console.log("[driver] corridor route selected: " + label);
+        }
+
+        return {
+          originStageId: originStage.id,
+          destinationStageId: destinationStage.id,
+          corridorId: bestCorridor.id,
+          path,
+        };
+      }
+
+      if (typeof console !== "undefined") {
+        console.log("[driver] corridor not found, fallback routing used");
+      }
+
+      const fallbackPath: LatLng[] = [originPoint, destinationPoint];
+
+      return {
+        originStageId: originStage.id,
+        destinationStageId: destinationStage.id,
+        corridorId: null,
+        path: fallbackPath,
+      };
+    },
+    [corridors],
+  );
+
+  const resolveDestinationStage = useCallback(
+    (stage: StagePoint | null) => {
+      if (!stage) {
+        return;
+      }
+
+      const label = formatStageName(stage) ?? stage.id;
+
+      const originStage = findNearestStage(coords);
+      const route = buildRouteBetweenStages(originStage, stage);
+
+      if (route) {
+        setActiveRoute(route);
+      } else {
+        setActiveRoute(null);
+      }
+
+      setIntent({
+        destination: { lat: stage.lat, lng: stage.lng },
+        label,
+      });
+
+      if (typeof console !== "undefined") {
+        console.log("[driver] destination resolved to stage: " + label);
+      }
+    },
+    [buildRouteBetweenStages, coords, findNearestStage, setIntent],
+  );
+
+  const handleWhereToSubmit = useCallback(
+    (event: FormEvent<HTMLFormElement>) => {
+      event.preventDefault();
+
+      const query = whereToInput.trim();
+
+      if (!query) {
+        if (intent.destination) {
+          const stage = findNearestStage(intent.destination);
+          resolveDestinationStage(stage);
+        }
+        return;
+      }
+
+      const normalized = query.toLowerCase();
+
+      let exactMatch: StagePoint | null = null;
+      let partialMatch: StagePoint | null = null;
+
+      for (const stage of stages) {
+        if (!stage.name) continue;
+        const name = stage.name.toLowerCase();
+        if (name === normalized) {
+          exactMatch = stage;
+          break;
+        }
+        if (!partialMatch && name.includes(normalized)) {
+          partialMatch = stage;
+        }
+      }
+
+      const targetStage = exactMatch ?? partialMatch ?? null;
+
+      if (targetStage) {
+        resolveDestinationStage(targetStage);
+      } else if (typeof console !== "undefined") {
+        console.warn("[driver] no stage matched query:", query);
+      }
+    },
+    [whereToInput, intent, stages, findNearestStage, resolveDestinationStage],
+  );
+
+  const handleMapClick = useCallback(
+    (location: LatLng) => {
+      const stage = findNearestStage(location);
+      resolveDestinationStage(stage);
+    },
+    [findNearestStage, resolveDestinationStage],
+  );
 
   useEffect(() => {
     if (!token || !isDriver) {
@@ -243,75 +624,8 @@ export default function DriverLiveDashboardPage() {
       return;
     }
 
-    let cancelled = false;
-    let watchId: number | null = null;
-
-    watchId = navigator.geolocation.watchPosition(
-      (position) => {
-        if (cancelled) return;
-        const loc: LatLng = {
-          lat: position.coords.latitude,
-          lng: position.coords.longitude,
-        };
-        setCoords(loc);
-
-        emit("driver:update_location", {
-          lat: loc.lat,
-          lng: loc.lng,
-        });
-      },
-      (geoError) => {
-        if (cancelled) return;
-        setLoadingIncoming(false);
-        const code =
-          geoError && typeof geoError.code === "number"
-            ? (geoError.code as number)
-            : 0;
-
-        let message: string;
-        if (code === 1) {
-          message =
-            "Location access is blocked. Turn on location for Radaa in your browser settings so riders near you can see you.";
-        } else if (code === 2) {
-          message =
-            "We couldn't get a GPS fix. Check that location is turned on and you have a good network signal, then try again.";
-        } else if (code === 3) {
-          message =
-            "It is taking a bit long to find you. Move closer to a window or check your network, then try again.";
-        } else {
-          message =
-            geoError.message ||
-            "Unable to determine your current location. Turn on location so nearby riders can see you.";
-        }
-
-        setError(message);
-        if (typeof console !== "undefined") {
-          console.error("[driver-live] geolocation error", geoError);
-        }
-        addNotification({
-          type: "system",
-          title: "Location error",
-          message,
-        });
-      },
-      {
-        enableHighAccuracy: true,
-        maximumAge: 5000,
-        timeout: 10000,
-      },
-    );
-
-    return () => {
-      cancelled = true;
-      if (
-        watchId != null &&
-        typeof window !== "undefined" &&
-        navigator.geolocation
-      ) {
-        navigator.geolocation.clearWatch(watchId);
-      }
-    };
-  }, [token, emit, isDriver]);
+    setError(null);
+  }, [token, isDriver]);
 
   useEffect(() => {
     if (!token || !coords || !isDriver) {
@@ -562,6 +876,17 @@ export default function DriverLiveDashboardPage() {
     [incoming, hasIncoming],
   );
 
+  const currentPickupStage = useMemo(
+    () => (currentRequest ? findNearestStage(currentRequest.pickup) : null),
+    [currentRequest, findNearestStage],
+  );
+
+  const currentDestinationStage = useMemo(
+    () =>
+      currentRequest ? findNearestStage(currentRequest.destination) : null,
+    [currentRequest, findNearestStage],
+  );
+
   const passengerMarkers = useMemo(
     () =>
       incoming
@@ -594,6 +919,54 @@ export default function DriverLiveDashboardPage() {
         })
         .filter(Boolean) as { id: string; location: LatLng }[],
     [incoming],
+  );
+
+  const heatmapPoints = useMemo(
+    () => {
+      if (!heatmapEnabled) {
+        return [] as LatLng[];
+      }
+
+      if (incoming.length === 0) {
+        return [] as LatLng[];
+      }
+
+      const points: LatLng[] = [];
+
+      incoming.forEach((ride) => {
+        const rideAny = ride as any;
+        const pickup =
+          rideAny.pickup ||
+          rideAny.pickupLocation ||
+          rideAny.location ||
+          null;
+
+        if (
+          !pickup ||
+          !Array.isArray(pickup.coordinates) ||
+          pickup.coordinates.length !== 2
+        ) {
+          return;
+        }
+
+        const [lng, lat] = pickup.coordinates as [number, number];
+
+        if (typeof lat !== "number" || typeof lng !== "number") {
+          return;
+        }
+
+        const snappedStage = findNearestStage({ lat, lng });
+
+        if (snappedStage) {
+          points.push({ lat: snappedStage.lat, lng: snappedStage.lng });
+        } else {
+          points.push({ lat, lng });
+        }
+      });
+
+      return points;
+    },
+    [heatmapEnabled, incoming, findNearestStage],
   );
 
   const bounds = useMemo(() => {
@@ -653,6 +1026,11 @@ export default function DriverLiveDashboardPage() {
 
   const displayPositions: Record<string, LatLng> = {};
 
+  const routePath = activeRoute ? activeRoute.path : null;
+
+  const pickupStageName = formatStageName(currentPickupStage);
+  const destinationStageName = formatStageName(currentDestinationStage);
+
   if (loading || !user || !isDriver) {
     return (
       <DriverDashboardShell active="live">
@@ -673,59 +1051,109 @@ export default function DriverLiveDashboardPage() {
   return (
     <DriverDashboardShell active="live">
       <div className="space-y-6 text-xs">
-      <header className="space-y-2">
-        <h1 className="text-2xl font-semibold tracking-tight">
-          Driver live dashboard
-        </h1>
-        <p className="text-slate-300">
-          Watch incoming ride requests in real time and manage your currently
-          assigned passengers.
-        </p>
-        {driverOnboardEnabled && (
-          <p className="text-[11px] text-emerald-200">
-            New driver experience is enabled for your account.
+        <header className="space-y-2">
+          <h1 className="text-2xl font-semibold tracking-tight">
+            Driver live dashboard
+          </h1>
+          <p className="text-slate-300">
+            Watch incoming ride requests in real time and manage your currently
+            assigned passengers.
           </p>
-        )}
-        {driverStatus === "provisional" && (
-          <p className="text-[11px] text-amber-200">
-            You are live while we verify your details. Mpesa payouts and paid
-            features unlock after SACCO/admin approval.
-          </p>
-        )}
-        {driverStatus === "suspended" && (
-          <p className="text-[11px] text-red-300">
-            Your driver account is currently suspended. Contact your SACCO or
-            support for assistance.
-          </p>
-        )}
-        <div className="mt-2 flex items-center justify-between gap-3">
-          <div className="inline-flex items-center gap-2 text-[11px] text-slate-400">
-            <span
-              className={
+          {driverOnboardEnabled && (
+            <p className="text-[11px] text-emerald-200">
+              New driver experience is enabled for your account.
+            </p>
+          )}
+          {driverStatus === "provisional" && (
+            <p className="text-[11px] text-amber-200">
+              You are live while we verify your details. Mpesa payouts and paid
+              features unlock after SACCO/admin approval.
+            </p>
+          )}
+          {driverStatus === "suspended" && (
+            <p className="text-[11px] text-red-300">
+              Your driver account is currently suspended. Contact your SACCO or
+              support for assistance.
+            </p>
+          )}
+          <div className="mt-2 flex items-center justify-between gap-3">
+            <div className="inline-flex items-center gap-2 text-[11px] text-slate-400">
+              <span
+                className={
+                  driverOnline
+                    ? "h-1.5 w-1.5 rounded-full bg-emerald-400"
+                    : "h-1.5 w-1.5 rounded-full bg-slate-500"
+                }
+              />
+              <span>
+                {driverOnline
+                  ? "You are online and visible to nearby riders"
+                  : "You are offline. Go online to start seeing ride requests."}
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={() => (driverOnline ? goOffline() : goOnline())}
+              className={`inline-flex items-center rounded-full px-3 py-1 text-[11px] font-medium transition ${
                 driverOnline
-                  ? "h-1.5 w-1.5 rounded-full bg-emerald-400"
-                  : "h-1.5 w-1.5 rounded-full bg-slate-500"
-              }
-            />
-            <span>
-              {driverOnline
-                ? "You are online and visible to nearby riders"
-                : "You are offline. Go online to start seeing ride requests."}
-            </span>
+                  ? "bg-gradient-gold-orange text-slate-950 shadow-soft hover:shadow-glow-kenya"
+                  : "border border-slate-700 bg-slate-900/80 text-slate-100 hover:border-slate-500 hover:bg-slate-900"
+              }`}
+            >
+              {driverOnline ? "Go offline" : "Go online"}
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={() => (driverOnline ? goOffline() : goOnline())}
-            className={`inline-flex items-center rounded-full px-3 py-1 text-[11px] font-medium transition ${
-              driverOnline
-                ? "bg-gradient-gold-orange text-slate-950 shadow-soft hover:shadow-glow-kenya"
-                : "border border-slate-700 bg-slate-900/80 text-slate-100 hover:border-slate-500 hover:bg-slate-900"
-            }`}
+          <form
+            onSubmit={handleWhereToSubmit}
+            className="mt-3 flex flex-col gap-2 rounded-lg border border-slate-800/80 bg-slate-950/60 p-2 md:flex-row md:items-center"
           >
-            {driverOnline ? "Go offline" : "Go online"}
-          </button>
-        </div>
-      </header>
+            <div className="flex-1 min-w-[0]">
+              <div className="flex items-center justify-between gap-2">
+                <label className="text-[10px] font-medium uppercase tracking-wide text-slate-400">
+                  Where to?
+                </label>
+                {intent.label && (
+                  <span className="text-[10px] text-emerald-200">
+                    {intent.label}
+                  </span>
+                )}
+              </div>
+              <input
+                type="text"
+                value={whereToInput}
+                onChange={(event) => setWhereToInput(event.target.value)}
+                placeholder="Type a stage name or tap on the map"
+                className="mt-1 w-full rounded-md border border-slate-700 bg-slate-950 px-2 py-1 text-[11px] text-slate-50 outline-none placeholder:text-slate-500 focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
+              />
+            </div>
+            <div className="flex items-center gap-2 pt-1 md:pt-0">
+              <button
+                type="submit"
+                className="inline-flex items-center rounded-md border border-emerald-600/70 bg-emerald-600/10 px-2.5 py-1 text-[11px] font-medium text-emerald-100 hover:border-emerald-400 hover:bg-emerald-600/20"
+              >
+                Set
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setWhereToInput("");
+                  setActiveRoute(null);
+                  clearIntent();
+                }}
+                className="inline-flex items-center rounded-md border border-slate-700 bg-slate-900/80 px-2.5 py-1 text-[11px] font-medium text-slate-200 hover:border-slate-500 hover:bg-slate-900"
+              >
+                Clear
+              </button>
+              <button
+                type="button"
+                onClick={() => setHeatmapEnabled((value) => !value)}
+                className="inline-flex items-center rounded-md border border-sky-700/80 bg-sky-900/30 px-2.5 py-1 text-[11px] font-medium text-sky-100 hover:border-sky-500 hover:bg-sky-900/50"
+              >
+                {heatmapEnabled ? "Hide heatmap" : "Show heatmap"}
+              </button>
+            </div>
+          </form>
+        </header>
 
       {currentRequest && (
         <section className="border-t border-emerald-700/60 pt-3">
@@ -734,6 +1162,8 @@ export default function DriverLiveDashboardPage() {
             timeLeftSeconds={timeLeftSeconds}
             onAccept={acceptCurrentRequest}
             onReject={rejectCurrentRequest}
+            pickupStageName={pickupStageName}
+            destinationStageName={destinationStageName}
           />
         </section>
       )}
@@ -782,6 +1212,10 @@ export default function DriverLiveDashboardPage() {
           hasAnyLocation={hasAnyLocation}
           driverMode
           showCenterOnMe
+          routePath={routePath ?? undefined}
+          heatmapPoints={heatmapPoints}
+          heatmapEnabled={heatmapEnabled}
+          onMapClick={handleMapClick}
         />
       </section>
 
