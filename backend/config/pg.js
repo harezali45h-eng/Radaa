@@ -2,12 +2,15 @@ import pg from "pg";
 
 const { Pool } = pg;
 
-const pool = new Pool({
-  host: process.env.PGHOST || "localhost",
-  port: Number(process.env.PGPORT) || 5432,
-  database: process.env.PGDATABASE || "radaa_gis",
-  user: process.env.PGUSER || "postgres",
-  password: process.env.PGPASSWORD,
+const isProduction = process.env.NODE_ENV === "production";
+
+export const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: isProduction ? { rejectUnauthorized: false } : false,
+});
+
+pool.on("connect", () => {
+  console.log("[pg] PostgreSQL client connected");
 });
 
 pool.on("error", (err) => {
@@ -17,9 +20,9 @@ pool.on("error", (err) => {
 export const initPg = async () => {
   try {
     await pool.query("SELECT 1");
-    console.log("[pg] connection established");
+    console.log("[pg] connection test successful");
   } catch (error) {
-    console.error("[pg] Failed to connect to PostgreSQL (radaa_gis)", error);
+    console.error("[pg] Failed to connect to PostgreSQL", error);
   }
 };
 
