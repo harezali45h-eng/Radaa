@@ -1250,8 +1250,17 @@ export default function MapPage() {
     const description =
       destinationDescription.trim() || destinationQuery.trim();
 
+    if (typeof console !== "undefined") {
+      // eslint-disable-next-line no-console
+      console.log("[map] where-to clicked", description);
+    }
+
     if (!description) {
       setGeoError("Set your destination first to request a matatu.");
+      if (typeof console !== "undefined") {
+        // eslint-disable-next-line no-console
+        console.error("[map] where-to clicked with empty destination");
+      }
       return;
     }
 
@@ -1259,6 +1268,12 @@ export default function MapPage() {
       setGeoError(
         "Location is not available in this browser. Turn on location or try a different device.",
       );
+      if (typeof console !== "undefined") {
+        // eslint-disable-next-line no-console
+        console.error(
+          "[map] where-to clicked but geolocation is unavailable",
+        );
+      }
       return;
     }
 
@@ -1350,6 +1365,10 @@ export default function MapPage() {
         }
 
         setGeoError(message);
+        if (typeof console !== "undefined") {
+          // eslint-disable-next-line no-console
+          console.error("[map] where-to geolocation error", { code, error });
+        }
       },
       {
         enableHighAccuracy: true,
@@ -1364,9 +1383,20 @@ export default function MapPage() {
           const top = routes[0];
           setSelectedRoute(top);
           setRouteQuery(top.name);
+        } else if (typeof console !== "undefined") {
+          // eslint-disable-next-line no-console
+          console.error("[map] where-to searchRoutes returned no routes", {
+            description,
+          });
         }
-      } catch {
-        // ignore route lookup errors; visibility will remain global
+      } catch (error) {
+        if (typeof console !== "undefined") {
+          // eslint-disable-next-line no-console
+          console.error("[map] where-to searchRoutes failed", {
+            description,
+            error,
+          });
+        }
       }
     })();
   };
@@ -1672,7 +1702,13 @@ export default function MapPage() {
           <div className="relative h-[calc(100vh-12rem)] md:h-auto">
             <div className="absolute inset-x-4 top-4 z-20 flex flex-col gap-2 md:static md:mb-3 md:mt-4">
               <div className="inline-flex items-center justify-between rounded-full border border-slate-700/70 bg-slate-950/90 px-3 py-1.5 text-[11px] text-slate-200 shadow-soft">
-                <span className="font-medium">Where to?</span>
+                <button
+                  type="button"
+                  onClick={handleRequestMatatu}
+                  className="font-medium"
+                >
+                  Where to?
+                </button>
                 <span className="text-[10px] text-slate-400">
                   Route-based view only
                 </span>

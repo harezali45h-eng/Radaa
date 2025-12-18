@@ -134,7 +134,7 @@ export default function DriverLiveDashboardPage() {
   useEffect(() => {
     if (typeof console !== "undefined") {
       // eslint-disable-next-line no-console
-      console.log("[driver] driver dashboard mounted successfully");
+      console.log("[driver] driver dashboard mounted");
     }
   }, []);
 
@@ -1052,6 +1052,9 @@ export default function DriverLiveDashboardPage() {
     <DriverDashboardShell active="live">
       <div className="space-y-6 text-xs">
         <header className="space-y-2">
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-emerald-300">
+            Driver Dashboard (Live)
+          </p>
           <h1 className="text-2xl font-semibold tracking-tight">
             Driver live dashboard
           </h1>

@@ -11,22 +11,27 @@ interface AppRootClientProps {
 
 export function AppRootClient({ children }: AppRootClientProps) {
   const pathname = usePathname();
+  const { activeMode: realtimeMode } = useRealtime();
 
-  const { activeMode } = useRealtime();
+  const isDriverPath =
+    pathname.startsWith("/dashboard/driver") || pathname.startsWith("/driver");
+
+  const activeMode = isDriverPath ? "driver" : "passenger";
+
+  if (typeof console !== "undefined") {
+    console.log("[layout] pathname:", pathname, "activeMode:", activeMode);
+  }
 
   useEffect(() => {
-    const isDriverDashboardPath =
-      pathname.startsWith("/dashboard/driver") || pathname.startsWith("/driver");
-
-    if (!isDriverDashboardPath) {
+    if (!isDriverPath) {
       return;
     }
 
-    if (activeMode !== "driver") {
+    if (realtimeMode !== "driver") {
       // eslint-disable-next-line no-console
       console.error("[driver] incorrect dashboard rendered", {
         pathname,
-        activeMode,
+        activeMode: realtimeMode,
       });
     } else {
       // eslint-disable-next-line no-console
@@ -34,13 +39,13 @@ export function AppRootClient({ children }: AppRootClientProps) {
         pathname,
       });
     }
-  }, [pathname, activeMode]);
+  }, [isDriverPath, pathname, realtimeMode]);
 
   return (
     <div className="font-[Inter]">
       <AnimatePresence mode="wait" initial={false}>
         <motion.main
-          key={pathname}
+          key={activeMode}
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -6 }}
