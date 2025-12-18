@@ -34,6 +34,7 @@ import {
   buildRouteBetweenStages as buildRouteBetweenStagesGeo,
   findNearestStage as findNearestStageGeo,
 } from "@/lib/location/stageRouting";
+import { haversineDistanceMeters } from "@/lib/location/distance";
 
 interface LatLng {
   lat: number;

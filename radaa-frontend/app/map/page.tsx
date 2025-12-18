@@ -42,6 +42,7 @@ interface Matatu {
     count: number;
   };
   updatedAt?: string;
+  isTracked?: boolean;
 }
 
 interface PassengerMarker {
