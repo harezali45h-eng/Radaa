@@ -1,8 +1,9 @@
 import express from "express";
-import { getStages } from "../controllers/stagesController.js";
+import { getStages, getStagesGeoJson } from "../controllers/stagesController.js";
 
 const router = express.Router();
 
 router.get("/", getStages);
+router.get("/geojson", getStagesGeoJson);
 
 export default router;

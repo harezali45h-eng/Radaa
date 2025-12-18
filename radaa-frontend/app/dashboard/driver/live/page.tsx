@@ -30,7 +30,10 @@ import {
 } from "@/lib/api/matatu";
 import { getMapMarkers, getStagesGeoJson } from "@/lib/api";
 import { useRideIntent } from "@/context/RideIntentContext";
-import { haversineDistanceMeters } from "@/lib/location/distance";
+import {
+  buildRouteBetweenStages as buildRouteBetweenStagesGeo,
+  findNearestStage as findNearestStageGeo,
+} from "@/lib/location/stageRouting";
 
 interface LatLng {
   lat: number;
@@ -137,6 +140,12 @@ export default function DriverLiveDashboardPage() {
       console.log("[driver] driver dashboard mounted");
     }
   }, []);
+
+  useEffect(() => {
+    if (!loading && user && !isDriver) {
+      router.replace("/dashboard");
+    }
+  }, [loading, user, isDriver, router]);
 
   useEffect(() => {
     if (!location) {
@@ -261,141 +270,17 @@ export default function DriverLiveDashboardPage() {
   }, []);
 
   const findNearestStage = useCallback(
-    (point: LatLng | null | undefined): StagePoint | null => {
-      if (!point || stages.length === 0) {
-        return null;
-      }
-
-      let best: StagePoint | null = null;
-      let bestDistance = Number.POSITIVE_INFINITY;
-
-      for (const stage of stages) {
-        const distance = haversineDistanceMeters(
-          { lat: point.lat, lng: point.lng },
-          { lat: stage.lat, lng: stage.lng },
-        );
-
-        if (!Number.isFinite(distance)) {
-          continue;
-        }
-
-        if (distance < bestDistance) {
-          bestDistance = distance;
-          best = stage;
-        }
-      }
-
-      return best;
-    },
+    (point: LatLng | null | undefined): StagePoint | null =>
+      findNearestStageGeo(point, stages),
     [stages],
   );
 
   const buildRouteBetweenStages = useCallback(
-    (originStage: StagePoint | null, destinationStage: StagePoint | null): ActiveStageRoute | null => {
-      if (!originStage || !destinationStage) {
-        return null;
-      }
-
-      const originPoint: LatLng = {
-        lat: originStage.lat,
-        lng: originStage.lng,
-      };
-      const destinationPoint: LatLng = {
-        lat: destinationStage.lat,
-        lng: destinationStage.lng,
-      };
-
-      let bestCorridor: Corridor | null = null;
-      let bestCorridorScore = Number.POSITIVE_INFINITY;
-      let bestOriginIndex = 0;
-      let bestDestinationIndex = 0;
-      const maxSnapDistanceMeters = 400;
-
-      corridors.forEach((corridor) => {
-        const coords = corridor.coordinates;
-        if (!coords || coords.length < 2) {
-          return;
-        }
-
-        let nearestOriginIndex = -1;
-        let nearestOriginDistance = Number.POSITIVE_INFINITY;
-        let nearestDestinationIndex = -1;
-        let nearestDestinationDistance = Number.POSITIVE_INFINITY;
-
-        coords.forEach((coord, index) => {
-          const distanceToOrigin = haversineDistanceMeters(originPoint, coord);
-          const distanceToDestination = haversineDistanceMeters(
-            destinationPoint,
-            coord,
-          );
-
-          if (Number.isFinite(distanceToOrigin) && distanceToOrigin < nearestOriginDistance) {
-            nearestOriginDistance = distanceToOrigin;
-            nearestOriginIndex = index;
-          }
-
-          if (
-            Number.isFinite(distanceToDestination) &&
-            distanceToDestination < nearestDestinationDistance
-          ) {
-            nearestDestinationDistance = distanceToDestination;
-            nearestDestinationIndex = index;
-          }
-        });
-
-        if (
-          nearestOriginIndex === -1 ||
-          nearestDestinationIndex === -1 ||
-          nearestOriginDistance > maxSnapDistanceMeters ||
-          nearestDestinationDistance > maxSnapDistanceMeters
-        ) {
-          return;
-        }
-
-        const score = nearestOriginDistance + nearestDestinationDistance;
-
-        if (score < bestCorridorScore) {
-          bestCorridorScore = score;
-          bestCorridor = corridor;
-          bestOriginIndex = nearestOriginIndex;
-          bestDestinationIndex = nearestDestinationIndex;
-        }
-      });
-
-      if (bestCorridor) {
-        const coords = bestCorridor.coordinates;
-        const startIndex = Math.min(bestOriginIndex, bestDestinationIndex);
-        const endIndex = Math.max(bestOriginIndex, bestDestinationIndex);
-        const path = coords.slice(startIndex, endIndex + 1);
-
-        if (typeof console !== "undefined") {
-          const label =
-            bestCorridor.name ||
-            `${bestCorridor.id} (${path.length.toString()} points)`;
-          console.log("[driver] corridor route selected: " + label);
-        }
-
-        return {
-          originStageId: originStage.id,
-          destinationStageId: destinationStage.id,
-          corridorId: bestCorridor.id,
-          path,
-        };
-      }
-
-      if (typeof console !== "undefined") {
-        console.log("[driver] corridor not found, fallback routing used");
-      }
-
-      const fallbackPath: LatLng[] = [originPoint, destinationPoint];
-
-      return {
-        originStageId: originStage.id,
-        destinationStageId: destinationStage.id,
-        corridorId: null,
-        path: fallbackPath,
-      };
-    },
+    (
+      originStage: StagePoint | null,
+      destinationStage: StagePoint | null,
+    ): ActiveStageRoute | null =>
+      buildRouteBetweenStagesGeo(originStage, destinationStage, corridors),
     [corridors],
   );
 

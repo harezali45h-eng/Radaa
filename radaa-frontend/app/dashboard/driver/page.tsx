@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { useNotifications } from "@/context/NotificationContext";
 import {
@@ -13,6 +14,7 @@ import {
 
 export default function DriverWalletDashboardPage() {
   const { user } = useAuth();
+  const router = useRouter();
   const { addNotification } = useNotifications();
 
   const role = (user as any)?.role as string | undefined;
@@ -54,6 +56,10 @@ export default function DriverWalletDashboardPage() {
       } else {
         setError("Driver role is required to access the driver wallet dashboard.");
       }
+
+      if (user) {
+        router.replace("/dashboard");
+      }
       return;
     }
 
@@ -67,7 +73,7 @@ export default function DriverWalletDashboardPage() {
       window.clearInterval(interval);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isDriver]);
+  }, [isDriver, user, router]);
 
   const handleWithdraw = async () => {
     if (!wallet) return;

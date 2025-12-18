@@ -164,9 +164,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
         } else if (result.user) {
           setUser((prev) => {
+            const normalizedRole =
+              result.user && (result.user as any).role
+                ? String((result.user as any).role).toLowerCase()
+                : prev?.role;
+
             const merged = {
               ...(prev || {}),
               ...result.user,
+              role: normalizedRole,
             } as User;
 
             return merged;

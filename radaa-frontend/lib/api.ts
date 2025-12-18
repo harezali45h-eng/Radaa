@@ -16,7 +16,7 @@ export const getLiveMatatus = async () => {
 
 export const getStagesGeoJson = async () => {
   try {
-    const res = await API.get("/stages");
+    const res = await API.get("/stages/geojson");
     return res.data;
   } catch (error: any) {
     console.error("API ERROR:", (error as any)?.response?.data || error);

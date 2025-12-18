@@ -15,6 +15,11 @@ import {
   type RouteSearchResult,
   type RouteMatatu,
 } from "@/lib/api/routes";
+import {
+  buildRouteBetweenStages as buildRouteBetweenStagesGeo,
+  findNearestStage as findNearestStageGeo,
+  isNearStageOrCorridor as isNearStageOrCorridorGeo,
+} from "@/lib/location/stageRouting";
 
 interface LatLng {
   lat: number;
@@ -495,32 +500,8 @@ export default function MapPage() {
   }, [routeQuery, uiRevampEnabled]);
 
   const findNearestStage = useCallback(
-    (point: LatLng | null | undefined): StagePoint | null => {
-      if (!point || stages.length === 0) {
-        return null;
-      }
-
-      let best: StagePoint | null = null;
-      let bestDistance = Number.POSITIVE_INFINITY;
-
-      for (const stage of stages) {
-        const distance = haversineDistanceMeters(
-          { lat: point.lat, lng: point.lng },
-          { lat: stage.lat, lng: stage.lng },
-        );
-
-        if (!Number.isFinite(distance)) {
-          continue;
-        }
-
-        if (distance < bestDistance) {
-          bestDistance = distance;
-          best = stage;
-        }
-      }
-
-      return best;
-    },
+    (point: LatLng | null | undefined): StagePoint | null =>
+      findNearestStageGeo(point, stages),
     [stages],
   );
 
@@ -532,68 +513,9 @@ export default function MapPage() {
       nearestStage: StagePoint | null;
       nearestCorridor: Corridor | null;
       distanceMeters: number;
-    } => {
-      if (!point) {
-        return {
-          valid: false,
-          nearestStage: null,
-          nearestCorridor: null,
-          distanceMeters: Number.POSITIVE_INFINITY,
-        };
-      }
-
-      const nearestStage = findNearestStage(point);
-
-      let bestCorridor: Corridor | null = null;
-      let bestCorridorDistance = Number.POSITIVE_INFINITY;
-
-      corridors.forEach((corridor) => {
-        const coords = corridor.coordinates;
-        if (!coords || coords.length === 0) return;
-
-        coords.forEach((coord) => {
-          const distance = haversineDistanceMeters(point, coord);
-          if (!Number.isFinite(distance)) return;
-          if (distance < bestCorridorDistance) {
-            bestCorridorDistance = distance;
-            bestCorridor = corridor;
-          }
-        });
-      });
-
-      let distanceToStage = Number.POSITIVE_INFINITY;
-      if (nearestStage) {
-        const d = haversineDistanceMeters(point, {
-          lat: nearestStage.lat,
-          lng: nearestStage.lng,
-        });
-        if (Number.isFinite(d)) {
-          distanceToStage = d;
-        }
-      }
-
-      const nearStage =
-        nearestStage &&
-        Number.isFinite(distanceToStage) &&
-        distanceToStage <= 80;
-
-      const nearCorridor =
-        bestCorridor &&
-        Number.isFinite(bestCorridorDistance) &&
-        bestCorridorDistance <= 100;
-
-      const bestDistance = Math.min(distanceToStage, bestCorridorDistance);
-
-      return {
-        valid: Boolean(nearStage || nearCorridor),
-        nearestStage: nearestStage ?? null,
-        nearestCorridor: bestCorridor,
-        distanceMeters: Number.isFinite(bestDistance)
-          ? bestDistance
-          : Number.POSITIVE_INFINITY,
-      };
-    },
-    [corridors, findNearestStage],
+    } =>
+      isNearStageOrCorridorGeo(point, stages, corridors),
+    [stages, corridors],
   );
 
   const buildRouteBetweenStages = useCallback(
@@ -605,103 +527,8 @@ export default function MapPage() {
       destinationStageId: string;
       corridorId: string | null;
       path: LatLng[];
-    } | null => {
-      if (!originStage || !destinationStage) {
-        return null;
-      }
-
-      const originPoint: LatLng = {
-        lat: originStage.lat,
-        lng: originStage.lng,
-      };
-      const destinationPoint: LatLng = {
-        lat: destinationStage.lat,
-        lng: destinationStage.lng,
-      };
-
-      let bestCorridor: Corridor | null = null;
-      let bestCorridorScore = Number.POSITIVE_INFINITY;
-      let bestOriginIndex = 0;
-      let bestDestinationIndex = 0;
-      const maxSnapDistanceMeters = 400;
-
-      corridors.forEach((corridor) => {
-        const coords = corridor.coordinates;
-        if (!coords || coords.length < 2) {
-          return;
-        }
-
-        let nearestOriginIndex = -1;
-        let nearestOriginDistance = Number.POSITIVE_INFINITY;
-        let nearestDestinationIndex = -1;
-        let nearestDestinationDistance = Number.POSITIVE_INFINITY;
-
-        coords.forEach((coord, index) => {
-          const distanceToOrigin = haversineDistanceMeters(originPoint, coord);
-          const distanceToDestination = haversineDistanceMeters(
-            destinationPoint,
-            coord,
-          );
-
-          if (
-            Number.isFinite(distanceToOrigin) &&
-            distanceToOrigin < nearestOriginDistance
-          ) {
-            nearestOriginDistance = distanceToOrigin;
-            nearestOriginIndex = index;
-          }
-
-          if (
-            Number.isFinite(distanceToDestination) &&
-            distanceToDestination < nearestDestinationDistance
-          ) {
-            nearestDestinationDistance = distanceToDestination;
-            nearestDestinationIndex = index;
-          }
-        });
-
-        if (
-          nearestOriginIndex === -1 ||
-          nearestDestinationIndex === -1 ||
-          nearestOriginDistance > maxSnapDistanceMeters ||
-          nearestDestinationDistance > maxSnapDistanceMeters
-        ) {
-          return;
-        }
-
-        const score = nearestOriginDistance + nearestDestinationDistance;
-
-        if (score < bestCorridorScore) {
-          bestCorridorScore = score;
-          bestCorridor = corridor;
-          bestOriginIndex = nearestOriginIndex;
-          bestDestinationIndex = nearestDestinationIndex;
-        }
-      });
-
-      if (bestCorridor) {
-        const coords = bestCorridor.coordinates;
-        const startIndex = Math.min(bestOriginIndex, bestDestinationIndex);
-        const endIndex = Math.max(bestOriginIndex, bestDestinationIndex);
-        const path = coords.slice(startIndex, endIndex + 1);
-
-        return {
-          originStageId: originStage.id,
-          destinationStageId: destinationStage.id,
-          corridorId: bestCorridor.id,
-          path,
-        };
-      }
-
-      const fallbackPath: LatLng[] = [originPoint, destinationPoint];
-
-      return {
-        originStageId: originStage.id,
-        destinationStageId: destinationStage.id,
-        corridorId: null,
-        path: fallbackPath,
-      };
-    },
+    } | null =>
+      buildRouteBetweenStagesGeo(originStage, destinationStage, corridors),
     [corridors],
   );
 
