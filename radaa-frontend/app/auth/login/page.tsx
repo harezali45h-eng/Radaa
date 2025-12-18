@@ -85,7 +85,7 @@ export default function LoginPage() {
       } else if (normalizedRole === "admin") {
         router.push("/dashboard/sacco");
       } else {
-        router.push("/dashboard");
+        router.push("/dashboard/passenger/live");
       }
     } catch (err: any) {
       console.error(err);

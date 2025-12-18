@@ -2,7 +2,8 @@
 
 import { useEffect, type ReactNode } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
 import { useRealtime } from "@/context/realtimeContext";
 
 interface AppRootClientProps {
@@ -11,19 +12,52 @@ interface AppRootClientProps {
 
 export function AppRootClient({ children }: AppRootClientProps) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { user } = useAuth();
   const { activeMode: realtimeMode } = useRealtime();
 
-  const isDriverPath =
+  const rawRole = (user as any)?.role as string | undefined;
+  const normalizedRole = rawRole ? rawRole.toLowerCase() : undefined;
+  const isDriver = normalizedRole === "driver";
+
+  const activeMode: "driver" | "passenger" = isDriver ? "driver" : "passenger";
+
+  const isDriverRoute =
     pathname.startsWith("/dashboard/driver") || pathname.startsWith("/driver");
+  const isPassengerRoute =
+    pathname.startsWith("/dashboard/passenger") || pathname === "/dashboard";
+  const isAuthRoute = pathname.startsWith("/auth");
 
-  const activeMode = isDriverPath ? "driver" : "passenger";
-
-  if (typeof console !== "undefined") {
+  if (typeof console !== "undefined" && process.env.NODE_ENV !== "production") {
     console.log("[layout] pathname:", pathname, "activeMode:", activeMode);
   }
 
   useEffect(() => {
-    if (!isDriverPath) {
+    if (!user || isAuthRoute) {
+      return;
+    }
+
+    if (isDriver) {
+      if (isPassengerRoute) {
+        router.replace("/dashboard/driver/live");
+      }
+    } else if (normalizedRole && normalizedRole !== "admin") {
+      if (isDriverRoute) {
+        router.replace("/dashboard/passenger/live");
+      }
+    }
+  }, [
+    user,
+    isAuthRoute,
+    isDriver,
+    isDriverRoute,
+    isPassengerRoute,
+    normalizedRole,
+    router,
+  ]);
+
+  useEffect(() => {
+    if (!isDriverRoute || !isDriver) {
       return;
     }
 
@@ -39,7 +73,7 @@ export function AppRootClient({ children }: AppRootClientProps) {
         pathname,
       });
     }
-  }, [isDriverPath, pathname, realtimeMode]);
+  }, [isDriverRoute, isDriver, pathname, realtimeMode]);
 
   return (
     <div className="font-[Inter]">

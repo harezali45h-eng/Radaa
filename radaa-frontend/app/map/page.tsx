@@ -947,38 +947,62 @@ export default function MapPage() {
   useEffect(() => {
     const query = destinationQuery.trim();
 
-    if (!mapsLoaded || !apiKey || query.length < 3) {
+    if (!apiKey || query.length < 3) {
       setDestinationSuggestions([]);
       return;
     }
 
     let cancelled = false;
-    const service = new google.maps.places.AutocompleteService();
-    service.getPlacePredictions(
-      {
-        input: query,
-        componentRestrictions: { country: "ke" },
-      },
-      (predictions) => {
-        if (cancelled) return;
-        if (!predictions || !Array.isArray(predictions)) {
-          setDestinationSuggestions([]);
+    const controller = new AbortController();
+
+    const fetchSuggestions = async () => {
+      try {
+        const params = new URLSearchParams({
+          input: query,
+          key: apiKey,
+          components: "country:ke",
+        });
+
+        const response = await fetch(
+          `https://maps.googleapis.com/maps/api/place/autocomplete/json?${params.toString()}`,
+          { signal: controller.signal },
+        );
+
+        if (!response.ok) {
+          if (!cancelled) {
+            setDestinationSuggestions([]);
+          }
           return;
         }
 
+        const json = (await response.json()) as any;
+        if (cancelled) return;
+
+        const predictions = Array.isArray(json?.predictions)
+          ? json.predictions
+          : [];
+
         setDestinationSuggestions(
-          predictions.map((p) => ({
+          predictions.map((p: any) => ({
             placeId: String(p.place_id ?? ""),
             description: String(p.description ?? ""),
           })),
         );
-      },
-    );
+      } catch (error: any) {
+        if (cancelled || error?.name === "AbortError") {
+          return;
+        }
+        setDestinationSuggestions([]);
+      }
+    };
+
+    void fetchSuggestions();
 
     return () => {
       cancelled = true;
+      controller.abort();
     };
-  }, [apiKey, destinationQuery, mapsLoaded]);
+  }, [apiKey, destinationQuery]);
 
   const handleSelectMatatu = useCallback((id: string) => {
     setSelectedMatatuId(id);

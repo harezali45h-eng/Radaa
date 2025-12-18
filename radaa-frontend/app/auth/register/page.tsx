@@ -32,7 +32,7 @@ export default function RegisterPage() {
         role: "user",
       });
 
-      router.push("/dashboard");
+      router.push("/dashboard/passenger/live");
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Registration failed";
