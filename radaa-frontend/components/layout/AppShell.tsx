@@ -11,6 +11,7 @@ import { useSocket } from "@/hooks/useSocket";
 import { useRealtime } from "@/context/realtimeContext";
 import { useTheme } from "@/context/ThemeContext";
 import { useIsFeatureEnabled } from "@/context/FeatureFlagContext";
+import { RadaaLogoMark } from "@/components/ui/RadaaLogo";
 
 interface AppShellProps {
   children: ReactNode;
@@ -28,6 +29,7 @@ export function AppShell({ children }: AppShellProps) {
   const { headerBgClass } = useTheme();
   const simplifiedNavEnabled = useIsFeatureEnabled("ff_simplified_nav", false);
   const liveOnlyMapEnabled = useIsFeatureEnabled("ff_live_only_map", false);
+  const mapRevampEnabled = useIsFeatureEnabled("ui_revamp_v1", false);
 
   useEffect(() => {
     if (!token) {
@@ -63,12 +65,20 @@ export function AppShell({ children }: AppShellProps) {
   const isDashboardSub = pathname.startsWith("/dashboard/");
   const isAuthRoute = pathname.startsWith("/auth");
   const isMarketingHome = pathname === "/";
+  const isMapRoute = pathname === "/map";
+  const isPassengerDashboardRoute = pathname.startsWith("/dashboard/passenger");
+
+  const isDriverDashboardHome =
+    pathname === "/dashboard/driver" || pathname === "/dashboard/driver/live";
+  const isPassengerDashboardHome =
+    pathname === "/dashboard/passenger" || pathname === "/dashboard/passenger/live";
+  const isDashboardHome = isDriverDashboardHome || isPassengerDashboardHome;
 
   const isDashboard = isDashboardRoot || isDashboardSub;
 
   const isShellRouteCore =
     pathname.startsWith("/dashboard") ||
-    pathname === "/map" ||
+    isMapRoute ||
     pathname.startsWith("/profile") ||
     pathname.startsWith("/payments") ||
     pathname.startsWith("/track") ||
@@ -78,10 +88,17 @@ export function AppShell({ children }: AppShellProps) {
   const isShellNavContext = !isAuthRoute && !isMarketingHome && isShellRouteCore;
 
   const isBottomNavEligible =
-    simplifiedNavEnabled && !isAuthRoute && !isMarketingHome && isShellRouteCore;
+    simplifiedNavEnabled &&
+    !isAuthRoute &&
+    !isMarketingHome &&
+    isShellRouteCore &&
+    !(
+      mapRevampEnabled &&
+      (isMapRoute || isPassengerDashboardRoute)
+    );
 
   const showBackToDashboard =
-    !isMarketingHome && !isAuthRoute && !isDashboardRoot;
+    !isMarketingHome && !isAuthRoute && !isDashboardRoot && !isDashboardHome;
   const role = (user as any)?.role as string | undefined;
   const isAdmin = role === "admin";
   const isDriver = role === "driver";
@@ -138,9 +155,10 @@ export function AppShell({ children }: AppShellProps) {
             )}
             <Link
               href={homeHref}
-              className="text-lg font-semibold tracking-tight"
+              className="flex items-center gap-2 text-lg font-semibold tracking-tight"
             >
-              Radaa
+              <RadaaLogoMark className="h-7 w-7" />
+              <span>Radaa</span>
             </Link>
           </div>
           <nav className="flex items-center gap-4 text-sm text-slate-300">
@@ -247,7 +265,11 @@ export function AppShell({ children }: AppShellProps) {
         </div>
       </header>
 
-      <main className="flex-1">
+      <main
+        className={`flex-1 ${
+          isBottomNavEligible ? "pb-[max(env(safe-area-inset-bottom),5rem)]" : ""
+        }`}
+      >
         <div className="mx-auto max-w-6xl px-4 py-4 md:py-6">
           {showBackToDashboard && (
             <div className="mb-3 flex justify-start">
@@ -265,7 +287,10 @@ export function AppShell({ children }: AppShellProps) {
           aria-label="Radaa navigation menu"
         >
           <div className="absolute left-0 top-0 flex h-full">
-            <div className="radaa-mobile-drawer" id="radaa-mobile-nav">
+            <div
+              className="radaa-mobile-drawer overflow-y-auto pb-[max(env(safe-area-inset-bottom),1rem)]"
+              id="radaa-mobile-nav"
+            >
               <div className="mb-4 flex items-center justify-between">
                 <span className="text-sm font-semibold tracking-tight text-slate-50">
                   Menu
@@ -366,7 +391,7 @@ export function AppShell({ children }: AppShellProps) {
         </div>
       )}
       {isBottomNavEligible && (
-        <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-slate-800/80 bg-[rgba(9,20,26,0.96)] backdrop-blur-md">
+        <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-slate-800/80 bg-[rgba(9,20,26,0.96)] pb-[max(env(safe-area-inset-bottom),0.5rem)] backdrop-blur-md">
           <div className="mx-auto flex max-w-6xl items-center justify-between px-4 md:px-6 py-2.5 text-[11px]">
             <div className="flex w-full items-center justify-between gap-4">
               <Link

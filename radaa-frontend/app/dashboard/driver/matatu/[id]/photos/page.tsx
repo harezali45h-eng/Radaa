@@ -28,6 +28,7 @@ export default function DriverMatatuPhotosPage() {
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [file, setFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [caption, setCaption] = useState("");
   const [error, setError] = useState<string | null>(null);
 
@@ -66,8 +67,20 @@ export default function DriverMatatuPhotosPage() {
   }, [matatuId, token, isDriver]);
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+      setPreviewUrl(null);
+    }
+
     const nextFile = event.target.files?.[0] ?? null;
+    if (!nextFile) {
+      setFile(null);
+      return;
+    }
+
+    const objectUrl = URL.createObjectURL(nextFile);
     setFile(nextFile);
+    setPreviewUrl(objectUrl);
   };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -86,6 +99,10 @@ export default function DriverMatatuPhotosPage() {
       setPhotos(Array.isArray(updated) ? updated : photos);
       setFile(null);
       setCaption("");
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+        setPreviewUrl(null);
+      }
       addNotification({
         type: "matatu",
         title: "Photo uploaded",
@@ -99,6 +116,14 @@ export default function DriverMatatuPhotosPage() {
       setUploading(false);
     }
   };
+
+  useEffect(() => {
+    return () => {
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl]);
 
   if (!isDriver) {
     return (
@@ -166,6 +191,17 @@ export default function DriverMatatuPhotosPage() {
           <Button type="submit" disabled={!file || uploading} className="text-[11px]">
             {uploading ? "Uploading" : "Upload photo"}
           </Button>
+          {previewUrl && (
+            <div className="mt-1 flex items-start gap-2">
+              <div
+                className="h-24 w-32 rounded-md border border-slate-800 bg-slate-900 bg-cover bg-center"
+                style={{ backgroundImage: `url(${previewUrl})` }}
+              />
+              <p className="text-[10px] text-slate-400">
+                Preview only. The photo is stored locally until you upload.
+              </p>
+            </div>
+          )}
         </form>
       </Card>
 

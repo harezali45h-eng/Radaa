@@ -795,36 +795,20 @@ export default function MapPage() {
   }, [selectedRoute]);
 
   useEffect(() => {
-    let frameId: number;
+    setDisplayPositions((prev) => {
+      const next: Record<string, LatLng> = { ...prev };
 
-    const animate = () => {
-      setDisplayPositions((prev) => {
-        const next: Record<string, LatLng> = { ...prev };
-        const easing = 0.15;
+      matatus.forEach((matatu) => {
+        if (!matatu.location) return;
 
-        matatus.forEach((matatu) => {
-          if (!matatu.location) return;
-
-          const current = prev[matatu.id] ?? matatu.location;
-          const target = matatu.location;
-
-          const lat = current.lat + (target.lat - current.lat) * easing;
-          const lng = current.lng + (target.lng - current.lng) * easing;
-
-          next[matatu.id] = { lat, lng };
-        });
-
-        return next;
+        next[matatu.id] = {
+          lat: matatu.location.lat,
+          lng: matatu.location.lng,
+        };
       });
 
-      frameId = window.requestAnimationFrame(animate);
-    };
-
-    frameId = window.requestAnimationFrame(animate);
-
-    return () => {
-      window.cancelAnimationFrame(frameId);
-    };
+      return next;
+    });
   }, [matatus]);
 
   const bounds: Bounds | null = useMemo(() => {

@@ -307,7 +307,7 @@ export default function GoogleMapContainer({
         <GoogleMap
           mapContainerStyle={containerStyle}
           center={center}
-          zoom={13}
+          zoom={10}
           options={mapOptions}
           onLoad={handleMapLoad}
           onClick={

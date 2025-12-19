@@ -38,6 +38,25 @@ export default function ProfilePage() {
 
   const isDriver = (user as any)?.role === "driver";
 
+  const driverProfile = (user as any)?.driverProfile as
+    | { profilePhotoUrl?: string }
+    | undefined;
+  const driverProfilePhotoUrl =
+    typeof driverProfile?.profilePhotoUrl === "string"
+      ? driverProfile.profilePhotoUrl
+      : undefined;
+  const hasDriverProfilePhoto = Boolean(
+    driverProfilePhotoUrl && driverProfilePhotoUrl.trim().length > 0,
+  );
+  const displayName =
+    user?.username || (user as any)?.handle || user?.email || "Driver";
+  const driverInitial =
+    displayName && displayName.length > 0
+      ? displayName.charAt(0).toUpperCase()
+      : "D";
+  const [avatarLoadError, setAvatarLoadError] = useState(false);
+  const showImageAvatar = hasDriverProfilePhoto && !avatarLoadError;
+
   return (
     <div className="space-y-6">
       <section className="space-y-2">
@@ -67,6 +86,25 @@ export default function ProfilePage() {
             </span>
           </div>
           <div className="grid gap-3 md:grid-cols-2">
+            <div className="flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full border border-slate-700 bg-slate-800 text-sm font-semibold text-slate-100">
+                {showImageAvatar ? (
+                  <img
+                    src={driverProfilePhotoUrl}
+                    alt="Driver profile photo"
+                    className="h-full w-full object-cover"
+                    onError={() => setAvatarLoadError(true)}
+                  />
+                ) : (
+                  <span>{driverInitial}</span>
+                )}
+              </div>
+              <div className="text-[11px] text-slate-400">
+                {hasDriverProfilePhoto && !avatarLoadError
+                  ? "Your current driver photo on Radaa."
+                  : "No profile photo on file yet."}
+              </div>
+            </div>
             <div>
               <div className="text-slate-400">Name</div>
               <div className="mt-1 text-sm font-semibold text-slate-100">

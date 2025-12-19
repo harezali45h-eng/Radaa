@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState, type ChangeEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
@@ -22,6 +22,31 @@ export default function RegisterDriverPage() {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
+  const handleProfilePhotoChange = (
+    event: ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = event.target.files?.[0];
+
+    if (!file) {
+      setProfilePhoto("");
+      return;
+    }
+
+    const nextUrl = URL.createObjectURL(file);
+    setProfilePhoto(nextUrl);
+  };
+
+  useEffect(() => {
+    if (!profilePhoto || !profilePhoto.startsWith("blob:")) {
+      return;
+    }
+
+    const objectUrl = profilePhoto;
+    return () => {
+      URL.revokeObjectURL(objectUrl);
+    };
+  }, [profilePhoto]);
+
   const driverOnboardEnabled = useIsFeatureEnabled("driver_onboard_v1", false);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -40,7 +65,6 @@ export default function RegisterDriverPage() {
         saccoName,
         vehicleRegistration,
         licenseNumber: licenseNumber || undefined,
-        profilePhoto: profilePhoto || undefined,
       });
 
       router.push("/dashboard/driver/live");
@@ -257,19 +281,32 @@ export default function RegisterDriverPage() {
             htmlFor="profilePhoto"
             className="text-sm font-medium text-slate-100"
           >
-            Profile photo URL{" "}
+            Profile photo{" "}
             <span className="text-xs font-normal text-slate-400">
               (optional)
             </span>
           </label>
           <input
             id="profilePhoto"
-            type="url"
-            value={profilePhoto}
-            onChange={(event) => setProfilePhoto(event.target.value)}
-            className="w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-50 outline-none ring-0 placeholder:text-slate-500 focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
-            placeholder="https://..."
+            type="file"
+            accept="image/*"
+            onChange={handleProfilePhotoChange}
+            className="w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-50 file:mr-3 file:rounded-md file:border-0 file:bg-slate-700 file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-slate-100 hover:file:bg-slate-600"
           />
+          {profilePhoto && (
+            <div className="mt-2 flex items-center gap-3">
+              <div className="h-12 w-12 overflow-hidden rounded-full border border-slate-700 bg-slate-800">
+                <img
+                  src={profilePhoto}
+                  alt="Selected profile preview"
+                  className="h-full w-full object-cover"
+                />
+              </div>
+              <p className="text-[11px] text-slate-400">
+                This preview is for your current session only.
+              </p>
+            </div>
+          )}
         </div>
 
         <button

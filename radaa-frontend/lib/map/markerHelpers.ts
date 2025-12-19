@@ -81,7 +81,7 @@ export function formatMatatuLabel(
 export function chooseColor(status: MarkerStatus): string {
   switch (status) {
     case "driver":
-      return "bg-sky-400 text-slate-950 border-sky-300";
+      return "bg-amber-300 text-slate-950 border-amber-200";
     case "online":
       return "bg-emerald-400 text-slate-950 border-emerald-300";
     case "offline":

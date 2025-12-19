@@ -22,6 +22,7 @@ import { getAssignedPassengers } from "@/lib/api/driver";
 import { useIsFeatureEnabled } from "@/context/FeatureFlagContext";
 import MapWrapper from "@/components/MapWrapper";
 import DriverRequestCard from "@/components/DriverRequestCard";
+import { Badge } from "@/components/ui/Badge";
 import {
   getMatatuPhotosV2,
   uploadMatatuPhotoV2,
@@ -130,6 +131,7 @@ export default function DriverLiveDashboardPage() {
   const [photos, setPhotos] = useState<MatatuPhoto[]>([]);
   const [photosLoading, setPhotosLoading] = useState(false);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreviewUrl, setPhotoPreviewUrl] = useState<string | null>(null);
   const [photoCaption, setPhotoCaption] = useState("");
   const [photoError, setPhotoError] = useState<string | null>(null);
   const [photoSuccess, setPhotoSuccess] = useState<string | null>(null);
@@ -450,12 +452,26 @@ export default function DriverLiveDashboardPage() {
   }, [driverMatatuId, token, isDriver]);
 
   const handlePhotoFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+    if (photoPreviewUrl) {
+      URL.revokeObjectURL(photoPreviewUrl);
+      setPhotoPreviewUrl(null);
+    }
+
     if (!event.target.files || event.target.files.length === 0) {
       setPhotoFile(null);
       return;
     }
+
     const [file] = Array.from(event.target.files);
-    setPhotoFile(file ?? null);
+
+    if (!file) {
+      setPhotoFile(null);
+      return;
+    }
+
+    const objectUrl = URL.createObjectURL(file);
+    setPhotoFile(file);
+    setPhotoPreviewUrl(objectUrl);
   };
 
   const handleUploadPhoto = async (event: FormEvent<HTMLFormElement>) => {
@@ -480,6 +496,10 @@ export default function DriverLiveDashboardPage() {
       setPhotos(Array.isArray(next) ? next : []);
       setPhotoCaption("");
       setPhotoFile(null);
+      if (photoPreviewUrl) {
+        URL.revokeObjectURL(photoPreviewUrl);
+        setPhotoPreviewUrl(null);
+      }
       setPhotoSuccess("Photo uploaded and pending review.");
     } catch (err) {
       const message =
@@ -490,6 +510,14 @@ export default function DriverLiveDashboardPage() {
       setPhotosLoading(false);
     }
   };
+
+  useEffect(() => {
+    return () => {
+      if (photoPreviewUrl) {
+        URL.revokeObjectURL(photoPreviewUrl);
+      }
+    };
+  }, [photoPreviewUrl]);
 
   useEffect(() => {
     if (!token || !isDriver) {
@@ -924,7 +952,8 @@ export default function DriverLiveDashboardPage() {
             Driver live dashboard
           </h1>
           <p className="text-slate-300">
-            You must be signed in as a driver to view this dashboard.
+            Setting up your driver live dashboard. If you are not signed in as a
+            driver, you will be redirected to the main dashboard.
           </p>
         </header>
       </div>
@@ -961,32 +990,73 @@ export default function DriverLiveDashboardPage() {
               support for assistance.
             </p>
           )}
-          <div className="mt-2 flex items-center justify-between gap-3">
-            <div className="inline-flex items-center gap-2 text-[11px] text-slate-400">
-              <span
-                className={
+          <div className="mt-2 space-y-1">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-2 text-[11px]">
+                <span
+                  className={
+                    driverOnline
+                      ? "h-1.5 w-1.5 rounded-full bg-emerald-400"
+                      : "h-1.5 w-1.5 rounded-full bg-slate-500"
+                  }
+                />
+                <Badge
+                  tone={driverOnline ? "success" : "muted"}
+                  soft={!driverOnline}
+                  className="uppercase tracking-wide"
+                >
+                  {driverOnline ? "Online" : "Offline"}
+                </Badge>
+                <span className="text-slate-400">
+                  {driverOnline
+                    ? "You are live and visible to nearby riders."
+                    : "You are hidden from riders. Go online to start seeing ride requests."}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => (driverOnline ? goOffline() : goOnline())}
+                className={`inline-flex items-center rounded-full px-3 py-1 text-[11px] font-medium transition ${
                   driverOnline
-                    ? "h-1.5 w-1.5 rounded-full bg-emerald-400"
-                    : "h-1.5 w-1.5 rounded-full bg-slate-500"
-                }
-              />
-              <span>
-                {driverOnline
-                  ? "You are online and visible to nearby riders"
-                  : "You are offline. Go online to start seeing ride requests."}
-              </span>
+                    ? "bg-gradient-gold-orange text-slate-950 shadow-soft hover:shadow-glow-kenya"
+                    : "border border-slate-700 bg-slate-900/80 text-slate-100 hover:border-slate-500 hover:bg-slate-900"
+                }`}
+              >
+                {driverOnline ? "Go offline" : "Go online"}
+              </button>
             </div>
-            <button
-              type="button"
-              onClick={() => (driverOnline ? goOffline() : goOnline())}
-              className={`inline-flex items-center rounded-full px-3 py-1 text-[11px] font-medium transition ${
-                driverOnline
-                  ? "bg-gradient-gold-orange text-slate-950 shadow-soft hover:shadow-glow-kenya"
-                  : "border border-slate-700 bg-slate-900/80 text-slate-100 hover:border-slate-500 hover:bg-slate-900"
-              }`}
-            >
-              {driverOnline ? "Go offline" : "Go online"}
-            </button>
+            <div className="flex flex-wrap items-center justify-between gap-3 text-[11px]">
+              <div className="flex items-center gap-2">
+                <span
+                  className={
+                    activeRoute
+                      ? "h-1.5 w-1.5 rounded-full bg-sky-400"
+                      : "h-1.5 w-1.5 rounded-full bg-slate-600"
+                  }
+                />
+                <span className="font-semibold text-slate-200">
+                  Corridor lock:{" "}
+                  <span
+                    className={
+                      activeRoute ? "text-sky-300" : "text-slate-400"
+                    }
+                  >
+                    {activeRoute ? "ON" : "OFF"}
+                  </span>
+                </span>
+                {activeRoute && intent.label && (
+                  <span className="truncate text-slate-400">
+                    via {intent.label}
+                  </span>
+                )}
+              </div>
+              {!activeRoute && (
+                <span className="text-slate-500">
+                  Set a stage in "Where to?" or tap on the map to lock to a
+                  corridor.
+                </span>
+              )}
+            </div>
           </div>
           <form
             onSubmit={handleWhereToSubmit}
@@ -1057,10 +1127,12 @@ export default function DriverLiveDashboardPage() {
         <div className="mb-2 flex items-center justify-between">
           <div>
             <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
-              Nearby passenger map
+              Riders around your stage
             </div>
             <p className="text-[11px] text-slate-400">
-              Live preview of requests around your current location.
+              Live map of ride requests near your current stage. Keep GPS/location
+              on and stay online so passengers around you in Kenya can see you.
+              When corridor lock is ON, your route is highlighted.
             </p>
           </div>
         </div>
@@ -1102,6 +1174,23 @@ export default function DriverLiveDashboardPage() {
           heatmapEnabled={heatmapEnabled}
           onMapClick={handleMapClick}
         />
+        <div className="mt-2 space-y-1 text-[11px] text-slate-400">
+          {loadingIncoming && (
+            <p>Loading nearby riders around your current stage — tulia kidogo.</p>
+          )}
+          {!loadingIncoming && !hasAnyLocation && (
+            <p>
+              Waiting for your location. Turn on GPS/location for Radaa and allow
+              location permission so we can find where you are.
+            </p>
+          )}
+          {!loadingIncoming && hasAnyLocation && !hasIncoming && !error && (
+            <p>
+              Hakuna requests kwa sasa near your stage. Stay online and keep to
+              your corridor to catch new trips.
+            </p>
+          )}
+        </div>
       </section>
 
       <section className="rounded-xl border border-slate-800 bg-slate-900/80 p-3 text-xs">
@@ -1160,6 +1249,17 @@ export default function DriverLiveDashboardPage() {
               >
                 {photosLoading ? "Uploading…" : "Upload photo"}
               </button>
+              {photoPreviewUrl && (
+                <div className="mt-2 flex items-start gap-2">
+                  <div
+                    className="h-20 w-28 rounded-md border border-slate-800 bg-slate-900 bg-cover bg-center"
+                    style={{ backgroundImage: `url(${photoPreviewUrl})` }}
+                  />
+                  <p className="text-[10px] text-slate-400">
+                    Preview only. The photo is stored locally until you upload.
+                  </p>
+                </div>
+              )}
             </form>
 
             {photoError && (
