@@ -11,6 +11,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const { user, logout } = useAuth();
   const role = (user as any)?.role as string | undefined;
   const isAdmin = role === "admin";
+  const isDriver = role === "driver";
   const { cardSurfaceClass } = useTheme();
   const simplifiedNavEnabled = useIsFeatureEnabled("ff_simplified_nav", false);
   const liveOnlyMapEnabled = useIsFeatureEnabled("ff_live_only_map", false);

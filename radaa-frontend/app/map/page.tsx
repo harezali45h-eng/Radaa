@@ -942,8 +942,8 @@ export default function MapPage() {
       return;
     }
 
-    const deltaLat = 0.02;
-    const deltaLng = 0.02;
+    const deltaLat = 0.01;
+    const deltaLng = 0.01;
 
     const nextBounds: BoltBounds = {
       minLat: pickupStage.lat - deltaLat,
@@ -1850,8 +1850,8 @@ export default function MapPage() {
                       </span>
                       <span className="text-[10px] text-slate-400">
                         {walkingEtaMinutes && walkingStageName
-                          ? `Walk ~${walkingEtaMinutes} min to ${walkingStageName}`
-                          : "We use your stage to show nearby matatus"}
+                          ? `About ${walkingEtaMinutes} min walk to this stage. We'll match you with matatus passing here.`
+                          : "Walk to this stage and wait for a matatu. We'll match you with matatus passing here."}
                       </span>
                     </div>
                     <button
@@ -1981,59 +1981,67 @@ export default function MapPage() {
       <section className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-800/80 bg-slate-950/95 backdrop-blur md:static md:mt-3 md:rounded-2xl md:border md:border-slate-800/80 md:bg-slate-950/90">
         <div className="radaa-shell flex items-center justify-between gap-3 py-3 text-[11px] text-slate-100 md:py-2">
           {destinationSearchEnabled ? (
-            <div className="flex flex-col">
-              <span className="font-semibold">
-                {destinationDescription || "Set your destination"}
-              </span>
-              <span className="text-[10px] text-slate-400">
-                {riderStatus === "waiting"
-                  ? "Waiting for a matatu on this route"
-                  : walkingEtaMinutes && walkingStageName
-                    ? `Walk ~${walkingEtaMinutes} min to ${walkingStageName}`
-                    : "We use this to show matatus along your route"}
-              </span>
-            </div>
-            <button
-              type="button"
-              disabled={
-                !destinationDescription.trim() || riderStatus === "waiting"
-              }
-              onClick={handleRequestMatatu}
-              className={`inline-flex items-center rounded-full px-4 py-1.5 text-[11px] font-semibold shadow-soft transition disabled:cursor-not-allowed disabled:opacity-60 ${
-                destinationDescription.trim() && riderStatus !== "waiting"
-                  ? "bg-gradient-gold-orange text-slate-950"
-                  : "bg-slate-800 text-slate-300"
-              }`}
-            >
-              {riderStatus === "waiting" ? "Waiting…" : "Request Matatu"}
-            </button>
+            <>
+              <div className="flex flex-col">
+                <span className="font-semibold">
+                  {destinationDescription || "Set your destination"}
+                </span>
+                <span className="text-[10px] text-slate-400">
+                  {riderStatus === "waiting"
+                    ? "Waiting for a matatu on this route"
+                    : walkingEtaMinutes && walkingStageName
+                      ? `Walk ~${walkingEtaMinutes} min to ${walkingStageName}`
+                      : "We use this to show matatus along your route"}
+                </span>
+              </div>
+              <button
+                type="button"
+                disabled={
+                  !destinationDescription.trim() || riderStatus === "waiting"
+                }
+                onClick={handleRequestMatatu}
+                className={`inline-flex items-center rounded-full px-4 py-1.5 text-[11px] font-semibold shadow-soft transition disabled:cursor-not-allowed disabled:opacity-60 ${
+                  destinationDescription.trim() && riderStatus !== "waiting"
+                    ? "bg-gradient-gold-orange text-slate-950"
+                    : "bg-slate-800 text-slate-300"
+                }`}
+              >
+                {riderStatus === "waiting" ? "Waiting…" : "Request Matatu"}
+              </button>
+            </>
           ) : (
-            <div className="flex flex-col">
-              <span className="font-semibold">
-                {pickupStage
-                  ? pickupStage.stageName || "Your pickup stage"
-                  : "Set your pickup stage"}
-              </span>
-              <span className="text-[10px] text-slate-400">
+            <>
+              <div className="flex flex-col">
+                <span className="font-semibold">
+                  {pickupStage
+                    ? pickupStage.stageName || "Your pickup stage"
+                    : "Set your pickup stage"}
+                </span>
+                <span className="text-[10px] text-slate-400">
+                  {riderStatus === "waiting"
+                    ? "You're now waiting at this stage. Nearby matatus will see your request."
+                    : walkingEtaMinutes && walkingStageName
+                      ? `About ${walkingEtaMinutes} min walk to ${walkingStageName} stage`
+                      : "When you request, matatus near this stage will see you"}
+                </span>
+              </div>
+              <button
+                type="button"
+                disabled={!pickupStage || riderStatus === "waiting"}
+                onClick={handleRequestMatatuNearestStage}
+                className={`inline-flex items-center rounded-full px-4 py-1.5 text-[11px] font-semibold shadow-soft transition disabled:cursor-not-allowed disabled:opacity-60 ${
+                  pickupStage && riderStatus !== "waiting"
+                    ? "bg-gradient-gold-orange text-slate-950"
+                    : "bg-slate-800 text-slate-300"
+                }`}
+              >
                 {riderStatus === "waiting"
-                  ? "Waiting for a matatu near this stage"
-                  : walkingEtaMinutes && walkingStageName
-                    ? `Walk ~${walkingEtaMinutes} min to ${walkingStageName}`
-                    : "We will use this stage as your pickup point"}
-              </span>
-            </div>
-            <button
-              type="button"
-              disabled={!pickupStage || riderStatus === "waiting"}
-              onClick={handleRequestMatatuNearestStage}
-              className={`inline-flex items-center rounded-full px-4 py-1.5 text-[11px] font-semibold shadow-soft transition disabled:cursor-not-allowed disabled:opacity-60 ${
-                pickupStage && riderStatus !== "waiting"
-                  ? "bg-gradient-gold-orange text-slate-950"
-                  : "bg-slate-800 text-slate-300"
-              }`}
-            >
-              {riderStatus === "waiting" ? "Waiting…" : "Request Matatu"}
-            </button>
+                  ? "Waiting at this stage"
+                  : pickupStage && pickupStage.stageName
+                    ? `Request matatu at ${pickupStage.stageName}`
+                    : "Request matatu at this stage"}
+              </button>
+            </>
           )}
         </div>
       </section>
@@ -2069,13 +2077,8 @@ export default function MapPage() {
               <p className="text-[11px] text-slate-400">
                 Tap a card to focus the marker and start tracking it.
               </p>
-          <div>
-            <h2 className="text-sm font-semibold">Matatus on this map</h2>
-            <p className="text-[11px] text-slate-400">
-              Tap a card to focus the marker and start tracking it.
-            </p>
-          </div>
-          {selectedMatatuEta && (
+            </div>
+            {selectedMatatuEta && (
             <div className="rounded-full border border-slate-700/70 bg-slate-900/80 px-3 py-1 text-[10px] text-slate-200">
               ~{Math.round(selectedMatatuEta.etaMinutes)} min away
             </div>
