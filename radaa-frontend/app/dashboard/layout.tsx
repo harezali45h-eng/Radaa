@@ -4,7 +4,6 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { AppShell } from "@/components/layout/AppShell";
 import { useAuth } from "@/context/AuthContext";
-import { useRealtime } from "@/context/realtimeContext";
 import { useTheme } from "@/context/ThemeContext";
 import { useIsFeatureEnabled } from "@/context/FeatureFlagContext";
 
@@ -12,23 +11,17 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const { user, logout } = useAuth();
   const role = (user as any)?.role as string | undefined;
   const isAdmin = role === "admin";
-  const isDriver = role === "driver";
-  const { activeMode } = useRealtime();
   const { cardSurfaceClass } = useTheme();
   const simplifiedNavEnabled = useIsFeatureEnabled("ff_simplified_nav", false);
   const liveOnlyMapEnabled = useIsFeatureEnabled("ff_live_only_map", false);
 
   const homeHref = isAdmin
     ? "/dashboard/sacco"
-    : isDriver && activeMode === "driver"
-      ? "/dashboard/driver/live"
-      : "/dashboard";
+    : "/dashboard";
 
   const liveHref = liveOnlyMapEnabled
     ? "/map"
-    : isDriver && activeMode === "driver"
-      ? "/dashboard/driver/live"
-      : "/dashboard/passenger/live";
+    : "/dashboard/passenger";
 
   const displayName = (user as any)?.username || (user as any)?.phone || "Radaa user";
   const initials = displayName.charAt(0).toUpperCase();

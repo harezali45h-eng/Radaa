@@ -43,7 +43,7 @@ export function AppRootClient({ children }: AppRootClientProps) {
       }
     } else if (normalizedRole && normalizedRole !== "admin") {
       if (isDriverRoute) {
-        router.replace("/dashboard/passenger/live");
+        router.replace("/dashboard/passenger");
       }
     }
   }, [
@@ -79,7 +79,7 @@ export function AppRootClient({ children }: AppRootClientProps) {
     <div className="font-[Inter]">
       <AnimatePresence mode="wait" initial={false}>
         <motion.main
-          key={activeMode}
+          key={pathname}
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -6 }}

@@ -100,11 +100,11 @@ export function AppShell({ children }: AppShellProps) {
     ? "/map"
     : isDriver && activeMode === "driver"
       ? "/dashboard/driver/live"
-      : "/dashboard/passenger/live";
+      : "/dashboard/passenger";
 
   const liveTabActive = liveOnlyMapEnabled
     ? pathname === "/map"
-    : pathname.startsWith("/dashboard/passenger/live") ||
+    : pathname.startsWith("/dashboard/passenger") ||
       pathname.startsWith("/dashboard/driver/live");
 
   const toggleNotifications = () => {

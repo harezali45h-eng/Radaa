@@ -26,7 +26,7 @@ export default function DashboardEntry() {
       return;
     }
 
-    router.replace("/dashboard/passenger/live");
+    router.replace("/dashboard/passenger");
   }, [user, router]);
 
   return null;

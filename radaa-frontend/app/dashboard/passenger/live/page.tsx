@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, useRef } from "react";
+import { useRouter } from "next/navigation";
 import RideRequestButton from "@/components/RideRequestButton";
 import { useAuth } from "@/context/AuthContext";
 import { useNotifications } from "@/context/NotificationContext";
@@ -22,7 +23,7 @@ import {
 } from "@/lib/location/distance";
 import { ActiveRequestWatcher } from "@/components/requests/ActiveRequestWatcher";
 
-export default function PassengerLiveDashboardPage() {
+function PassengerLiveDashboardPageImpl() {
   const { token } = useAuth();
   const { addNotification } = useNotifications();
   const { on, off, emit } = useSocket();
@@ -634,4 +635,14 @@ export default function PassengerLiveDashboardPage() {
       )}
     </div>
   );
+}
+
+export default function PassengerLiveRedirectPage() {
+  const router = useRouter();
+
+  useEffect(() => {
+    router.replace("/dashboard/passenger");
+  }, [router]);
+
+  return null;
 }

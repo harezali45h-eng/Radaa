@@ -1,12 +1,13 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSocket } from "@/hooks/useSocket";
 import { getLiveMatatus, getMapMarkers, getStagesGeoJson } from "@/lib/api";
 import MapContainer from "@/components/map/MapContainer";
 import GoogleMapContainer from "@/components/map/GoogleMapContainer";
 import { useRealtime } from "@/context/realtimeContext";
-import { useIsFeatureEnabled } from "@/context/FeatureFlagContext";
+import { useFeatureFlags, useIsFeatureEnabled } from "@/context/FeatureFlagContext";
 import { useGoogleMaps } from "@/context/GoogleMapsContext";
 import { useAuth } from "@/context/AuthContext";
 import {
@@ -20,6 +21,16 @@ import {
   findNearestStage as findNearestStageGeo,
   isNearStageOrCorridor as isNearStageOrCorridorGeo,
 } from "@/lib/location/stageRouting";
+import { useBoltLiveRadar } from "@/src/features/bolt/hooks/useBoltLiveRadar";
+import type {
+  BoltBounds,
+  BoltMatatuProfile,
+} from "@/src/features/bolt/types";
+
+const TinderGallery = dynamic(
+  () => import("@/src/features/bolt/components/TinderGallery"),
+  { ssr: false },
+);
 
 interface LatLng {
   lat: number;
@@ -70,6 +81,14 @@ interface Bounds {
   maxLng: number;
 }
 
+interface PickupStageInfo {
+  stageId: string;
+  stageName: string | null;
+  lat: number;
+  lng: number;
+  corridorId: string | null;
+}
+
 type RiderStatus = "idle" | "waiting";
 
 interface PlacesSuggestion {
@@ -82,6 +101,8 @@ const BACKEND_URL =
   process.env.NEXT_PUBLIC_BACKEND_URL ||
   process.env.NEXT_PUBLIC_API_BASE_URL ||
   "";
+
+const PICKUP_STAGE_STORAGE_KEY = "radaa.pickupStage.v1";
 
 function haversineDistanceMeters(a: LatLng, b: LatLng): number {
   const R = 6371000;
@@ -110,6 +131,7 @@ export default function MapPage() {
   const uiRevampEnabled = useIsFeatureEnabled("ui_revamp_v1", false);
   const globalMapEnabled = useIsFeatureEnabled("global_map_v1", false);
   const liveOnlyMapEnabled = useIsFeatureEnabled("ff_live_only_map", false);
+  const { flags } = useFeatureFlags();
 
   const { isLoaded: mapsLoaded, apiKey } = useGoogleMaps();
 
@@ -151,6 +173,9 @@ export default function MapPage() {
 
   const [stages, setStages] = useState<StagePoint[]>([]);
   const [corridors, setCorridors] = useState<Corridor[]>([]);
+  const [pickupStage, setPickupStage] = useState<PickupStageInfo | null>(null);
+  const [manualStageId, setManualStageId] = useState<string | null>(null);
+  const [showStageSelector, setShowStageSelector] = useState(false);
   const [activeStageRoute, setActiveStageRoute] =
     useState<{
       originStageId: string;
@@ -167,6 +192,19 @@ export default function MapPage() {
     null,
   );
   const [walkingStageName, setWalkingStageName] = useState<string | null>(null);
+
+  const destinationSearchEnabled = useMemo(() => {
+    if (!flags) {
+      return false;
+    }
+
+    const entry = flags["ff_destination_search_v1"];
+    if (!entry) {
+      return false;
+    }
+
+    return Boolean(entry.enabled);
+  }, [flags]);
 
   useEffect(() => {
     let cancelled = false;
@@ -506,6 +544,75 @@ export default function MapPage() {
     [stages],
   );
 
+  const findNearestPickupStage = useCallback(
+    (point: LatLng | null | undefined): PickupStageInfo | null => {
+      const result = isNearStageOrCorridorGeo(point, stages, corridors);
+      const stage = result.nearestStage;
+
+      if (!stage) {
+        return null;
+      }
+
+      return {
+        stageId: stage.id,
+        stageName: stage.name ?? null,
+        lat: stage.lat,
+        lng: stage.lng,
+        corridorId: result.nearestCorridor ? result.nearestCorridor.id : null,
+      };
+    },
+    [stages, corridors],
+  );
+  useEffect(() => {
+    if (!uiRevampEnabled) {
+      return;
+    }
+
+    if (!userLocation || stages.length === 0) {
+      return;
+    }
+
+    // Don't override a manually selected stage.
+    if (manualStageId) {
+      return;
+    }
+
+    const nearest = findNearestPickupStage(userLocation);
+    if (!nearest) {
+      return;
+    }
+
+    setPickupStage((current) => {
+      if (
+        current &&
+        current.stageId === nearest.stageId &&
+        current.lat === nearest.lat &&
+        current.lng === nearest.lng
+      ) {
+        return current;
+      }
+      return nearest;
+    });
+
+    if (typeof window !== "undefined") {
+      try {
+        window.localStorage.setItem(
+          PICKUP_STAGE_STORAGE_KEY,
+          JSON.stringify(nearest),
+        );
+      } catch {
+        // ignore storage errors
+      }
+    }
+  }, [
+    uiRevampEnabled,
+    userLocation,
+    stages,
+    corridors,
+    manualStageId,
+    findNearestPickupStage,
+  ]);
+
   const isNearStageOrCorridor = useCallback(
     (
       point: LatLng | null | undefined,
@@ -821,6 +928,48 @@ export default function MapPage() {
     return `${BACKEND_URL}${url}`;
   }, [selectedMatatu]);
 
+  const {
+    matatus: radarMatatus,
+    setBounds: setRadarBounds,
+  } = useBoltLiveRadar();
+
+  useEffect(() => {
+    if (!uiRevampEnabled) {
+      return;
+    }
+
+    if (!pickupStage) {
+      return;
+    }
+
+    const deltaLat = 0.02;
+    const deltaLng = 0.02;
+
+    const nextBounds: BoltBounds = {
+      minLat: pickupStage.lat - deltaLat,
+      maxLat: pickupStage.lat + deltaLat,
+      minLng: pickupStage.lng - deltaLng,
+      maxLng: pickupStage.lng + deltaLng,
+    };
+
+    setRadarBounds(nextBounds);
+  }, [uiRevampEnabled, pickupStage, setRadarBounds]);
+
+  const galleryItems: BoltMatatuProfile[] = useMemo(
+    () => radarMatatus.map((m) => ({ ...m })),
+    [radarMatatus],
+  );
+
+  const handleOpenOnMapFromGallery = useCallback(
+    (id: string) => {
+      if (typeof console !== "undefined") {
+        // eslint-disable-next-line no-console
+        console.log("[map] gallery open-on-map clicked", { id });
+      }
+    },
+    [],
+  );
+
   const baseMatatusForDisplay = useMemo(() => {
     if (!selectedRoute || routeMatatus.length === 0) {
       return matatus;
@@ -947,7 +1096,7 @@ export default function MapPage() {
   useEffect(() => {
     const query = destinationQuery.trim();
 
-    if (!apiKey || query.length < 3) {
+    if (!destinationSearchEnabled || !apiKey || query.length < 3) {
       setDestinationSuggestions([]);
       return;
     }
@@ -1002,7 +1151,7 @@ export default function MapPage() {
       cancelled = true;
       controller.abort();
     };
-  }, [apiKey, destinationQuery]);
+  }, [apiKey, destinationQuery, destinationSearchEnabled]);
 
   const handleSelectMatatu = useCallback((id: string) => {
     setSelectedMatatuId(id);
@@ -1060,6 +1209,7 @@ export default function MapPage() {
 
     if (typeof window === "undefined" || !navigator.geolocation) {
       setGeoError("Location is not available in this browser.");
+      setShowStageSelector(true);
       return;
     }
 
@@ -1090,6 +1240,29 @@ export default function MapPage() {
         }
 
         setGeoError(message);
+
+        if (typeof window !== "undefined") {
+          try {
+            const raw = window.localStorage.getItem(PICKUP_STAGE_STORAGE_KEY);
+            if (raw) {
+              const parsed = JSON.parse(raw) as PickupStageInfo;
+              if (
+                parsed &&
+                typeof parsed.lat === "number" &&
+                typeof parsed.lng === "number" &&
+                parsed.stageId
+              ) {
+                setPickupStage(parsed);
+                setManualStageId(parsed.stageId);
+                return;
+              }
+            }
+          } catch {
+            // ignore storage errors
+          }
+        }
+
+        setShowStageSelector(true);
       },
       {
         enableHighAccuracy: true,
@@ -1097,6 +1270,29 @@ export default function MapPage() {
       },
     );
   }, [uiRevampEnabled, userLocation]);
+
+  const handleRequestMatatuNearestStage = () => {
+    if (!pickupStage) {
+      setGeoError(
+        "We couldn't detect your nearest stage yet. Wait a few seconds or choose a stage manually.",
+      );
+      return;
+    }
+
+    if (typeof console !== "undefined") {
+      // eslint-disable-next-line no-console
+      console.log("[map] request-nearest-stage clicked", {
+        pickupStageId: pickupStage.stageId,
+        pickupStageName: pickupStage.stageName,
+      });
+    }
+
+    setWalkingPath(null);
+    setWalkingEtaMinutes(null);
+    setWalkingStageName(null);
+    setRiderStatus("waiting");
+    setGeoError(null);
+  };
 
   const handleRequestMatatu = () => {
     const description =
@@ -1553,91 +1749,193 @@ export default function MapPage() {
         <div className="p-0 md:p-4 md:pb-3">
           <div className="relative h-[calc(100vh-12rem)] md:h-auto">
             <div className="absolute inset-x-4 top-4 z-20 flex flex-col gap-2 md:static md:mb-3 md:mt-4">
-              <div className="inline-flex items-center justify-between rounded-full border border-slate-700/70 bg-slate-950/90 px-3 py-1.5 text-[11px] text-slate-200 shadow-soft">
-                <button
-                  type="button"
-                  onClick={handleRequestMatatu}
-                  className="font-medium"
-                >
-                  Where to?
-                </button>
-                <span className="text-[10px] text-slate-400">
-                  Route-based view only
-                </span>
-              </div>
-              <div className="rounded-2xl border border-slate-700/80 bg-slate-950/95 px-3 py-2 text-[11px] shadow-soft">
-                <input
-                  type="text"
-                  value={destinationQuery}
-                  onChange={(event) => {
-                    const next = event.target.value;
-                    setDestinationQuery(next);
-                    setDestinationPlaceId(null);
-                    setDestinationDescription(next);
-                    setDestinationLatLng(null);
-                  }}
-                  placeholder="Search a destination, stage, or landmark"
-                  className="w-full bg-transparent text-slate-50 placeholder:text-slate-500 outline-none"
-                />
-                {destinationSuggestions.length > 0 && (
-                  <ul className="mt-2 max-h-40 space-y-1 overflow-auto rounded-xl border border-slate-800 bg-slate-950/95 px-2 py-1">
-                    {destinationSuggestions.map((s) => (
-                      <li key={s.placeId}>
+              {destinationSearchEnabled ? (
+                <>
+                  <div className="inline-flex items-center justify-between rounded-full border border-slate-700/70 bg-slate-950/90 px-3 py-1.5 text-[11px] text-slate-200 shadow-soft">
+                    <button
+                      type="button"
+                      onClick={handleRequestMatatu}
+                      className="font-medium"
+                    >
+                      Where to?
+                    </button>
+                    <span className="text-[10px] text-slate-400">
+                      Route-based view only
+                    </span>
+                  </div>
+                  <div className="rounded-2xl border border-slate-700/80 bg-slate-950/95 px-3 py-2 text-[11px] shadow-soft">
+                    <input
+                      type="text"
+                      value={destinationQuery}
+                      onChange={(event) => {
+                        const next = event.target.value;
+                        setDestinationQuery(next);
+                        setDestinationPlaceId(null);
+                        setDestinationDescription(next);
+                        setDestinationLatLng(null);
+                      }}
+                      placeholder="Search a destination, stage, or landmark"
+                      className="w-full bg-transparent text-slate-50 placeholder:text-slate-500 outline-none"
+                    />
+                    {destinationSuggestions.length > 0 && (
+                      <ul className="mt-2 max-h-40 space-y-1 overflow-auto rounded-xl border border-slate-800 bg-slate-950/95 px-2 py-1">
+                        {destinationSuggestions.map((s) => (
+                          <li key={s.placeId}>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setDestinationPlaceId(s.placeId);
+                                setDestinationDescription(s.description || "");
+                                setDestinationQuery(s.description || "");
+                                setDestinationSuggestions([]);
+
+                                if (mapsLoaded && apiKey && s.placeId) {
+                                  const element = document.createElement("div");
+                                  const service = new google.maps.places.PlacesService(
+                                    element,
+                                  );
+                                  service.getDetails(
+                                    {
+                                      placeId: s.placeId,
+                                      fields: [
+                                        "geometry",
+                                        "name",
+                                        "formatted_address",
+                                      ],
+                                    },
+                                    (result, status) => {
+                                      if (
+                                        !result ||
+                                        status !==
+                                          google.maps.places.PlacesServiceStatus.OK ||
+                                        !result.geometry ||
+                                        !result.geometry.location
+                                      ) {
+                                        setDestinationLatLng(null);
+                                        return;
+                                      }
+
+                                      const loc: LatLng = {
+                                        lat: result.geometry.location.lat(),
+                                        lng: result.geometry.location.lng(),
+                                      };
+
+                                      setDestinationLatLng(loc);
+                                    },
+                                  );
+                                } else {
+                                  setDestinationLatLng(null);
+                                }
+                              }}
+                              className="w-full rounded-lg px-2 py-1 text-left text-[11px] text-slate-100 hover:bg-slate-800/80"
+                            >
+                              {s.description}
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="inline-flex items-center justify-between rounded-full border border-slate-700/70 bg-slate-950/90 px-3 py-1.5 text-[11px] text-slate-200 shadow-soft">
+                    <div className="flex min-w-0 flex-col text-left">
+                      <span className="truncate font-semibold">
+                        {pickupStage
+                          ? `📍 Nearest stage: ${
+                              pickupStage.stageName || "Unnamed stage"
+                            }`
+                          : "Detecting nearest stage…"}
+                      </span>
+                      <span className="text-[10px] text-slate-400">
+                        {walkingEtaMinutes && walkingStageName
+                          ? `Walk ~${walkingEtaMinutes} min to ${walkingStageName}`
+                          : "We use your stage to show nearby matatus"}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setShowStageSelector(true)}
+                      className="ml-2 rounded-full border border-slate-600 bg-slate-900 px-2 py-0.5 text-[10px] font-medium text-slate-100 hover:border-slate-400"
+                    >
+                      Change stage
+                    </button>
+                  </div>
+                  {showStageSelector && (
+                    <div className="rounded-2xl border border-slate-700/80 bg-slate-950/95 px-3 py-2 text-[11px] shadow-soft">
+                      <div className="mb-1 text-[10px] text-slate-400">
+                        Pick a stage manually
+                      </div>
+                      <select
+                        value={
+                          manualStageId ??
+                          pickupStage?.stageId ??
+                          ""
+                        }
+                        onChange={(event) => {
+                          const value = event.target.value || null;
+                          setManualStageId(value);
+                        }}
+                        className="w-full rounded-md border border-slate-700 bg-slate-900 px-2 py-1 text-[11px] text-slate-50 outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
+                      >
+                        <option value="">Select stage…</option>
+                        {stages.slice(0, 40).map((stage) => (
+                          <option key={stage.id} value={stage.id}>
+                            {stage.name || stage.id}
+                          </option>
+                        ))}
+                      </select>
+                      <div className="mt-2 flex justify-end gap-2 text-[10px]">
                         <button
                           type="button"
-                          onClick={() => {
-                            setDestinationPlaceId(s.placeId);
-                            setDestinationDescription(s.description || "");
-                            setDestinationQuery(s.description || "");
-                            setDestinationSuggestions([]);
-
-                            if (mapsLoaded && apiKey && s.placeId) {
-                              const element = document.createElement("div");
-                              const service = new google.maps.places.PlacesService(
-                                element,
-                              );
-                              service.getDetails(
-                                {
-                                  placeId: s.placeId,
-                                  fields: [
-                                    "geometry",
-                                    "name",
-                                    "formatted_address",
-                                  ],
-                                },
-                                (result, status) => {
-                                  if (
-                                    !result ||
-                                    status !==
-                                      google.maps.places.PlacesServiceStatus.OK ||
-                                    !result.geometry ||
-                                    !result.geometry.location
-                                  ) {
-                                    setDestinationLatLng(null);
-                                    return;
-                                  }
-
-                                  const loc: LatLng = {
-                                    lat: result.geometry.location.lat(),
-                                    lng: result.geometry.location.lng(),
-                                  };
-
-                                  setDestinationLatLng(loc);
-                                },
-                              );
-                            } else {
-                              setDestinationLatLng(null);
-                            }
-                          }}
-                          className="w-full rounded-lg px-2 py-1 text-left text-[11px] text-slate-100 hover:bg-slate-800/80"
+                          onClick={() => setShowStageSelector(false)}
+                          className="rounded-full border border-slate-700 px-3 py-0.5 text-slate-300 hover:border-slate-500"
                         >
-                          {s.description}
+                          Cancel
                         </button>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
+                        <button
+                          type="button"
+                          disabled={!manualStageId}
+                          onClick={() => {
+                            if (!manualStageId) {
+                              return;
+                            }
+                            const stage = stages.find(
+                              (s) => s.id === manualStageId,
+                            );
+                            if (!stage) {
+                              return;
+                            }
+                            const next: PickupStageInfo = {
+                              stageId: stage.id,
+                              stageName: stage.name,
+                              lat: stage.lat,
+                              lng: stage.lng,
+                              corridorId: null,
+                            };
+                            setPickupStage(next);
+                            if (typeof window !== "undefined") {
+                              try {
+                                window.localStorage.setItem(
+                                  PICKUP_STAGE_STORAGE_KEY,
+                                  JSON.stringify(next),
+                                );
+                              } catch {
+                                // ignore
+                              }
+                            }
+                            setShowStageSelector(false);
+                          }}
+                          className="rounded-full bg-gradient-gold-orange px-3 py-0.5 text-slate-950 disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                          Save
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
             </div>
 
             <div className="absolute inset-0 pt-20 md:static md:pt-0">
@@ -1682,36 +1980,95 @@ export default function MapPage() {
 
       <section className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-800/80 bg-slate-950/95 backdrop-blur md:static md:mt-3 md:rounded-2xl md:border md:border-slate-800/80 md:bg-slate-950/90">
         <div className="radaa-shell flex items-center justify-between gap-3 py-3 text-[11px] text-slate-100 md:py-2">
-          <div className="flex flex-col">
-            <span className="font-semibold">
-              {destinationDescription || "Set your destination"}
-            </span>
-            <span className="text-[10px] text-slate-400">
-              {riderStatus === "waiting"
-                ? "Waiting for a matatu on this route"
-                : walkingEtaMinutes && walkingStageName
-                  ? `Walk ~${walkingEtaMinutes} min to ${walkingStageName}`
-                  : "We use this to show matatus along your route"}
-            </span>
-          </div>
-          <button
-            type="button"
-            disabled={!destinationDescription.trim() || riderStatus === "waiting"}
-            onClick={handleRequestMatatu}
-            className={`inline-flex items-center rounded-full px-4 py-1.5 text-[11px] font-semibold shadow-soft transition disabled:cursor-not-allowed disabled:opacity-60 ${
-              destinationDescription.trim() && riderStatus !== "waiting"
-                ? "bg-gradient-gold-orange text-slate-950"
-                : "bg-slate-800 text-slate-300"
-            }`}
-          >
-            {riderStatus === "waiting" ? "Waiting…" : "Request Matatu"}
-          </button>
+          {destinationSearchEnabled ? (
+            <div className="flex flex-col">
+              <span className="font-semibold">
+                {destinationDescription || "Set your destination"}
+              </span>
+              <span className="text-[10px] text-slate-400">
+                {riderStatus === "waiting"
+                  ? "Waiting for a matatu on this route"
+                  : walkingEtaMinutes && walkingStageName
+                    ? `Walk ~${walkingEtaMinutes} min to ${walkingStageName}`
+                    : "We use this to show matatus along your route"}
+              </span>
+            </div>
+            <button
+              type="button"
+              disabled={
+                !destinationDescription.trim() || riderStatus === "waiting"
+              }
+              onClick={handleRequestMatatu}
+              className={`inline-flex items-center rounded-full px-4 py-1.5 text-[11px] font-semibold shadow-soft transition disabled:cursor-not-allowed disabled:opacity-60 ${
+                destinationDescription.trim() && riderStatus !== "waiting"
+                  ? "bg-gradient-gold-orange text-slate-950"
+                  : "bg-slate-800 text-slate-300"
+              }`}
+            >
+              {riderStatus === "waiting" ? "Waiting…" : "Request Matatu"}
+            </button>
+          ) : (
+            <div className="flex flex-col">
+              <span className="font-semibold">
+                {pickupStage
+                  ? pickupStage.stageName || "Your pickup stage"
+                  : "Set your pickup stage"}
+              </span>
+              <span className="text-[10px] text-slate-400">
+                {riderStatus === "waiting"
+                  ? "Waiting for a matatu near this stage"
+                  : walkingEtaMinutes && walkingStageName
+                    ? `Walk ~${walkingEtaMinutes} min to ${walkingStageName}`
+                    : "We will use this stage as your pickup point"}
+              </span>
+            </div>
+            <button
+              type="button"
+              disabled={!pickupStage || riderStatus === "waiting"}
+              onClick={handleRequestMatatuNearestStage}
+              className={`inline-flex items-center rounded-full px-4 py-1.5 text-[11px] font-semibold shadow-soft transition disabled:cursor-not-allowed disabled:opacity-60 ${
+                pickupStage && riderStatus !== "waiting"
+                  ? "bg-gradient-gold-orange text-slate-950"
+                  : "bg-slate-800 text-slate-300"
+              }`}
+            >
+              {riderStatus === "waiting" ? "Waiting…" : "Request Matatu"}
+            </button>
+          )}
         </div>
       </section>
 
+      {!liveOnlyMapEnabled && galleryItems.length > 0 && (
+        <section className="space-y-3 rounded-2xl border border-slate-800 bg-slate-900/80 p-4">
+          <div className="flex items-center justify-between gap-2">
+            <div>
+              <h2 className="text-sm font-semibold">Nearby matatu gallery</h2>
+              <p className="text-[11px] text-slate-400">
+                Swipe to explore matatus near your pickup stage.
+              </p>
+            </div>
+            <span className="text-[10px] text-slate-400">
+              {galleryItems.length} online
+            </span>
+          </div>
+
+          <div className="w-full max-w-sm">
+            <TinderGallery
+              items={galleryItems}
+              onOpenOnMap={handleOpenOnMapFromGallery}
+            />
+          </div>
+        </section>
+      )}
+
       {!liveOnlyMapEnabled && (
         <section className="space-y-3 rounded-2xl border border-slate-800 bg-slate-900/80 p-4">
-        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center justify-between gap-2">
+            <div>
+              <h2 className="text-sm font-semibold">Matatus on this map</h2>
+              <p className="text-[11px] text-slate-400">
+                Tap a card to focus the marker and start tracking it.
+              </p>
           <div>
             <h2 className="text-sm font-semibold">Matatus on this map</h2>
             <p className="text-[11px] text-slate-400">

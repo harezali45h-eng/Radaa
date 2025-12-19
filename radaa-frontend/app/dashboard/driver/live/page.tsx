@@ -22,7 +22,6 @@ import { getAssignedPassengers } from "@/lib/api/driver";
 import { useIsFeatureEnabled } from "@/context/FeatureFlagContext";
 import MapWrapper from "@/components/MapWrapper";
 import DriverRequestCard from "@/components/DriverRequestCard";
-import DriverDashboardShell from "@/components/driver/DriverDashboardShell";
 import {
   getMatatuPhotosV2,
   uploadMatatuPhotoV2,
@@ -919,24 +918,21 @@ export default function DriverLiveDashboardPage() {
 
   if (loading || !user || !isDriver) {
     return (
-      <DriverDashboardShell active="live">
-        <div className="space-y-4 text-xs">
-          <header className="space-y-1">
-            <h1 className="text-2xl font-semibold tracking-tight">
-              Driver live dashboard
-            </h1>
-            <p className="text-slate-300">
-              You must be signed in as a driver to view this dashboard.
-            </p>
-          </header>
-        </div>
-      </DriverDashboardShell>
+      <div className="space-y-4 text-xs">
+        <header className="space-y-1">
+          <h1 className="text-2xl font-semibold tracking-tight">
+            Driver live dashboard
+          </h1>
+          <p className="text-slate-300">
+            You must be signed in as a driver to view this dashboard.
+          </p>
+        </header>
+      </div>
     );
   }
 
   return (
-    <DriverDashboardShell active="live">
-      <div className="space-y-6 text-xs">
+    <div className="space-y-6 text-xs">
         <header className="space-y-2">
           <p className="text-[11px] font-semibold uppercase tracking-wide text-emerald-300">
             Driver Dashboard (Live)
@@ -1393,6 +1389,5 @@ export default function DriverLiveDashboardPage() {
         </div>
       </section>
     </div>
-    </DriverDashboardShell>
   );
 }
