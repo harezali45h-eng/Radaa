@@ -26,6 +26,12 @@ import type {
   BoltBounds,
   BoltMatatuProfile,
 } from "@/src/features/bolt/types";
+import {
+  createLiveRequest,
+  getActiveLiveRequest,
+  LiveRequestError,
+  type LiveRequest,
+} from "@/lib/api/liveRequests";
 
 const TinderGallery = dynamic(
   () => import("@/src/features/bolt/components/TinderGallery"),
@@ -124,7 +130,7 @@ function haversineDistanceMeters(a: LatLng, b: LatLng): number {
 }
 
 export default function MapPage() {
-  const { user } = useAuth();
+  const { user, token } = useAuth();
   const { connect, on, off } = useSocket();
   const { driverOnline, setDriverOnline } = useRealtime();
 
@@ -170,6 +176,8 @@ export default function MapPage() {
     null,
   );
   const [riderStatus, setRiderStatus] = useState<RiderStatus>("idle");
+  const [activeLiveRequest, setActiveLiveRequest] =
+    useState<LiveRequest | null>(null);
 
   const [stages, setStages] = useState<StagePoint[]>([]);
   const [corridors, setCorridors] = useState<Corridor[]>([]);
@@ -390,6 +398,49 @@ export default function MapPage() {
       );
     }
   }, []);
+
+  useEffect(() => {
+    if (!token || isDriver) {
+      setActiveLiveRequest(null);
+      return;
+    }
+
+    let cancelled = false;
+
+    const run = async () => {
+      try {
+        const data = await getActiveLiveRequest(token);
+        if (cancelled) return;
+
+        if (data) {
+          setActiveLiveRequest(data);
+
+          const loc = data.location;
+          if (
+            loc &&
+            typeof loc.lat === "number" &&
+            typeof loc.lng === "number"
+          ) {
+            setUserLocation({ lat: loc.lat, lng: loc.lng });
+          }
+
+          setRiderStatus("waiting");
+        } else {
+          setActiveLiveRequest(null);
+        }
+      } catch {
+        if (!cancelled) {
+          setActiveLiveRequest(null);
+        }
+      }
+    };
+
+    void run();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [token, isDriver]);
 
   useEffect(() => {
     let cancelled = false;
@@ -1274,8 +1325,48 @@ export default function MapPage() {
     setWalkingPath(null);
     setWalkingEtaMinutes(null);
     setWalkingStageName(null);
-    setRiderStatus("waiting");
     setGeoError(null);
+
+    if (!userLocation) {
+      setGeoError(
+        "We are still determining your exact location. Please try again in a moment.",
+      );
+      return;
+    }
+
+    if (!token) {
+      setGeoError("You need to be signed in to request a matatu.");
+      return;
+    }
+
+    setRiderStatus("waiting");
+
+    const location = {
+      lat: userLocation.lat,
+      lng: userLocation.lng,
+    };
+
+    void (async () => {
+      try {
+        const live = await createLiveRequest(location, token);
+        setActiveLiveRequest(live);
+      } catch (error: any) {
+        if (error instanceof LiveRequestError && error.code === "OUT_OF_RANGE") {
+          setGeoError(
+            "You're a bit off the matatu route. Walk to the nearest stage to continue.",
+          );
+        } else {
+          const message =
+            error instanceof Error
+              ? error.message
+              : "Failed to request a matatu. Please try again.";
+          setGeoError(message);
+        }
+
+        setRiderStatus("idle");
+        setActiveLiveRequest(null);
+      }
+    })();
   };
 
   const handleRequestMatatu = () => {
@@ -1369,14 +1460,45 @@ export default function MapPage() {
         setWalkingPath(null);
         setWalkingEtaMinutes(null);
         setWalkingStageName(null);
-
         if (selectedRoute) {
           setTrackingId(null);
         }
 
         setUserLocation(pickup);
-        setRiderStatus("waiting");
         setGeoError(null);
+
+        if (!token) {
+          setGeoError("You need to be signed in to request a matatu.");
+          setRiderStatus("idle");
+          return;
+        }
+
+        setRiderStatus("waiting");
+
+        void (async () => {
+          try {
+            const live = await createLiveRequest(pickup, token);
+            setActiveLiveRequest(live);
+          } catch (error: any) {
+            if (
+              error instanceof LiveRequestError &&
+              error.code === "OUT_OF_RANGE"
+            ) {
+              setGeoError(
+                "You're a bit off the matatu route. Walk to the nearest stage to continue.",
+              );
+            } else {
+              const message =
+                error instanceof Error
+                  ? error.message
+                  : "Failed to request a matatu. Please try again.";
+              setGeoError(message);
+            }
+
+            setRiderStatus("idle");
+            setActiveLiveRequest(null);
+          }
+        })();
       },
       (error) => {
         const code =

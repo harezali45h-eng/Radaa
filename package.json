@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 3000",
-    "build": "next build",
-    "start": "next start",
+    "dev": "cd radaa-frontend && npm run dev",
+    "build": "cd radaa-frontend && npm run build",
+    "start": "cd radaa-frontend && npm run start",
     "lint": "next lint",
     "test": "jest",
     "build:stages": "node scripts/build_stages.js"

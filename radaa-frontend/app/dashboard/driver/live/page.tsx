@@ -35,6 +35,10 @@ import {
   findNearestStage as findNearestStageGeo,
 } from "@/lib/location/stageRouting";
 import { haversineDistanceMeters } from "@/lib/location/distance";
+import {
+  getVisibleLiveRequests,
+  type VisibleLiveRequest,
+} from "@/lib/api/liveRequests";
 
 interface LatLng {
   lat: number;
@@ -114,6 +118,7 @@ export default function DriverLiveDashboardPage() {
   const [coords, setCoords] = useState<LatLng | null>(null);
   const [incoming, setIncoming] = useState<RideRequest[]>([]);
   const [assigned, setAssigned] = useState<RideRequest[]>([]);
+  const [liveRequests, setLiveRequests] = useState<VisibleLiveRequest[]>([]);
   const [loadingIncoming, setLoadingIncoming] = useState<boolean>(true);
   const [loadingAssigned, setLoadingAssigned] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -585,6 +590,42 @@ export default function DriverLiveDashboardPage() {
   }, [token, coords, isDriver]);
 
   useEffect(() => {
+    if (!token || !coords || !isDriver) {
+      setLiveRequests([]);
+      return;
+    }
+
+    let cancelled = false;
+
+    const run = async () => {
+      try {
+        const data = await getVisibleLiveRequests(
+          {
+            lat: coords.lat,
+            lng: coords.lng,
+          },
+          token,
+        );
+
+        if (cancelled) return;
+        setLiveRequests(Array.isArray(data) ? data : []);
+      } catch (err) {
+        if (cancelled) return;
+        if (typeof console !== "undefined") {
+          // eslint-disable-next-line no-console
+          console.error("[driver-live] getVisibleLiveRequests error", err);
+        }
+      }
+    };
+
+    void run();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [token, coords, isDriver]);
+
+  useEffect(() => {
     if (!token || !isDriver) {
       return;
     }
@@ -801,7 +842,9 @@ export default function DriverLiveDashboardPage() {
   );
 
   const passengerMarkers = useMemo(
-    () =>
+    () => {
+      const markers: { id: string; location: LatLng }[] = [];
+
       incoming
         .map((ride) => {
           const rideAny = ride as any;
@@ -830,8 +873,36 @@ export default function DriverLiveDashboardPage() {
             location: { lat, lng },
           };
         })
-        .filter(Boolean) as { id: string; location: LatLng }[],
-    [incoming],
+        .filter(Boolean)
+        .forEach((marker) => {
+          markers.push(marker as { id: string; location: LatLng });
+        });
+
+      if (Array.isArray(liveRequests) && liveRequests.length > 0) {
+        liveRequests.forEach((req) => {
+          const loc = req.location;
+          if (
+            !loc ||
+            typeof loc.lat !== "number" ||
+            typeof loc.lng !== "number"
+          ) {
+            return;
+          }
+
+          const rawId = req.id || req.userId || `${loc.lat},${loc.lng}`;
+          const id = String(rawId);
+
+          if (markers.some((m) => m.id === id)) {
+            return;
+          }
+
+          markers.push({ id, location: { lat: loc.lat, lng: loc.lng } });
+        });
+      }
+
+      return markers;
+    },
+    [incoming, liveRequests],
   );
 
   const heatmapPoints = useMemo(
