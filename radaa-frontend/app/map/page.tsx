@@ -673,7 +673,10 @@ export default function MapPage() {
       nearestCorridor: Corridor | null;
       distanceMeters: number;
     } =>
-      isNearStageOrCorridorGeo(point, stages, corridors),
+      isNearStageOrCorridorGeo(point, stages, corridors, {
+        stageThresholdMeters: 200,
+        corridorThresholdMeters: 200,
+      }),
     [stages, corridors],
   );
 
@@ -1842,7 +1845,7 @@ export default function MapPage() {
                 setSelectedRoute(null);
               }}
               className="w-full rounded-full border border-slate-700 bg-slate-950 px-3 py-1 text-[10px] text-slate-50 outline-none placeholder:text-slate-500 focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
-              placeholder="Filter by route…"
+              placeholder="Search matatus or routes…"
             />
             {routeSearchLoading && (
               <span className="text-[10px] text-slate-400">Searching…</span>
