@@ -32,6 +32,8 @@ router.post(
   createLiveRequest
 );
 
+router.get("/", requireAuth, getActiveLiveRequest);
+
 router.get("/active", requireAuth, getActiveLiveRequest);
 
 router.post(
