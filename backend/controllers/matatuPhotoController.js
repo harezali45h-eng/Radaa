@@ -22,12 +22,30 @@ export const uploadMatatuPhotoV2 = async (req, res, next) => {
       throw new ValidationError("photo file is required");
     }
 
+    const category = req.body && typeof req.body.category === "string" ? req.body.category : null;
+
+    if (!category) {
+      throw new ValidationError("category is required");
+    }
+
+    let observedAt;
+
+    if (req.body && typeof req.body.observedAt === "string") {
+      const parsed = new Date(req.body.observedAt);
+
+      if (!Number.isNaN(parsed.getTime())) {
+        observedAt = parsed;
+      }
+    }
+
     const result = await addMatatuPhoto({
       matatuId,
       uploadedBy: req.user._id,
       buffer: file.buffer,
       mimeType: file.mimetype,
       caption: (req.body && req.body.caption) || undefined,
+      category,
+      observedAt,
     });
 
     return res.status(201).json({ success: true, data: result });

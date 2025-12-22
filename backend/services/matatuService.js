@@ -96,3 +96,93 @@ export const getMatatuDetailsService = async (id) => {
 
   return matatu;
 };
+
+export const getMatatuIdentityService = async (id) => {
+  const matatu = await Matatu.findById(id).select(
+    "plate numberPlate route sacco lastUpdated updatedAt isOnline location photos unverifiedMedia"
+  );
+
+  if (!matatu) {
+    throw new ApiError(404, "Matatu not found", "NOT_FOUND");
+  }
+
+  const now = new Date();
+
+  const sections = {
+    exterior: [],
+    interior: [],
+    cleanliness: [],
+    style: [],
+    crowd: []
+  };
+
+  const photos = Array.isArray(matatu.photos) ? matatu.photos : [];
+
+  let latestPhotoTime = null;
+
+  photos.forEach((photo) => {
+    if (!photo || !photo.url) {
+      return;
+    }
+
+    if (photo.status && photo.status !== "approved") {
+      return;
+    }
+
+    const rawCategory = photo.category || "exterior";
+    const category = sections[rawCategory] ? rawCategory : "exterior";
+
+    const baseObservedAt = photo.observedAt || photo.uploadedAt || matatu.lastUpdated || matatu.updatedAt;
+    const observed = baseObservedAt instanceof Date ? baseObservedAt : now;
+
+    const ageMs = now.getTime() - observed.getTime();
+    const ageHours = ageMs > 0 ? ageMs / (1000 * 60 * 60) : 0;
+
+    const halfLifeHours = 6;
+    const lambda = Math.log(2) / halfLifeHours;
+    const freshnessScore = ageHours <= 0 ? 1 : Math.exp(-lambda * ageHours);
+
+    const serialized = {
+      id: photo._id ? photo._id.toString() : null,
+      url: photo.url,
+      category,
+      caption: photo.caption || null,
+      uploadedAt: photo.uploadedAt || null,
+      observedAt: observed,
+      freshnessScore
+    };
+
+    sections[category].push(serialized);
+
+    if (!latestPhotoTime || observed.getTime() > latestPhotoTime.getTime()) {
+      latestPhotoTime = observed;
+    }
+  });
+
+  Object.keys(sections).forEach((key) => {
+    sections[key].sort((a, b) => {
+      const aTime = a.observedAt instanceof Date ? a.observedAt.getTime() : 0;
+      const bTime = b.observedAt instanceof Date ? b.observedAt.getTime() : 0;
+      return bTime - aTime;
+    });
+  });
+
+  let lastSeenAt = matatu.lastUpdated || matatu.updatedAt || null;
+
+  if (latestPhotoTime && (!lastSeenAt || latestPhotoTime.getTime() > lastSeenAt.getTime())) {
+    lastSeenAt = latestPhotoTime;
+  }
+
+  return {
+    id: matatu._id.toString(),
+    plate: matatu.plate || null,
+    numberPlate: matatu.numberPlate || null,
+    route: matatu.route || null,
+    sacco: matatu.sacco || null,
+    isOnline: Boolean(matatu.isOnline),
+    lastLocation: matatu.location || null,
+    lastSeenAt,
+    unverifiedMedia: Boolean(matatu.unverifiedMedia),
+    gallery: sections
+  };
+};

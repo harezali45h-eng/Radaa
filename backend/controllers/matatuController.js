@@ -2,13 +2,27 @@ import {
   registerMatatuService,
   getLiveMatatusService,
   getMatatuDetailsService,
-  updateMatatuLocationService
+  updateMatatuLocationService,
+  getMatatuIdentityService
 } from "../services/matatuService.js";
 
 export const registerMatatu = async (req, res, next) => {
   try {
     const matatu = await registerMatatuService(req.body);
     res.status(201).json(matatu);
+  } catch (error) {
+    if (error.statusCode) {
+      res.status(error.statusCode);
+    }
+    next(error);
+  }
+};
+
+export const getMatatuIdentity = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const identity = await getMatatuIdentityService(id);
+    res.json({ success: true, data: identity });
   } catch (error) {
     if (error.statusCode) {
       res.status(error.statusCode);

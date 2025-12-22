@@ -30,12 +30,18 @@ const matatuSchema = new mongoose.Schema({
     {
       url: { type: String, required: true },
       uploadedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+      category: {
+        type: String,
+        enum: ["exterior", "interior", "cleanliness", "style", "crowd"],
+        default: "exterior"
+      },
       status: {
         type: String,
         enum: ["pending", "approved", "rejected"],
         default: "pending"
       },
       uploadedAt: { type: Date, default: Date.now },
+      observedAt: { type: Date, default: Date.now },
       caption: { type: String },
       rejectionReason: { type: String }
     }
