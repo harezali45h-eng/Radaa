@@ -63,7 +63,15 @@ const derivePublicIdFromUrl = (url) => {
   }
 };
 
-export const addMatatuPhoto = async ({ matatuId, uploadedBy, buffer, mimeType, caption }) => {
+export const addMatatuPhoto = async ({
+  matatuId,
+  uploadedBy,
+  buffer,
+  mimeType,
+  caption,
+  category,
+  observedAt
+}) => {
   if (!matatuId) {
     throw new ValidationError("matatuId is required");
   }
@@ -78,6 +86,16 @@ export const addMatatuPhoto = async ({ matatuId, uploadedBy, buffer, mimeType, c
 
   if (!mimeType) {
     throw new ValidationError("mimeType is required");
+  }
+
+  if (!category || typeof category !== "string") {
+    throw new ValidationError("category is required");
+  }
+
+  const allowedCategories = ["exterior", "interior", "cleanliness", "style", "crowd"];
+
+  if (!allowedCategories.includes(category)) {
+    throw new ValidationError("invalid category");
   }
 
   const matatu = await Matatu.findById(matatuId);
@@ -113,10 +131,17 @@ export const addMatatuPhoto = async ({ matatuId, uploadedBy, buffer, mimeType, c
     mode = "local";
   }
 
+  const observedAtValue =
+    observedAt instanceof Date && !Number.isNaN(observedAt.getTime())
+      ? observedAt
+      : new Date();
+
   matatu.photos.push({
     url,
     uploadedBy,
     caption: caption || undefined,
+    category,
+    observedAt: observedAtValue,
   });
 
   await matatu.save();

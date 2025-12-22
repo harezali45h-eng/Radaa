@@ -29,6 +29,7 @@ import debugRoutes from "./routes/debugRoutes.js";
 import rideRoutes from "./routes/rideRoutes.js";
 import routesRoutes from "./routes/routesRoutes.js";
 import requestsRoutes from "./routes/requestsRoutes.js";
+import liveRequestRoutes from "./routes/liveRequestRoutes.js";
 import mapRoutes from "./routes/mapRoutes.js";
 import ratingRoutes from "./routes/ratingRoutes.js";
 import matatuApiRoutes from "./routes/matatuApiRoutes.js";
@@ -128,6 +129,7 @@ app.use("/api/auth", checkRoutes);
 app.use("/api/rides", rideRoutes);
 app.use("/api/routes", routesRoutes);
 app.use("/api/requests", requestsRoutes);
+app.use("/api/live-requests", liveRequestRoutes);
 app.use("/api/map", mapRoutes);
 app.use("/api/stages", stagesRoutes);
 
