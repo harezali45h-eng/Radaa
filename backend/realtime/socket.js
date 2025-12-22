@@ -1,6 +1,7 @@
 import { Server } from "socket.io";
 import jwt from "jsonwebtoken";
 import { attachRealtimeHandlers } from "../controllers/realtimeController.js";
+import { recordDriverLocationUpdate } from "../services/driverScoringService.js";
 
 const isAllowedSocketOrigin = (origin) => {
   if (!origin) return true;
@@ -284,6 +285,13 @@ export const initSocket = (server) => {
         const entityId = matatuId || id;
 
         const updatedAt = payload.updatedAt || new Date().toISOString();
+
+        recordDriverLocationUpdate({
+          driverId: id,
+          lat,
+          lng,
+          timestamp: updatedAt,
+        });
 
         const updatePayload = {
           id: entityId ? entityId.toString() : undefined,

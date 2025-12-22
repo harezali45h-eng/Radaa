@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSocket } from "@/hooks/useSocket";
 import { getLiveMatatus, getMapMarkers, getStagesGeoJson } from "@/lib/api";
 import MapContainer from "@/components/map/MapContainer";
@@ -151,6 +151,7 @@ export default function MapPage() {
   const [displayPositions, setDisplayPositions] = useState<
     Record<string, LatLng>
   >({});
+  const targetPositionsRef = useRef<Record<string, LatLng>>({});
   const [userLocation, setUserLocation] = useState<LatLng | null>(null);
   const [geoError, setGeoError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -849,21 +850,117 @@ export default function MapPage() {
   }, [selectedRoute]);
 
   useEffect(() => {
+    const nextTargets: Record<string, LatLng> = {};
+
+    matatus.forEach((matatu) => {
+      if (!matatu.location) return;
+
+      nextTargets[matatu.id] = {
+        lat: matatu.location.lat,
+        lng: matatu.location.lng,
+      };
+    });
+
+    targetPositionsRef.current = nextTargets;
+
     setDisplayPositions((prev) => {
       const next: Record<string, LatLng> = { ...prev };
 
       matatus.forEach((matatu) => {
         if (!matatu.location) return;
 
-        next[matatu.id] = {
-          lat: matatu.location.lat,
-          lng: matatu.location.lng,
-        };
+        if (!next[matatu.id]) {
+          next[matatu.id] = {
+            lat: matatu.location.lat,
+            lng: matatu.location.lng,
+          };
+        }
       });
 
       return next;
     });
   }, [matatus]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    let frameId: number | null = null;
+    let lastTimestamp: number | null = null;
+
+    const animate = (timestamp: number) => {
+      if (lastTimestamp == null) {
+        lastTimestamp = timestamp;
+        frameId = window.requestAnimationFrame(animate);
+        return;
+      }
+
+      const dtSeconds = (timestamp - lastTimestamp) / 1000;
+      lastTimestamp = timestamp;
+
+      const targets = targetPositionsRef.current;
+      const ids = Object.keys(targets);
+
+      if (ids.length === 0 || dtSeconds <= 0) {
+        frameId = window.requestAnimationFrame(animate);
+        return;
+      }
+
+      const SMOOTHING_SPEED = 4;
+      const alpha = 1 - Math.exp(-SMOOTHING_SPEED * dtSeconds);
+
+      if (alpha <= 0) {
+        frameId = window.requestAnimationFrame(animate);
+        return;
+      }
+
+      setDisplayPositions((prev) => {
+        if (!prev) {
+          return prev;
+        }
+
+        let changed = false;
+        const next: Record<string, LatLng> = { ...prev };
+
+        ids.forEach((id) => {
+          const target = targets[id];
+          if (!target) return;
+
+          const current = prev[id] ?? target;
+
+          const latDelta = target.lat - current.lat;
+          const lngDelta = target.lng - current.lng;
+
+          if (Math.abs(latDelta) < 1e-7 && Math.abs(lngDelta) < 1e-7) {
+            if (!prev[id]) {
+              next[id] = target;
+              changed = true;
+            }
+            return;
+          }
+
+          const lat = current.lat + latDelta * alpha;
+          const lng = current.lng + lngDelta * alpha;
+
+          next[id] = { lat, lng };
+          changed = true;
+        });
+
+        return changed ? next : prev;
+      });
+
+      frameId = window.requestAnimationFrame(animate);
+    };
+
+    frameId = window.requestAnimationFrame(animate);
+
+    return () => {
+      if (frameId !== null) {
+        window.cancelAnimationFrame(frameId);
+      }
+    };
+  }, []);
 
   const bounds: Bounds | null = useMemo(() => {
     const locations: LatLng[] = [];
@@ -1038,6 +1135,27 @@ export default function MapPage() {
     [baseMatatusForDisplay, trackingId],
   );
 
+  const matatusWithFlagsForMap = useMemo(
+    () =>
+      matatusWithFlags.map((m) => {
+        const override = displayPositions[m.id];
+
+        if (
+          override &&
+          typeof override.lat === "number" &&
+          typeof override.lng === "number"
+        ) {
+          return {
+            ...m,
+            location: override,
+          };
+        }
+
+        return m;
+      }),
+    [matatusWithFlags, displayPositions],
+  );
+
   const matatusForDisplay = useMemo(
     () => {
       const hasLiveMatatus = matatusWithFlags.some((m) => {
@@ -1066,6 +1184,27 @@ export default function MapPage() {
       discoveryMatatus,
       matatusWithFlags,
     ],
+  );
+
+  const matatusForMap = useMemo(
+    () =>
+      matatusForDisplay.map((m) => {
+        const override = displayPositions[m.id];
+
+        if (
+          override &&
+          typeof override.lat === "number" &&
+          typeof override.lng === "number"
+        ) {
+          return {
+            ...m,
+            location: override,
+          };
+        }
+
+        return m;
+      }),
+    [matatusForDisplay, displayPositions],
   );
 
   const passengersForDisplay = useMemo(
@@ -1567,7 +1706,7 @@ export default function MapPage() {
         <div className="rounded-2xl border border-slate-800 bg-slate-950 p-4">
           {globalMapEnabled ? (
             <GoogleMapContainer
-              matatus={matatusForDisplay}
+              matatus={matatusForMap}
               passengers={passengersForDisplay}
               userLocation={userLocation}
               onCenterOnMe={handleCenterOnMe}
@@ -1685,7 +1824,7 @@ export default function MapPage() {
 
           {globalMapEnabled ? (
             <GoogleMapContainer
-              matatus={matatusWithFlags}
+              matatus={matatusWithFlagsForMap}
               passengers={passengers}
               userLocation={userLocation}
               onCenterOnMe={handleCenterOnMe}
@@ -2051,7 +2190,7 @@ export default function MapPage() {
               <div className="h-full w-full">
                 {globalMapEnabled ? (
                   <GoogleMapContainer
-                    matatus={matatusForDisplay}
+                    matatus={matatusForMap}
                     passengers={passengersForDisplay}
                     userLocation={userLocation}
                     onCenterOnMe={handleCenterOnMe}

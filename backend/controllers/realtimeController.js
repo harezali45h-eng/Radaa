@@ -107,11 +107,23 @@ export const attachRealtimeHandlers = (socket, io, helpers = {}) => {
           ? helpers.getAvailableDrivers()
           : [];
 
-      await assignRequest({
+      const assignmentCtx = await assignRequest({
         requestId: requestDoc._id.toString(),
         io: ioInstance,
         activeDriverIds: availableDrivers,
       });
+
+      let pickupCandidates;
+
+      if (assignmentCtx && Array.isArray(assignmentCtx.candidates)) {
+        pickupCandidates = assignmentCtx.candidates.map((candidate) => ({
+          driverId: candidate.driverId,
+          matatuId: candidate.matatuId,
+          saccoId: candidate.saccoId,
+          distanceMeters: candidate.distanceMeters,
+          pickupLikelihood: candidate.pickupLikelihood || null,
+        }));
+      }
 
       const realtime = ioInstance.of("/realtime");
       realtime.to("drivers:nearby").emit("ride:created", {
@@ -126,6 +138,10 @@ export const attachRealtimeHandlers = (socket, io, helpers = {}) => {
         requestId: requestDoc._id.toString(),
         status: requestDoc.status,
       };
+
+      if (pickupCandidates && pickupCandidates.length > 0) {
+        response.pickupCandidates = pickupCandidates;
+      }
 
       if (typeof callback === "function") {
         callback(response);

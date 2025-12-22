@@ -3,6 +3,11 @@ import Matatu from "../models/Matatu.js";
 import AuditLog from "../models/AuditLog.js";
 import { ValidationError } from "../utils/errors.js";
 import { haversineMeters, isValidLatLng } from "../utils/geo.js";
+import { findNearestStageOrCorridor } from "../services/stageProximityService.js";
+import {
+  scoreAndSortCandidatesForPickup,
+  recordDriverAssignmentEvent,
+} from "../services/driverScoringService.js";
 
 const DEFAULT_MAX_ATTEMPTS = Number(process.env.REQUEST_ASSIGN_MAX_ATTEMPTS || 3);
 const DEFAULT_ATTEMPT_TIMEOUT_MS = Number(process.env.REQUEST_ASSIGN_TIMEOUT_MS || 8000);
@@ -95,6 +100,7 @@ export const findNearestDrivers = async (
       matatuId: toIdString(m._id),
       saccoId: toIdString(m.sacco),
       distanceMeters: distance,
+      driverLocation: loc,
     });
   }
 
@@ -202,6 +208,7 @@ const scheduleNextAttempt = async (ctx, io) => {
       pickup: ctx.requestDoc && ctx.requestDoc.pickup ? ctx.requestDoc.pickup : null,
       destination:
         ctx.requestDoc && ctx.requestDoc.destination ? ctx.requestDoc.destination : null,
+      pickupLikelihood: target.pickupLikelihood || null,
     };
 
     nsp.to(driverRoom).emit("request:assigned", payload);
@@ -229,6 +236,13 @@ const scheduleNextAttempt = async (ctx, io) => {
         attempt: current.attempts,
       },
     });
+
+    if (current.currentDriverId) {
+      recordDriverAssignmentEvent({
+        driverId: current.currentDriverId,
+        eventType: "timeout",
+      });
+    }
 
     await scheduleNextAttempt(current, io);
   }, timeoutMs);
@@ -265,8 +279,41 @@ export const assignRequest = async ({
     throw new ValidationError("Request pickup location is invalid");
   }
 
-  const candidates = await findNearestDrivers(doc.pickup, DEFAULT_RADIUS_METERS, MAX_CANDIDATE_DRIVERS, {
-    activeDriverIds,
+  const corridorRadiusMeters = Number(
+    process.env.REQUEST_ASSIGN_CORRIDOR_RADIUS_METERS || 400,
+  );
+
+  let corridorContext = null;
+
+  try {
+    const proximity = await findNearestStageOrCorridor(doc.pickup, {
+      corridorThresholdMeters: corridorRadiusMeters,
+    });
+
+    if (proximity && proximity.nearestCorridor) {
+      corridorContext = {
+        corridor: proximity.nearestCorridor,
+        pickupDistanceToCorridor: proximity.distanceToCorridor,
+        radiusMeters: corridorRadiusMeters,
+      };
+    }
+  } catch {
+  }
+
+  const rawCandidates = await findNearestDrivers(
+    doc.pickup,
+    DEFAULT_RADIUS_METERS,
+    MAX_CANDIDATE_DRIVERS,
+    {
+      activeDriverIds,
+    },
+  );
+
+  const candidates = scoreAndSortCandidatesForPickup({
+    candidates: rawCandidates,
+    radiusMeters: DEFAULT_RADIUS_METERS,
+    pickupLocation: doc.pickup,
+    corridorContext,
   });
 
   if (!candidates || candidates.length === 0) {
@@ -339,6 +386,11 @@ export const onDriverAccept = async ({ requestId, driverId, io }) => {
     },
   });
 
+  recordDriverAssignmentEvent({
+    driverId: driverStr,
+    eventType: "accepted",
+  });
+
   if (io && updated) {
     const nsp = io.of("/realtime");
     const passengerRoom = `passenger:${toIdString(updated.userId)}`;
@@ -378,6 +430,11 @@ export const onDriverReject = async ({ requestId, driverId, io }) => {
       driverId: driverStr,
       attempt: ctx.attempts,
     },
+  });
+
+  recordDriverAssignmentEvent({
+    driverId: driverStr,
+    eventType: "rejected",
   });
 
   ctx.currentDriverId = null;

@@ -1,7 +1,7 @@
 "use client";
 
 import type { CSSProperties } from "react";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { MarkerStatus, MatatuLike } from "@/lib/map/markerHelpers";
 import { chooseColor, formatMatatuLabel } from "@/lib/map/markerHelpers";
 import { useIsFeatureEnabled } from "@/context/FeatureFlagContext";
@@ -39,14 +39,34 @@ export function MatatuMarker({
     return `${backend}${url}`;
   }, [photosEnabled, matatu.mainPhotoUrl]);
 
+   const [visible, setVisible] = useState(false);
+
+   useEffect(() => {
+     if (typeof window === "undefined") {
+       setVisible(true);
+       return;
+     }
+
+     const frame = window.requestAnimationFrame(() => {
+       setVisible(true);
+     });
+
+     return () => {
+       window.cancelAnimationFrame(frame);
+     };
+   }, []);
+
   return (
     <button
       type="button"
       onClick={onSelect}
-      className={`absolute -translate-x-1/2 -translate-y-1/2 rounded-full border px-1.5 py-0.5 text-[9px] font-semibold shadow ${chooseColor(
+      className={`absolute -translate-x-1/2 -translate-y-1/2 rounded-full border px-1.5 py-0.5 text-[9px] font-semibold shadow transition-opacity duration-300 ease-out ${chooseColor(
         status,
       )}`}
-      style={style}
+      style={{
+        ...style,
+        opacity: visible ? 1 : 0,
+      }}
       aria-label={label}
     >
       {thumbnailSrc && (
