@@ -9,7 +9,6 @@ import {
 } from "../controllers/liveRequestsController.js";
 import {
   createLiveRequestSchema,
-  cancelLiveRequestSchema,
   getVisibleLiveRequestsSchema
 } from "../utils/validationSchemas.js";
 
@@ -39,7 +38,6 @@ router.get("/active", requireAuth, getActiveLiveRequest);
 router.post(
   "/:id/cancel",
   requireAuth,
-  validateRequest(cancelLiveRequestSchema),
   cancelLiveRequest
 );
 
