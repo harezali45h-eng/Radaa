@@ -1,16 +1,11 @@
 import express from "express";
-import requireAuth from "../middleware/requireAuth.js";
-import { validateRequest } from "../middleware/validationMiddleware.js";
 import {
   createLiveRequest,
   getActiveLiveRequest,
   cancelLiveRequest,
   getVisibleLiveRequests
 } from "../controllers/liveRequestsController.js";
-import {
-  createLiveRequestSchema,
-  getVisibleLiveRequestsSchema
-} from "../utils/validationSchemas.js";
+import { protect as requireAuth } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
@@ -27,7 +22,6 @@ const requireDriverRole = (req, res, next) => {
 router.post(
   "/",
   requireAuth,
-  validateRequest(createLiveRequestSchema),
   createLiveRequest
 );
 
@@ -45,7 +39,6 @@ router.get(
   "/visible",
   requireAuth,
   requireDriverRole,
-  validateRequest(getVisibleLiveRequestsSchema),
   getVisibleLiveRequests
 );
 
