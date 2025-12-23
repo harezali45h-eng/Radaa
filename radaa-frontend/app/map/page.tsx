@@ -97,6 +97,8 @@ interface PickupStageInfo {
 
 type RiderStatus = "idle" | "waiting";
 
+type RouteConfidence = "active_reliable" | "moving_slow" | "uncertain";
+
 interface PlacesSuggestion {
   placeId: string;
   description: string;
@@ -152,6 +154,17 @@ export default function MapPage() {
     Record<string, LatLng>
   >({});
   const targetPositionsRef = useRef<Record<string, LatLng>>({});
+  const motionHistoryRef = useRef<
+    Record<
+      string,
+      {
+        last: LatLng;
+        prev: LatLng | null;
+        lastTimestamp: number;
+        prevTimestamp: number | null;
+      }
+    >
+  >({});
   const [userLocation, setUserLocation] = useState<LatLng | null>(null);
   const [geoError, setGeoError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -850,15 +863,71 @@ export default function MapPage() {
   }, [selectedRoute]);
 
   useEffect(() => {
+    const now = Date.now();
     const nextTargets: Record<string, LatLng> = {};
 
-    matatus.forEach((matatu) => {
-      if (!matatu.location) return;
+    const history = motionHistoryRef.current;
 
-      nextTargets[matatu.id] = {
-        lat: matatu.location.lat,
-        lng: matatu.location.lng,
-      };
+    matatus.forEach((matatu) => {
+      const loc = matatu.location;
+      if (
+        !loc ||
+        typeof loc.lat !== "number" ||
+        typeof loc.lng !== "number"
+      ) {
+        return;
+      }
+
+      const id = matatu.id;
+      const existing = history[id];
+
+      if (existing) {
+        history[id] = {
+          last: { lat: loc.lat, lng: loc.lng },
+          prev: existing.last,
+          lastTimestamp: now,
+          prevTimestamp: existing.lastTimestamp,
+        };
+      } else {
+        history[id] = {
+          last: { lat: loc.lat, lng: loc.lng },
+          prev: null,
+          lastTimestamp: now,
+          prevTimestamp: null,
+        };
+      }
+
+      const h = history[id];
+      let target = h.last;
+
+      if (
+        h.prev &&
+        typeof h.prevTimestamp === "number" &&
+        typeof h.lastTimestamp === "number" &&
+        h.prevTimestamp > 0 &&
+        h.lastTimestamp > h.prevTimestamp
+      ) {
+        const dtSeconds = (h.lastTimestamp - h.prevTimestamp) / 1000;
+
+        if (dtSeconds > 0 && dtSeconds <= 60) {
+          const latVelocity = (h.last.lat - h.prev.lat) / dtSeconds;
+          const lngVelocity = (h.last.lng - h.prev.lng) / dtSeconds;
+
+          const PREDICTION_SECONDS = 2;
+          const candidate: LatLng = {
+            lat: h.last.lat + latVelocity * PREDICTION_SECONDS,
+            lng: h.last.lng + lngVelocity * PREDICTION_SECONDS,
+          };
+
+          const distanceMeters = haversineDistanceMeters(h.last, candidate);
+
+          if (Number.isFinite(distanceMeters) && distanceMeters <= 120) {
+            target = candidate;
+          }
+        }
+      }
+
+      nextTargets[id] = target;
     });
 
     targetPositionsRef.current = nextTargets;
@@ -867,12 +936,19 @@ export default function MapPage() {
       const next: Record<string, LatLng> = { ...prev };
 
       matatus.forEach((matatu) => {
-        if (!matatu.location) return;
+        const loc = matatu.location;
+        if (
+          !loc ||
+          typeof loc.lat !== "number" ||
+          typeof loc.lng !== "number"
+        ) {
+          return;
+        }
 
         if (!next[matatu.id]) {
           next[matatu.id] = {
-            lat: matatu.location.lat,
-            lng: matatu.location.lng,
+            lat: loc.lat,
+            lng: loc.lng,
           };
         }
       });
@@ -1242,6 +1318,49 @@ export default function MapPage() {
         ? discoveryPassengers.map((p) => p.location)
         : [],
     [riderStatus, activeRoutePath, discoveryPassengers],
+  );
+
+  const routeConfidenceForMap: RouteConfidence | null = useMemo(
+    () => {
+      if (!routePathForMap) {
+        return null;
+      }
+
+      const liveMatatusOnMap = matatusForMap.filter((m) => {
+        const loc = m.location;
+        return (
+          !!loc &&
+          typeof loc.lat === "number" &&
+          typeof loc.lng === "number"
+        );
+      }).length;
+
+      if (liveMatatusOnMap >= 2) {
+        return "active_reliable";
+      }
+
+      if (
+        liveMatatusOnMap === 1 ||
+        (riderStatus === "waiting" &&
+          activeRoutePath &&
+          discoveryPassengers.length > 0)
+      ) {
+        return "moving_slow";
+      }
+
+      if (riderStatus === "waiting" && activeRoutePath) {
+        return "uncertain";
+      }
+
+      return null;
+    },
+    [
+      routePathForMap,
+      matatusForMap,
+      riderStatus,
+      activeRoutePath,
+      discoveryPassengers,
+    ],
   );
 
   const selectedMatatuEta = useMemo(() => {
@@ -1715,6 +1834,7 @@ export default function MapPage() {
               hasAnyLocation={hasAnyLocation}
               driverMode={mapDriverMode}
               routePath={routePathForMap ?? undefined}
+              routeConfidence={routeConfidenceForMap}
               heatmapPoints={heatmapPointsForMap}
               heatmapEnabled={riderStatus === "waiting"}
             />
@@ -1731,6 +1851,7 @@ export default function MapPage() {
               hasAnyLocation={hasAnyLocation}
               driverMode={mapDriverMode}
               routePath={routePathForMap ?? undefined}
+              routeConfidence={routeConfidenceForMap}
               heatmapPoints={heatmapPointsForMap}
               heatmapEnabled={riderStatus === "waiting"}
             />
@@ -2199,6 +2320,7 @@ export default function MapPage() {
                     hasAnyLocation={hasAnyLocation}
                     driverMode={mapDriverMode}
                     routePath={routePathForMap ?? undefined}
+                    routeConfidence={routeConfidenceForMap}
                     heatmapPoints={heatmapPointsForMap}
                     heatmapEnabled={riderStatus === "waiting"}
                   />
@@ -2215,6 +2337,7 @@ export default function MapPage() {
                     hasAnyLocation={hasAnyLocation}
                     driverMode={mapDriverMode}
                     routePath={routePathForMap ?? undefined}
+                    routeConfidence={routeConfidenceForMap}
                     heatmapPoints={heatmapPointsForMap}
                     heatmapEnabled={riderStatus === "waiting"}
                   />

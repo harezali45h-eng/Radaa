@@ -45,6 +45,7 @@ interface GoogleMapContainerProps {
   routePath?: LatLng[] | null;
   heatmapPoints?: LatLng[] | null;
   heatmapEnabled?: boolean;
+  routeConfidence?: "active_reliable" | "moving_slow" | "uncertain" | null;
   onMapClick?: (location: LatLng) => void;
 }
 
@@ -148,6 +149,7 @@ export default function GoogleMapContainer({
   mode,
   showCenterOnMe = true,
   routePath,
+  routeConfidence,
   heatmapPoints,
   heatmapEnabled,
   onMapClick,
@@ -330,9 +332,18 @@ export default function GoogleMapContainer({
             <Polyline
               path={effectiveRoutePath}
               options={{
-                strokeColor: "#FCD34D",
-                strokeOpacity: 0.95,
-                strokeWeight: 4,
+                strokeColor:
+                  routeConfidence === "active_reliable"
+                    ? "#4ADE80"
+                    : routeConfidence === "moving_slow"
+                    ? "#FACC15"
+                    : routeConfidence === "uncertain"
+                    ? "#94A3B8"
+                    : "#FCD34D",
+                strokeOpacity:
+                  routeConfidence === "uncertain" ? 0.6 : 0.95,
+                strokeWeight:
+                  routeConfidence === "uncertain" ? 3 : 4,
               }}
             />
           )}

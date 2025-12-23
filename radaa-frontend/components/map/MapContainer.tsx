@@ -15,6 +15,8 @@ interface Matatu extends MatatuLike {
   isTracked?: boolean;
 }
 
+type RouteConfidence = "active_reliable" | "moving_slow" | "uncertain";
+
 interface MapContainerProps {
   matatus: Matatu[];
   passengers: PassengerPoint[];
@@ -30,6 +32,7 @@ interface MapContainerProps {
   routePath?: LatLng[];
   heatmapPoints?: LatLng[];
   heatmapEnabled?: boolean;
+  routeConfidence?: RouteConfidence | null;
   onMapClick?: (location: LatLng) => void;
 }
 
@@ -56,6 +59,7 @@ export default function MapContainer({
   routePath,
   heatmapPoints,
   heatmapEnabled,
+  routeConfidence,
   onMapClick,
 }: MapContainerProps) {
   const showEmptyState = !isLoading && !hasAnyLocation;
@@ -119,7 +123,15 @@ export default function MapContainer({
                   <div
                     // eslint-disable-next-line react/no-array-index-key
                     key={`route-${index}`}
-                    className="pointer-events-none absolute h-[2px] bg-amber-300/90 shadow-sm shadow-amber-500/50"
+                    className={`pointer-events-none absolute h-[2px] ${
+                      routeConfidence === "active_reliable"
+                        ? "bg-emerald-300/90 shadow-sm shadow-emerald-500/50"
+                        : routeConfidence === "moving_slow"
+                        ? "bg-amber-300/80 shadow-sm shadow-amber-500/40"
+                        : routeConfidence === "uncertain"
+                        ? "bg-slate-500/70 shadow-sm shadow-slate-700/40"
+                        : "bg-amber-300/90 shadow-sm shadow-amber-500/50"
+                    } ${routeConfidence === "uncertain" ? "animate-pulse" : ""}`}
                     style={{
                       left: `${x1}%`,
                       top: `${y1}%`,

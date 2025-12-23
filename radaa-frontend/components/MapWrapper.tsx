@@ -32,6 +32,7 @@ export interface MapWrapperProps {
   routePath?: LatLng[];
   heatmapPoints?: LatLng[];
   heatmapEnabled?: boolean;
+  routeConfidence?: "active_reliable" | "moving_slow" | "uncertain" | null;
   onMapClick?: (location: LatLng) => void;
 }
 
@@ -54,6 +55,7 @@ export default function MapWrapper(props: MapWrapperProps) {
         mode={props.driverMode ? "driver" : "user"}
         showCenterOnMe={props.showCenterOnMe}
         routePath={props.routePath}
+        routeConfidence={props.routeConfidence}
         heatmapPoints={props.heatmapPoints}
         heatmapEnabled={props.heatmapEnabled}
         onMapClick={props.onMapClick}
@@ -75,6 +77,7 @@ export default function MapWrapper(props: MapWrapperProps) {
       driverMode={props.driverMode}
       showCenterOnMe={props.showCenterOnMe}
       routePath={props.routePath}
+      routeConfidence={props.routeConfidence}
       heatmapPoints={props.heatmapPoints}
       heatmapEnabled={props.heatmapEnabled}
       onMapClick={props.onMapClick}
