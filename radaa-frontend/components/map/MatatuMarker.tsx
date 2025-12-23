@@ -11,12 +11,14 @@ interface MatatuMarkerProps {
   status: MarkerStatus;
   style: CSSProperties;
   onSelect?: () => void;
+  opacity?: number;
 }
 
 export function MatatuMarker({
   matatu,
   status,
   style,
+  opacity,
   onSelect,
 }: MatatuMarkerProps) {
   const label = formatMatatuLabel(matatu);
@@ -65,7 +67,9 @@ export function MatatuMarker({
       )}`}
       style={{
         ...style,
-        opacity: visible ? 1 : 0,
+        opacity:
+          (visible ? 1 : 0) *
+          (typeof opacity === "number" ? opacity : 1),
       }}
       aria-label={label}
     >

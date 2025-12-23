@@ -1086,6 +1086,32 @@ export default function MapPage() {
 
   const hasAnyLocation = useMemo(() => bounds !== null, [bounds]);
 
+  const zoomLevelHint = useMemo(() => {
+    if (!bounds) {
+      return null;
+    }
+
+    const latRange = bounds.maxLat - bounds.minLat;
+    const lngRange = bounds.maxLng - bounds.minLng;
+    const span = Math.max(latRange, lngRange);
+
+    const minSpan = 0.01;
+    const maxSpan = 0.15;
+
+    if (!Number.isFinite(span) || span <= 0) {
+      return null;
+    }
+
+    const clampedSpan = Math.min(maxSpan, Math.max(minSpan, span));
+
+    if (maxSpan === minSpan) {
+      return 1;
+    }
+
+    const ratio = (clampedSpan - minSpan) / (maxSpan - minSpan);
+    return 1 - ratio;
+  }, [bounds]);
+
   const activeRoutePath = activeStageRoute?.path ?? null;
 
   const project = useCallback(
@@ -1362,6 +1388,26 @@ export default function MapPage() {
       discoveryPassengers,
     ],
   );
+
+  const routeStatusCopy = useMemo(() => {
+    if (!routeConfidenceForMap) {
+      return "";
+    }
+
+    if (routeConfidenceForMap === "active_reliable") {
+      return "Matatus moving now";
+    }
+
+    if (routeConfidenceForMap === "moving_slow") {
+      return "Some movement, may take time";
+    }
+
+    if (routeConfidenceForMap === "uncertain") {
+      return "Route quiet right now";
+    }
+
+    return "";
+  }, [routeConfidenceForMap]);
 
   const selectedMatatuEta = useMemo(() => {
     if (!selectedMatatu || !selectedMatatu.location || !userLocation) {
@@ -1854,6 +1900,7 @@ export default function MapPage() {
               routeConfidence={routeConfidenceForMap}
               heatmapPoints={heatmapPointsForMap}
               heatmapEnabled={riderStatus === "waiting"}
+              zoomLevelHint={zoomLevelHint ?? undefined}
             />
           )}
         </div>
@@ -1868,6 +1915,11 @@ export default function MapPage() {
             Live view of matatus and nearby passengers. Positions are updated in
             real time.
           </p>
+          {routeStatusCopy && (
+            <p className="mt-1 text-[11px] text-slate-400">
+              {routeStatusCopy}
+            </p>
+          )}
 
           <div className="mt-3 flex items-center justify-between text-[11px]">
             {isDriver ? (
@@ -1966,6 +2018,7 @@ export default function MapPage() {
               isLoading={loading}
               hasAnyLocation={hasAnyLocation}
               driverMode={mapDriverMode}
+              zoomLevelHint={zoomLevelHint ?? undefined}
             />
           )}
 
@@ -2096,6 +2149,11 @@ export default function MapPage() {
               {totalMatatus} matatus · {totalPassengers} nearby riders
             </span>
           </div>
+          {routeStatusCopy && (
+            <p className="text-[10px] text-slate-400">
+              {routeStatusCopy}
+            </p>
+          )}
           <div className="flex items-center gap-2 md:min-w-[240px]">
             <input
               type="text"
@@ -2340,6 +2398,7 @@ export default function MapPage() {
                     routeConfidence={routeConfidenceForMap}
                     heatmapPoints={heatmapPointsForMap}
                     heatmapEnabled={riderStatus === "waiting"}
+                    zoomLevelHint={zoomLevelHint ?? undefined}
                   />
                 )}
               </div>

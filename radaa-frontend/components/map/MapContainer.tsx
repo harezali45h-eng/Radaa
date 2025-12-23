@@ -33,6 +33,7 @@ interface MapContainerProps {
   heatmapPoints?: LatLng[];
   heatmapEnabled?: boolean;
   routeConfidence?: RouteConfidence | null;
+  zoomLevelHint?: number;
   onMapClick?: (location: LatLng) => void;
 }
 
@@ -60,12 +61,22 @@ export default function MapContainer({
   heatmapPoints,
   heatmapEnabled,
   routeConfidence,
+  zoomLevelHint,
   onMapClick,
 }: MapContainerProps) {
   const showEmptyState = !isLoading && !hasAnyLocation;
   const effectiveMode: "user" | "driver" = driverMode ? "driver" : "user";
   const showMatatus = effectiveMode === "user";
   const showPassengers = effectiveMode === "driver";
+
+  const hasZoomHint = typeof zoomLevelHint === "number";
+  const zoom = hasZoomHint
+    ? Math.min(1, Math.max(0, zoomLevelHint as number))
+    : 1;
+  const routeOpacity = hasZoomHint ? 0.3 + zoom * 0.6 : 1;
+  const heatOpacity = hasZoomHint ? 0.15 + zoom * 0.55 : 1;
+  const vehicleOpacity = hasZoomHint ? 0.7 + zoom * 0.3 : 1;
+  const passengerOpacity = hasZoomHint ? 0.25 + zoom * 0.75 : 1;
 
   return (
     <div
@@ -138,6 +149,8 @@ export default function MapContainer({
                       width: `${length}%`,
                       transformOrigin: "0 50%",
                       transform: `rotate(${angle}deg)`,
+                      opacity: routeOpacity,
+                      transition: "opacity 200ms ease-out",
                     }}
                   />
                 );
@@ -154,7 +167,11 @@ export default function MapContainer({
                   // eslint-disable-next-line react/no-array-index-key
                   key={`heat-${index}`}
                   className="pointer-events-none absolute h-12 w-12 -translate-x-1/2 -translate-y-1/2 rounded-full bg-orange-400/30 blur-md"
-                  style={style}
+                  style={{
+                    ...style,
+                    opacity: heatOpacity,
+                    transition: "opacity 200ms ease-out",
+                  }}
                 />
               );
             })}
@@ -173,6 +190,7 @@ export default function MapContainer({
                   matatu={m}
                   status={status}
                   style={style}
+                  opacity={vehicleOpacity}
                   onSelect={() => onSelectMatatu(m.id)}
                 />
               );
@@ -180,8 +198,17 @@ export default function MapContainer({
 
           {showPassengers &&
             passengers.map((p) => {
-              const style = project(p.location);
-              return <PassengerMarker key={p.id} style={style} />;
+              const baseStyle = project(p.location);
+              return (
+                <PassengerMarker
+                  key={p.id}
+                  style={{
+                    ...baseStyle,
+                    opacity: passengerOpacity,
+                    transition: "opacity 200ms ease-out",
+                  }}
+                />
+              );
             })}
 
           {userLocation && (
@@ -197,7 +224,7 @@ export default function MapContainer({
         <button
           type="button"
           onClick={onCenterOnMe}
-          className="absolute bottom-3 right-3 z-10 inline-flex items-center rounded-md border border-sky-600/60 bg-sky-600/20 px-2.5 py-1 text-[10px] font-medium text-sky-100 shadow hover:border-sky-400 hover:bg-sky-600/30"
+          className="absolute bottom-3 left-3 z-10 inline-flex items-center rounded-md border border-sky-600/60 bg-sky-600/20 px-2.5 py-1 text-[10px] font-medium text-sky-100 shadow hover:border-sky-400 hover:bg-sky-600/30"
         >
           Center on me
         </button>
