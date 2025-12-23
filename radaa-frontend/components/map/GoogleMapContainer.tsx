@@ -158,6 +158,7 @@ export default function GoogleMapContainer({
     null,
   );
   const [mapInstance, setMapInstance] = useState<google.maps.Map | null>(null);
+  const [zoomLevel, setZoomLevel] = useState<number | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -244,6 +245,18 @@ export default function GoogleMapContainer({
 
   const handleMapLoad = useCallback((map: google.maps.Map) => {
     setMapInstance(map);
+
+    const initialZoom = map.getZoom();
+    if (typeof initialZoom === "number") {
+      setZoomLevel(initialZoom);
+    }
+
+    map.addListener("zoom_changed", () => {
+      const nextZoom = map.getZoom();
+      if (typeof nextZoom === "number") {
+        setZoomLevel(nextZoom);
+      }
+    });
   }, []);
   const effectiveMode: "user" | "driver" =
     mode ?? (driverMode ? "driver" : "user");
@@ -289,6 +302,41 @@ export default function GoogleMapContainer({
   }, [userLocation, matatus]);
 
   const showEmptyState = !isLoading && !hasAnyLocation;
+
+  const hasZoomLevel = zoomLevel != null;
+
+  const zoomFactor = useMemo(() => {
+    if (zoomLevel == null) {
+      return 1;
+    }
+
+    const minCityZoom = 11;
+    const maxStreetZoom = 15;
+
+    const clamped = Math.min(maxStreetZoom, Math.max(minCityZoom, zoomLevel));
+
+    return (clamped - minCityZoom) / (maxStreetZoom - minCityZoom);
+  }, [zoomLevel]);
+
+  const routeStrokeOpacity = hasZoomLevel
+    ? routeConfidence === "uncertain"
+      ? 0.45 + zoomFactor * 0.25
+      : 0.35 + zoomFactor * 0.6
+    : routeConfidence === "uncertain"
+      ? 0.6
+      : 0.95;
+
+  const routeStrokeWeight = hasZoomLevel
+    ? routeConfidence === "uncertain"
+      ? 2.5 + zoomFactor * 1.5
+      : 3 + zoomFactor
+    : routeConfidence === "uncertain"
+      ? 3
+      : 4;
+
+  const heatFillOpacity = hasZoomLevel ? 0.08 + zoomFactor * 0.16 : 0.22;
+  const matatuMarkerOpacity = hasZoomLevel ? 0.75 + zoomFactor * 0.25 : 1;
+  const passengerFillOpacity = hasZoomLevel ? 0.25 + zoomFactor * 0.55 : 1;
 
   return (
     <div className="relative mt-4 min-h-[320px] h-[55vh] md:h-[65vh] overflow-hidden rounded-lg bg-slate-950">
@@ -340,10 +388,8 @@ export default function GoogleMapContainer({
                     : routeConfidence === "uncertain"
                     ? "#94A3B8"
                     : "#FCD34D",
-                strokeOpacity:
-                  routeConfidence === "uncertain" ? 0.6 : 0.95,
-                strokeWeight:
-                  routeConfidence === "uncertain" ? 3 : 4,
+                strokeOpacity: routeStrokeOpacity,
+                strokeWeight: routeStrokeWeight,
               }}
             />
           )}
@@ -381,6 +427,7 @@ export default function GoogleMapContainer({
                   position={m.location}
                   onClick={() => onSelectMatatu(m.id)}
                   title={m.plate || m.numberPlate || "Matatu"}
+                  opacity={matatuMarkerOpacity}
                   icon={icon}
                 />
               );
@@ -396,7 +443,7 @@ export default function GoogleMapContainer({
                   path: google.maps.SymbolPath.CIRCLE,
                   scale: 4,
                   fillColor: "#22C55E",
-                  fillOpacity: 1,
+                  fillOpacity: passengerFillOpacity,
                   strokeColor: "#166534",
                   strokeWeight: 2,
                 }}
@@ -429,7 +476,7 @@ export default function GoogleMapContainer({
                 strokeOpacity: 0,
                 strokeWeight: 0,
                 fillColor: "#F97316",
-                fillOpacity: 0.22,
+                fillOpacity: heatFillOpacity,
                 clickable: false,
               }}
             />
@@ -447,7 +494,7 @@ export default function GoogleMapContainer({
         <button
           type="button"
           onClick={onCenterOnMe}
-          className="absolute bottom-3 right-3 z-10 inline-flex items-center rounded-md border border-sky-600/60 bg-sky-600/20 px-2.5 py-1 text-[10px] font-medium text-sky-100 shadow hover:border-sky-400 hover:bg-sky-600/30"
+          className="absolute bottom-3 left-3 z-10 inline-flex items-center rounded-md border border-sky-600/60 bg-sky-600/20 px-2.5 py-1 text-[10px] font-medium text-sky-100 shadow hover:border-sky-400 hover:bg-sky-600/30"
         >
           Center on me
         </button>
