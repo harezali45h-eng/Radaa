@@ -7,8 +7,19 @@ const resolveApiBaseUrl = () => {
   if (fromPublicEnv) {
     return fromPublicEnv.replace(/\/+$/, "");
   }
+  const fromServerEnv = process.env.API_BASE_URL;
 
-  const fallback = process.env.API_BASE_URL || "http://localhost:5001/api";
+  if (fromServerEnv) {
+    return fromServerEnv.replace(/\/+$/, "");
+  }
+
+  if (isProd) {
+    throw new Error(
+      "API base URL is not configured. Set NEXT_PUBLIC_API_BASE_URL or API_BASE_URL before building.",
+    );
+  }
+
+  const fallback = "http://localhost:5001/api";
   return fallback.replace(/\/+$/, "");
 };
 

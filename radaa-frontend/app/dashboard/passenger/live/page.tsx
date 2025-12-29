@@ -644,5 +644,9 @@ export default function PassengerLiveRedirectPage() {
     router.replace("/dashboard/passenger");
   }, [router]);
 
-  return null;
+  return (
+    <div className="space-y-2 text-xs text-slate-300">
+      <p>Redirecting you to the passenger live dashboard     </p>
+    </div>
+  );
 }

@@ -107,7 +107,7 @@ export function useIsFeatureEnabled(
   }
 
   if (loading || !flags) {
-    return fallbackEnabled ?? true;
+    return fallbackEnabled;
   }
 
   const entry = flags[key];
@@ -116,11 +116,11 @@ export function useIsFeatureEnabled(
     if (key === "ui_revamp_v1") {
       return true;
     }
-    // Default missing flags to enabled
-    return true;
+    return fallbackEnabled;
   }
 
-  const enabled = entry.enabled ?? true;
+  const enabled =
+    typeof entry.enabled === "boolean" ? entry.enabled : fallbackEnabled;
   return Boolean(enabled);
 }
 

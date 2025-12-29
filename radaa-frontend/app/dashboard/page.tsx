@@ -5,10 +5,19 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 
 export default function DashboardEntry() {
-  const { user } = useAuth();
+  const { user, token, loading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
+    if (loading) {
+      return;
+    }
+
+    if (!user && !token) {
+      router.replace("/auth/login");
+      return;
+    }
+
     if (!user) {
       return;
     }
@@ -27,7 +36,17 @@ export default function DashboardEntry() {
     }
 
     router.replace("/dashboard/passenger");
-  }, [user, router]);
+  }, [user, token, loading, router]);
 
-  return null;
+  const message = loading
+    ? "Loading your dashboard..."
+    : !user
+      ? "Resolving your account session..."
+      : "Routing you to your dashboard...";
+
+  return (
+    <div className="space-y-2 text-sm text-slate-300">
+      <p>{message}</p>
+    </div>
+  );
 }

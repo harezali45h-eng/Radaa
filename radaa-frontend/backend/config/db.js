@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { ensureReviewerUserExists } from "../utils/seedReviewerUser.js";
 
 mongoose.set("strictQuery", false);
 
@@ -76,6 +77,14 @@ export const connectDB = async () => {
         serverSelectionTimeoutMS: 5000
       });
       console.log("🔥 Radaa DB Connected Successfully");
+
+      // Ensure Google Play reviewer test account exists after DB connection
+      try {
+        await ensureReviewerUserExists();
+      } catch (seedError) {
+        console.error("[reviewer-seed] Error while ensuring reviewer user:", seedError);
+      }
+
       return;
     } catch (error) {
       const message = error && error.message ? error.message : String(error);
