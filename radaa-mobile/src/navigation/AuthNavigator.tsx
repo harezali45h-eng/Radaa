@@ -5,8 +5,13 @@ import LoginScreen from '../screens/auth/LoginScreen';
 import RegisterScreen from '../screens/auth/RegisterScreen';
 import type { AuthStackParamList } from './types';
 
+export type AuthenticatedUser = {
+  token: string;
+  role?: string | null;
+};
+
 export type AuthNavigatorProps = {
-  onAuthenticated: () => void;
+  onAuthenticated: (user: AuthenticatedUser) => void;
 };
 
 const Stack = createNativeStackNavigator<AuthStackParamList>();

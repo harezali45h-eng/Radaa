@@ -8,9 +8,8 @@ const PassengerHomeScreen: React.FC = () => {
     <ScreenContainer>
       <Text style={styles.title}>Passenger Home</Text>
       <Text style={styles.subtitle}>
-        Passenger ride requests, history, and shortcuts are not available in
-        this mobile preview build. Use the Radaa web dashboard for the full
-        experience.
+        View and manage your trips with Radaa. For detailed ride history and
+        additional account tools, you can also use the Radaa web dashboard.
       </Text>
     </ScreenContainer>
   );

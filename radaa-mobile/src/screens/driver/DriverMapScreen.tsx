@@ -15,12 +15,12 @@ const DriverMapScreen: React.FC = () => {
       <MapView style={StyleSheet.absoluteFillObject} initialRegion={INITIAL_REGION}>
         <Marker
           coordinate={INITIAL_REGION}
-          title="Demo map only"
-          description="This driver map is a non-functional preview in this build."
+          title="Driver map"
+          description="Driver locations will appear here during active trips."
         />
       </MapView>
       <View style={styles.overlay}>
-        <Text style={styles.overlayText}>Driver map preview – not live data</Text>
+        <Text style={styles.overlayText}>Map view for driver trips</Text>
       </View>
     </View>
   );

@@ -1,32 +1,70 @@
-import React from 'react';
-import { StyleSheet, Text } from 'react-native';
+import React, { useEffect, useState } from 'react';
 
-import ScreenContainer from '../components/ScreenContainer';
+import AuthNavigator, { type AuthenticatedUser } from './AuthNavigator';
+import DriverNavigator from './DriverNavigator';
+import PassengerNavigator from './PassengerNavigator';
+import ErrorScreen from '../screens/common/ErrorScreen';
+import LoadingScreen from '../screens/common/LoadingScreen';
+import { ensureApiConfigured, setAuthToken } from '../config/api';
 
 const RootNavigator: React.FC = () => {
-  return (
-    <ScreenContainer>
-      <Text style={styles.title}>Radaa mobile preview</Text>
-      <Text style={styles.subtitle}>
-        This build does not include the full Radaa experience (login, live rides,
-        or driver dashboards). Please use the web app for production use.
-      </Text>
-    </ScreenContainer>
-  );
-};
+  const [initializing, setInitializing] = useState(true);
+  const [fatalError, setFatalError] = useState<string | null>(null);
+  const [user, setUser] = useState<AuthenticatedUser | null>(null);
 
-const styles = StyleSheet.create({
-  title: {
-    fontSize: 24,
-    fontWeight: '600',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: '#555555',
-    marginBottom: 16,
-    textAlign: 'center',
-  },
-});
+  useEffect(() => {
+    let cancelled = false;
+
+    const initialize = async () => {
+      try {
+        ensureApiConfigured();
+        if (!cancelled) {
+          setInitializing(false);
+        }
+      } catch (error: any) {
+        const message =
+          (error && typeof error.message === 'string' && error.message) ||
+          'API base URL is not configured for the mobile app. Set EXPO_PUBLIC_API_BASE_URL, NEXT_PUBLIC_API_BASE_URL, or API_BASE_URL before building.';
+
+        if (!cancelled) {
+          setFatalError(message);
+          setInitializing(false);
+        }
+      }
+    };
+
+    initialize();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    setAuthToken(user?.token);
+  }, [user?.token]);
+
+  const handleAuthenticated = (nextUser: AuthenticatedUser) => {
+    setUser(nextUser);
+  };
+
+  if (fatalError) {
+    return <ErrorScreen message={fatalError} />;
+  }
+
+  if (initializing) {
+    return <LoadingScreen />;
+  }
+
+  if (!user) {
+    return <AuthNavigator onAuthenticated={handleAuthenticated} />;
+  }
+
+  if (user.role === 'driver') {
+    return <DriverNavigator />;
+  }
+
+  return <PassengerNavigator />;
+};
 
 export default RootNavigator;

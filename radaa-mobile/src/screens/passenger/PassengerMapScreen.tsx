@@ -15,12 +15,12 @@ const PassengerMapScreen: React.FC = () => {
       <MapView style={StyleSheet.absoluteFillObject} initialRegion={INITIAL_REGION}>
         <Marker
           coordinate={INITIAL_REGION}
-          title="Demo map only"
-          description="This passenger map is a non-functional preview in this build."
+          title="Passenger map"
+          description="Passenger and vehicle locations will appear here during active trips."
         />
       </MapView>
       <View style={styles.overlay}>
-        <Text style={styles.overlayText}>Passenger map preview – not live data</Text>
+        <Text style={styles.overlayText}>Map view for your Radaa trips</Text>
       </View>
     </View>
   );

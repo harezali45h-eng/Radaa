@@ -12,8 +12,8 @@ const RegisterScreen: React.FC<RegisterScreenProps> = () => {
     <ScreenContainer>
       <Text style={styles.title}>Register</Text>
       <Text style={styles.subtitle}>
-        This preview build does not support creating new Radaa accounts. Use the
-        Radaa web dashboard to sign up and manage your profile.
+        Creating new Radaa accounts is currently available on the Radaa web
+        dashboard. Please sign up on the web, then return here to sign in.
       </Text>
     </ScreenContainer>
   );

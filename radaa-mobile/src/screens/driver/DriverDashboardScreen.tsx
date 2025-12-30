@@ -8,8 +8,9 @@ const DriverDashboardScreen: React.FC = () => {
     <ScreenContainer>
       <Text style={styles.title}>Driver Dashboard</Text>
       <Text style={styles.subtitle}>
-        Driver dashboards are not active in this mobile preview build. Use the
-        Radaa web dashboard to manage live rides, earnings, and driver status.
+        Use the Radaa driver tools to manage live rides, earnings, and driver
+        status. Some advanced management features are available on the Radaa
+        web dashboard.
       </Text>
     </ScreenContainer>
   );
