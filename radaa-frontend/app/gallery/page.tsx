@@ -1,10 +1,11 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useBoltLiveRadar } from "@/src/features/bolt/hooks/useBoltLiveRadar";
 import type { BoltMatatuProfile } from "@/src/features/bolt/types";
+import API from "@/lib/api";
 
 const TinderGallery = dynamic(
   () => import("@/src/features/bolt/components/TinderGallery"),
@@ -15,10 +16,84 @@ export default function BoltMatatuGalleryPage() {
   const router = useRouter();
   const { matatus, loading } = useBoltLiveRadar();
 
-  const items: BoltMatatuProfile[] = useMemo(
-    () => matatus.map((m) => ({ ...m })),
-    [matatus],
-  );
+  type DriverGalleryItem = {
+    id: string;
+    profilePhotoUrl: string;
+    vehicleRegistration?: string | null;
+    saccoName?: string | null;
+  };
+
+  const [driverItems, setDriverItems] = useState<DriverGalleryItem[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadDrivers = async () => {
+      try {
+        const res = await API.get("/gallery/drivers");
+        const raw = res.data as any;
+
+        const list: any[] = Array.isArray(raw?.data)
+          ? raw.data
+          : Array.isArray(raw)
+          ? raw
+          : [];
+
+        if (cancelled) return;
+
+        const mapped: DriverGalleryItem[] = list
+          .filter((item) => {
+            if (!item) return false;
+            if (typeof item.id !== "string") return false;
+            if (typeof item.profilePhotoUrl !== "string") return false;
+            if (!item.profilePhotoUrl) return false;
+            return true;
+          })
+          .map((item) => ({
+            id: item.id,
+            profilePhotoUrl: item.profilePhotoUrl,
+            vehicleRegistration: item.vehicleRegistration ?? null,
+            saccoName: item.saccoName ?? null,
+          }));
+
+        setDriverItems(mapped);
+      } catch {
+        if (!cancelled) {
+          setDriverItems([]);
+        }
+      }
+    };
+
+    loadDrivers();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const items: BoltMatatuProfile[] = useMemo(() => {
+    const boltItems = matatus.map((m) => ({ ...m }));
+
+    const driverAdapted = driverItems.map((d) => {
+      const adapted: any = {
+        id: d.id,
+        photos: d.profilePhotoUrl ? [d.profilePhotoUrl] : [],
+      };
+
+      if (d.vehicleRegistration) {
+        adapted.plate = d.vehicleRegistration;
+        adapted.numberPlate = d.vehicleRegistration;
+      }
+
+      if (d.saccoName) {
+        adapted.sacco = d.saccoName;
+      }
+
+      return adapted;
+    });
+
+    return [...driverAdapted, ...boltItems] as unknown as BoltMatatuProfile[];
+  }, [matatus, driverItems]);
 
   const handleOpenOnMap = (id: string) => {
     router.push(`/track/${id}`);

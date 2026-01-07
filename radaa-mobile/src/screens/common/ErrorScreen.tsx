@@ -11,9 +11,9 @@ export type ErrorScreenProps = {
 const ErrorScreen: React.FC<ErrorScreenProps> = ({ message, onRetry }) => {
   return (
     <ScreenContainer>
-      <Text style={styles.title}>Something went wrong</Text>
+      <Text style={styles.title}>Fatal application error</Text>
       <Text style={styles.subtitle}>
-        {message || 'An unexpected error occurred. Please try again later.'}
+        {message || 'An unexpected fatal error occurred. Please try again later.'}
       </Text>
       {onRetry && <Button title="Retry" onPress={onRetry} />}
     </ScreenContainer>
@@ -25,6 +25,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '600',
     marginBottom: 8,
+    color: '#cc0000',
     textAlign: 'center',
   },
   subtitle: {

@@ -39,6 +39,7 @@ import featureFlagRoutes from "./routes/featureFlagRoutes.js";
 import driverRoutes from "./routes/driverRoutes.js";
 import boltRoutes from "./routes/boltRoutes.js";
 import stagesRoutes from "./routes/stagesRoutes.js";
+import galleryRoutes from "./routes/galleryRoutes.js";
 
 import { notFound, errorHandler } from "./middleware/errorMiddleware.js";
 
@@ -141,6 +142,7 @@ app.use("/api/matatus", matatuApiRoutes);
 app.use("/api/matatus", matatuPhotoRoutes);
 app.use("/api/sacco", saccoRoutes);
 app.use("/api/bolt", boltRoutes);
+app.use("/api/gallery", galleryRoutes);
 
 app.use("/api/admin", adminRoutes);
 app.use("/api/admin", adminQueueRoutes);

@@ -7,7 +7,58 @@ import ErrorScreen from '../screens/common/ErrorScreen';
 import LoadingScreen from '../screens/common/LoadingScreen';
 import { ensureApiConfigured, setAuthToken } from '../config/api';
 
-const RootNavigator: React.FC = () => {
+type RootErrorBoundaryState = {
+  hasError: boolean;
+  error: unknown | null;
+};
+
+class RootErrorBoundary extends React.Component<{ children?: React.ReactNode }, RootErrorBoundaryState> {
+  constructor(props: { children?: React.ReactNode }) {
+    super(props);
+    this.state = {
+      hasError: false,
+      error: null,
+    };
+  }
+
+  static getDerivedStateFromError(error: unknown): RootErrorBoundaryState {
+    return {
+      hasError: true,
+      error,
+    };
+  }
+
+  // In production we surface fatal errors via the UI instead of crashing.
+  componentDidCatch(error: unknown, _errorInfo: unknown) {
+    // No-op: we intentionally avoid relying on native logging or dev tools.
+  }
+
+  render() {
+    if (this.state.hasError) {
+      const rawError = this.state.error;
+
+      let message = 'A fatal application error occurred.';
+
+      if (typeof rawError === 'string') {
+        message = rawError;
+      } else if (rawError && typeof (rawError as any).message === 'string') {
+        message = (rawError as any).message;
+      } else if (rawError != null) {
+        try {
+          message = JSON.stringify(rawError);
+        } catch {
+          message = String(rawError);
+        }
+      }
+
+      return <ErrorScreen message={message} />;
+    }
+
+    return this.props.children as React.ReactElement;
+  }
+}
+
+const RootNavigatorInner: React.FC = () => {
   const [initializing, setInitializing] = useState(true);
   const [fatalError, setFatalError] = useState<string | null>(null);
   const [user, setUser] = useState<AuthenticatedUser | null>(null);
@@ -65,6 +116,14 @@ const RootNavigator: React.FC = () => {
   }
 
   return <PassengerNavigator />;
+};
+
+const RootNavigator: React.FC = () => {
+  return (
+    <RootErrorBoundary>
+      <RootNavigatorInner />
+    </RootErrorBoundary>
+  );
 };
 
 export default RootNavigator;
