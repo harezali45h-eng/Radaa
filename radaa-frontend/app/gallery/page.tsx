@@ -34,8 +34,8 @@ export default function BoltMatatuGalleryPage() {
             Matatu gallery
           </h1>
           <p className="mt-1 max-w-md text-[11px] text-slate-300 md:text-xs">
-            Live gallery of matatus powered by Bolt radar. Browse to explore
-            the vehicles around you right now.
+            Live gallery of matatus. Browse to explore the vehicles around you
+            right now.
           </p>
         </div>
         {hasItems && (

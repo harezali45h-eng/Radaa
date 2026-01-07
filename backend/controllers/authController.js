@@ -1,6 +1,7 @@
 import bcrypt from "bcryptjs";
 import User from "../models/User.js";
 import { generateToken } from "../utils/helpers.js";
+import { uploadMatatuImage } from "../utils/cloudinary.js";
 
 // ============================
 // REGISTER
@@ -82,6 +83,29 @@ export const registerUser = async (req, res) => {
       return res.status(400).json({ error: msg, message: msg });
     }
 
+    let profilePhotoUrl = null;
+
+    if (
+      role === "driver" &&
+      req.file &&
+      req.file.buffer &&
+      typeof req.file.mimetype === "string"
+    ) {
+      try {
+        const uploadResult = await uploadMatatuImage(req.file.buffer, {
+          mimeType: req.file.mimetype,
+        });
+
+        if (uploadResult && (uploadResult.secure_url || uploadResult.url)) {
+          profilePhotoUrl = uploadResult.secure_url || uploadResult.url;
+        }
+      } catch (uploadError) {
+        // eslint-disable-next-line no-console
+        console.error("[AUTH] Failed to upload driver profile photo", uploadError);
+        profilePhotoUrl = null;
+      }
+    }
+
     const userData = {
       username,
       email: normalizedEmail,
@@ -96,6 +120,7 @@ export const registerUser = async (req, res) => {
         saccoName: saccoName || undefined,
         vehicleRegistration: vehicleRegistration || undefined,
         licenseNumber: licenseNumber || undefined,
+        profilePhotoUrl: profilePhotoUrl || undefined,
       };
     }
 

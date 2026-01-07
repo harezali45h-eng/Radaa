@@ -12,6 +12,7 @@ interface TinderGalleryProps {
 
 export function TinderGallery({ items, onOpenOnMap }: TinderGalleryProps) {
   const [index, setIndex] = useState(0);
+  const [imageError, setImageError] = useState(false);
 
   const active = items[index] ?? null;
   const remaining = Math.max(0, items.length - index - (active ? 1 : 0));
@@ -29,6 +30,7 @@ export function TinderGallery({ items, onOpenOnMap }: TinderGalleryProps) {
 
   const handleAdvance = () => {
     setIndex((prev) => (prev + 1 < items.length ? prev + 1 : prev));
+    setImageError(false);
   };
 
   const handleSkip = () => {
@@ -82,6 +84,11 @@ export function TinderGallery({ items, onOpenOnMap }: TinderGalleryProps) {
   }
 
   const plate = active.plate || active.numberPlate || active.id.slice(0, 6);
+
+  const primaryPhotoUrl =
+    active && Array.isArray(active.photos) && active.photos[0]
+      ? active.photos[0]
+      : null;
 
   return (
     <div className="relative">
@@ -138,12 +145,13 @@ export function TinderGallery({ items, onOpenOnMap }: TinderGalleryProps) {
                   }
                 }}
               >
-                {active.photos && active.photos.length > 0 ? (
+                {primaryPhotoUrl && !imageError ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
-                    src={active.photos[0]}
+                    src={primaryPhotoUrl}
                     alt={plate}
                     className="h-full w-full object-cover opacity-90"
+                    onError={() => setImageError(true)}
                   />
                 ) : (
                   <div className="flex h-full items-center justify-center text-[11px] text-slate-400">

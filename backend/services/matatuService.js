@@ -76,14 +76,15 @@ export const registerMatatuService = async ({
     route,
     sacco,
     driverName,
-    driverPhone
+    driverPhone,
+    isVisible: true
   });
 
   return matatu;
 };
 
 export const getLiveMatatusService = async () => {
-  const matatus = await Matatu.find({ isOnline: true });
+  const matatus = await Matatu.find({ isOnline: true, isVisible: true });
   return matatus;
 };
 
@@ -122,10 +123,6 @@ export const getMatatuIdentityService = async (id) => {
 
   photos.forEach((photo) => {
     if (!photo || !photo.url) {
-      return;
-    }
-
-    if (photo.status && photo.status !== "approved") {
       return;
     }
 

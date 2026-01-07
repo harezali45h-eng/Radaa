@@ -14,14 +14,14 @@ export const getMapMarkers = async (req, res, next) => {
         .json({ success: false, message: "Global map feature disabled" });
     }
 
-    const matatus = await Matatu.find({ isOnline: true }).lean();
+    const matatus = await Matatu.find({ isOnline: true, isVisible: true }).lean();
 
     const ids = matatus.map((m) => m._id.toString());
     const ratingMap = await getRatingSummariesForMatatus(ids);
 
     const markers = matatus.map((m) => {
-      const mainApprovedPhoto = Array.isArray(m.photos)
-        ? m.photos.find((p) => p && p.status === "approved")
+      const mainPhoto = Array.isArray(m.photos)
+        ? m.photos.find((p) => p && p.url)
         : null;
 
       const rating = ratingMap[m._id.toString()] || { avgRating: 0, count: 0 };
@@ -37,7 +37,7 @@ export const getMapMarkers = async (req, res, next) => {
         driverPhone: m.driverPhone || null,
         sacco: m.sacco || null,
         location: lat != null && lng != null ? { lat, lng } : null,
-        mainPhotoUrl: mainApprovedPhoto ? mainApprovedPhoto.url : null,
+        mainPhotoUrl: mainPhoto ? mainPhoto.url : null,
         rating
       };
     });

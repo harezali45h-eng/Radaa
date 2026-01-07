@@ -2038,6 +2038,9 @@ export default function MapPage() {
                     src={selectedMatatuPhotoSrc}
                     alt="Matatu photo"
                     className="h-28 w-full object-cover"
+                    onError={(event) => {
+                      event.currentTarget.style.display = "none";
+                    }}
                   />
                 </div>
               )}
@@ -2606,6 +2609,9 @@ export default function MapPage() {
                     src={selectedMatatuPhotoSrc}
                     alt="Matatu photo"
                     className="h-32 w-full object-cover"
+                    onError={(event) => {
+                      event.currentTarget.style.display = "none";
+                    }}
                   />
                 </div>
               )}

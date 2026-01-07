@@ -172,7 +172,7 @@ export const listMatatuPhotos = async ({ matatuId, includeAll, isAdmin }) => {
     return photos;
   }
 
-  return photos.filter((p) => p && p.status === "approved");
+  return photos.filter((p) => p && p.url);
 };
 
 export const deleteMatatuPhoto = async ({ matatuId, photoId, actorUserId, actorRole }) => {

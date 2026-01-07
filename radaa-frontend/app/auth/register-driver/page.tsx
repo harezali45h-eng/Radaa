@@ -19,6 +19,7 @@ export default function RegisterDriverPage() {
   const [vehicleRegistration, setVehicleRegistration] = useState("");
   const [licenseNumber, setLicenseNumber] = useState("");
   const [profilePhoto, setProfilePhoto] = useState("");
+  const [profilePhotoFile, setProfilePhotoFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -29,11 +30,13 @@ export default function RegisterDriverPage() {
 
     if (!file) {
       setProfilePhoto("");
+      setProfilePhotoFile(null);
       return;
     }
 
     const nextUrl = URL.createObjectURL(file);
     setProfilePhoto(nextUrl);
+    setProfilePhotoFile(file);
   };
 
   useEffect(() => {
@@ -55,17 +58,41 @@ export default function RegisterDriverPage() {
     setSubmitting(true);
 
     try {
-      await register({
-        username,
-        email,
-        password,
-        phone: phone || undefined,
-        handle: handle || undefined,
-        role: "driver",
-        saccoName,
-        vehicleRegistration,
-        licenseNumber: licenseNumber || undefined,
-      });
+      if (profilePhotoFile) {
+        const formData = new FormData();
+        formData.append("username", username);
+        formData.append("email", email);
+        formData.append("password", password);
+        formData.append("phone", phone);
+        if (handle) {
+          formData.append("handle", handle);
+        }
+        formData.append("role", "driver");
+        if (saccoName) {
+          formData.append("saccoName", saccoName);
+        }
+        if (vehicleRegistration) {
+          formData.append("vehicleRegistration", vehicleRegistration);
+        }
+        if (licenseNumber) {
+          formData.append("licenseNumber", licenseNumber);
+        }
+        formData.append("profilePhoto", profilePhotoFile);
+
+        await register(formData as any);
+      } else {
+        await register({
+          username,
+          email,
+          password,
+          phone: phone || undefined,
+          handle: handle || undefined,
+          role: "driver",
+          saccoName,
+          vehicleRegistration,
+          licenseNumber: licenseNumber || undefined,
+        } as any);
+      }
 
       router.push("/dashboard/driver/live");
     } catch (err) {

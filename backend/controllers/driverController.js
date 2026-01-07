@@ -64,6 +64,7 @@ export const changeDriverVehicle = async (req, res, next) => {
       approvalStatus: "pending",
       driverStatus: "provisional",
       unverifiedMedia: true,
+      isVisible: true,
     });
 
     return res.status(201).json({

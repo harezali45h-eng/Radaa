@@ -75,10 +75,21 @@ export async function login(payload: LoginPayload): Promise<AuthApiResponse> {
 }
 
 export async function register(
-  payload: RegisterPayload,
+  payload: RegisterPayload | FormData,
 ): Promise<AuthApiResponse> {
   try {
-    const res = await API.post<AuthApiResponse>("/auth/register", payload);
+    const isFormData =
+      typeof FormData !== "undefined" && payload instanceof FormData;
+
+    const config = isFormData
+      ? { headers: { "Content-Type": "multipart/form-data" } }
+      : undefined;
+
+    const res = await API.post<AuthApiResponse>(
+      "/auth/register",
+      payload,
+      config,
+    );
     return res.data;
   } catch (error: any) {
     const maybeError = (error?.response?.data ?? {}) as { message?: unknown };

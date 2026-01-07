@@ -61,6 +61,10 @@ const matatuSchema = new mongoose.Schema({
   unverifiedMedia: {
     type: Boolean,
     default: true
+  },
+  isVisible: {
+    type: Boolean,
+    default: true
   }
 });
 

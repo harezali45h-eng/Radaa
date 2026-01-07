@@ -29,6 +29,7 @@ interface User {
     licenseNumber?: string;
     saccoName?: string;
     vehicleRegistration?: string;
+    profilePhotoUrl?: string;
   };
   driverVerificationStatus?: "pending" | "approved" | "rejected" | string;
   driverStatus?: "provisional" | "active" | "suspended" | string;
@@ -60,7 +61,9 @@ interface AuthContextType {
     payload: LoginCredentialsPayload | LoginResponsePayload,
     rememberOrOptions?: boolean | { remember?: boolean },
   ) => Promise<void>;
-  register: (payload: RegisterPayload) => Promise<void>;
+  // For driver signup with photo, payload may be a FormData.
+  // The API helper can handle both JSON bodies and multipart.
+  register: (payload: RegisterPayload | FormData) => Promise<void>;
   logout: () => void;
 }
 
@@ -291,7 +294,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const register = async (payload: RegisterPayload) => {
+  const register = async (payload: RegisterPayload | FormData) => {
     setLoading(true);
     try {
       const result = await apiRegister(payload as any);
