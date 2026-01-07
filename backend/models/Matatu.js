@@ -30,6 +30,7 @@ const matatuSchema = new mongoose.Schema({
     {
       url: { type: String, required: true },
       uploadedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+      source: { type: String },
       category: {
         type: String,
         enum: ["exterior", "interior", "cleanliness", "style", "crowd"],

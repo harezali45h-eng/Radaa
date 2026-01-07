@@ -1,5 +1,6 @@
 import bcrypt from "bcryptjs";
 import User from "../models/User.js";
+import Matatu from "../models/Matatu.js";
 import { generateToken } from "../utils/helpers.js";
 import { uploadMatatuImage } from "../utils/cloudinary.js";
 
@@ -21,6 +22,11 @@ export const registerUser = async (req, res) => {
       vehicleRegistration,
       licenseNumber,
     } = req.body || {};
+
+    const normalizedVehicleRegistration =
+      typeof vehicleRegistration === "string"
+        ? vehicleRegistration.trim().toUpperCase()
+        : undefined;
 
     if (!username || typeof username !== "string") {
       return res
@@ -125,6 +131,114 @@ export const registerUser = async (req, res) => {
     }
 
     const user = await User.create(userData);
+
+    try {
+      if (role === "driver" && profilePhotoUrl) {
+        console.log(
+          "[AUTH] Driver signup photo upload detected, attempting Matatu link:",
+          JSON.stringify({
+            userId: user._id,
+            phone: user.phone,
+            saccoName: saccoName || user.driverProfile?.saccoName,
+            vehicleRegistrationRaw: vehicleRegistration,
+            vehicleRegistrationNormalized: normalizedVehicleRegistration,
+          }),
+        );
+
+        const orClauses = [];
+
+        if (user.phone) {
+          orClauses.push({ driverPhone: user.phone });
+        }
+
+        if (normalizedVehicleRegistration) {
+          orClauses.push({ plate: normalizedVehicleRegistration });
+          orClauses.push({ numberPlate: normalizedVehicleRegistration });
+        }
+
+        let matatus = [];
+
+        if (orClauses.length > 0) {
+          const matatuQuery = { $or: orClauses };
+          matatus = await Matatu.find(matatuQuery).select(
+            "_id photos sacco plate numberPlate driverPhone",
+          );
+        }
+
+        if ((!matatus || matatus.length === 0) && normalizedVehicleRegistration) {
+          try {
+            const minimalMatatu = await Matatu.create({
+              plate: normalizedVehicleRegistration,
+              numberPlate: normalizedVehicleRegistration,
+              driverPhone: user.phone || undefined,
+              sacco: saccoName || user.driverProfile?.saccoName || undefined,
+              route: "signup_placeholder",
+              isVisible: true,
+              photos: [],
+            });
+
+            console.log(
+              "[AUTH] Created minimal Matatu for driver signup",
+              minimalMatatu._id.toString(),
+            );
+
+            matatus = [minimalMatatu];
+          } catch (createError) {
+            // eslint-disable-next-line no-console
+            console.error(
+              "[AUTH] Failed to create minimal Matatu during driver signup",
+              createError,
+            );
+          }
+        }
+
+        if (matatus && matatus.length > 0) {
+          console.log(
+            "[AUTH] Found Matatu(s) for driver signup, appending photo to photos[]",
+            matatus.map((m) => m._id.toString()),
+          );
+
+          const photoPayload = {
+            url: profilePhotoUrl,
+            uploadedBy: user._id,
+            source: "signup",
+            category: "exterior",
+            status: "approved",
+          };
+
+          await Promise.all(
+            matatus.map((m) =>
+              Matatu.updateOne(
+                { _id: m._id },
+                {
+                  $push: {
+                    photos: photoPayload,
+                  },
+                  $set: {
+                    unverifiedMedia: false,
+                  },
+                },
+              ),
+            ),
+          );
+
+          console.log(
+            "[AUTH] Matatu photos updated from driver signup",
+            matatus.map((m) => m._id.toString()),
+          );
+        } else {
+          console.log(
+            "[AUTH] No Matatu found or created for driver signup when attempting to attach photo",
+          );
+        }
+      }
+    } catch (matatuPhotoError) {
+      // eslint-disable-next-line no-console
+      console.error(
+        "[AUTH] Failed to attach signup photo to Matatu, continuing without blocking register:",
+        matatuPhotoError,
+      );
+    }
 
     const normalizedRole = (user.role || role || "user").toLowerCase();
 
