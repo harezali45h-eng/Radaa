@@ -2,6 +2,11 @@ import { Server } from "socket.io";
 import jwt from "jsonwebtoken";
 import { attachRealtimeHandlers } from "../controllers/realtimeController.js";
 import { recordDriverLocationUpdate } from "../services/driverScoringService.js";
+import {
+  upsertPassengerPresence,
+  deletePassengerPresence,
+  listPassengerPresence,
+} from "../services/paxPresenceService.js";
 
 const isAllowedSocketOrigin = (origin) => {
   if (!origin) return true;
@@ -37,7 +42,12 @@ const socketCors = {
 
 // In-memory maps for realtime state. These are intentionally process-local
 // and non-persistent to keep behaviour additive and avoid schema changes.
+//
+// NOTE: Presence is explicitly separated from request / matching logic.
+// These collections ONLY track who is online and their last known location,
+// regardless of whether a ride request has been created or succeeded.
 const driverStates = new Map(); // driverId -> "offline" | "available" | "en_route" | "busy"
+const passengerPresence = new Map(); // passengerId -> { lat, lng, updatedAt }
 const passengerLocations = new Map(); // passengerId -> { lat, lng }
 const driverLocations = new Map(); // driverId -> { lat, lng, saccoId?, matatuId? }
 const driverHitScores = new Map(); // driverId -> number
@@ -185,23 +195,138 @@ export const initSocket = (server) => {
       // eslint-disable-next-line no-console
       console.log(`[driver-live] driver online: ${userId}`);
 
-      socket.on("driver:online", () => {
+      socket.on("driver:online", async () => {
         setDriverState(userId, "available");
         socket.join("drivers:nearby");
         // eslint-disable-next-line no-console
         console.log(`[driver-live] driver online: ${userId}`);
       });
 
-      socket.on("driver:offline", () => {
+      socket.on("driver:offline", async () => {
         setDriverState(userId, "offline");
         socket.leave("drivers:nearby");
         // eslint-disable-next-line no-console
         console.log(`[driver-live] driver offline: ${userId}`);
       });
+
+      // When a driver connects, send a full snapshot of current pax
+      // presence so the client can hydrate its local map state. This
+      // is sourced from Redis when available, otherwise from the
+      // in-memory fallback inside paxPresenceService.
+      (async () => {
+        try {
+          const snapshot = await listPassengerPresence();
+          socket.emit("pax:presence:snapshot", {
+            entries: Array.isArray(snapshot) ? snapshot : [],
+          });
+        } catch (error) {
+          // eslint-disable-next-line no-console
+          console.error("[presence] failed to send pax presence snapshot", error);
+        }
+      })();
     }
     if (userId && (role === "user" || role === "passenger")) {
       socket.join(`user:${userId}`);
       socket.join(`passenger:${userId}`);
+
+      // Presence lifecycle for passengers (pax). This is deliberately
+      // independent from request creation / matching.
+      //
+      // pax:online            – fired when the passenger opens the
+      //                          dashboard/map. Marks them online and
+      //                          broadcasts to drivers.
+      // pax:location:update   – fired whenever their location changes.
+      // pax:offline           – fired when they explicitly go offline
+      //                          or close their map.
+
+      socket.on("pax:online", async (payload = {}) => {
+        try {
+          const id = payload.passengerId || userId;
+          const { lat, lng } = payload.location || payload;
+
+          if (!id) return;
+
+          const now = new Date().toISOString();
+
+          if (
+            typeof lat === "number" &&
+            typeof lng === "number"
+          ) {
+            passengerPresence.set(id.toString(), { lat, lng, updatedAt: now });
+            await upsertPassengerPresence(id, { lat, lng, updatedAt: now });
+          } else {
+            passengerPresence.set(id.toString(), { lat: null, lng: null, updatedAt: now });
+            await upsertPassengerPresence(id, { lat: null, lng: null, updatedAt: now });
+          }
+
+          // This event is presence-only and must not depend on any
+          // request / matching outcome.
+          // eslint-disable-next-line no-console
+          console.log("[presence] pax:online", {
+            passengerId: id,
+            hasLocation: typeof lat === "number" && typeof lng === "number",
+          });
+
+          realtime.emit("pax:online", {
+            passengerId: id,
+            location:
+              typeof lat === "number" && typeof lng === "number"
+                ? { lat, lng }
+                : null,
+            updatedAt: now,
+          });
+        } catch (error) {
+          // eslint-disable-next-line no-console
+          console.error("[presence] pax:online error", error);
+        }
+      });
+
+      socket.on("pax:location:update", async (payload = {}) => {
+        try {
+          const id = payload.passengerId || userId;
+          const { lat, lng } = payload.location || payload;
+
+          if (!id || typeof lat !== "number" || typeof lng !== "number") {
+            return;
+          }
+
+          const now = new Date().toISOString();
+          passengerPresence.set(id.toString(), { lat, lng, updatedAt: now });
+
+          // Broadcast to drivers as a presence-only update. This should
+          // never be gated on request lifecycle or matching success.
+          realtime.emit("pax:location:update", {
+            passengerId: id,
+            location: { lat, lng },
+            updatedAt: now,
+          });
+        } catch (error) {
+          // eslint-disable-next-line no-console
+          console.error("[presence] pax:location:update error", error);
+        }
+      });
+
+      socket.on("pax:offline", async (payload = {}) => {
+        try {
+          const id = payload.passengerId || userId;
+          if (!id) return;
+
+          const now = new Date().toISOString();
+          passengerPresence.delete(id.toString());
+          await deletePassengerPresence(id);
+
+          // eslint-disable-next-line no-console
+          console.log("[presence] pax:offline", { passengerId: id });
+
+          realtime.emit("pax:offline", {
+            passengerId: id,
+            updatedAt: now,
+          });
+        } catch (error) {
+          // eslint-disable-next-line no-console
+          console.error("[presence] pax:offline error", error);
+        }
+      });
     }
 
     attachRealtimeHandlers(socket, io, {
@@ -209,7 +334,9 @@ export const initSocket = (server) => {
       getAvailableDrivers
     });
 
-    // Live passenger position stream
+    // Legacy live passenger position stream (request-aware). This is
+    // intentionally **separate** from pax presence events above.
+    // Request failures MUST NOT affect presence visibility.
     socket.on("passenger:update_location", (payload = {}) => {
       try {
         const id = payload.passengerId || userId;
@@ -342,7 +469,7 @@ export const initSocket = (server) => {
       }
     });
 
-    socket.on("disconnect", () => {
+    socket.on("disconnect", async () => {
       const disconnectedUserId =
         socket.user?.id || socket.user?._id || socket.user?.sub || "unknown";
       console.log(`Socket disconnected: ${disconnectedUserId}`);
@@ -350,6 +477,21 @@ export const initSocket = (server) => {
         setDriverState(disconnectedUserId, "offline");
         // eslint-disable-next-line no-console
         console.log(`[driver-live] driver offline: ${disconnectedUserId}`);
+      }
+
+      if (disconnectedUserId && (role === "user" || role === "passenger")) {
+        try {
+          passengerPresence.delete(disconnectedUserId.toString());
+          await deletePassengerPresence(disconnectedUserId);
+
+          realtime.emit("pax:offline", {
+            passengerId: disconnectedUserId,
+            updatedAt: new Date().toISOString(),
+          });
+        } catch (error) {
+          // eslint-disable-next-line no-console
+          console.error("[presence] disconnect pax:offline error", error);
+        }
       }
     });
   });

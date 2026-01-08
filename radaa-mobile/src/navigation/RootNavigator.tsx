@@ -6,6 +6,7 @@ import PassengerNavigator from './PassengerNavigator';
 import ErrorScreen from '../screens/common/ErrorScreen';
 import LoadingScreen from '../screens/common/LoadingScreen';
 import { ensureApiConfigured, setAuthToken } from '../config/api';
+import { setRealtimeAuthToken } from '../realtime/socket';
 
 type RootErrorBoundaryState = {
   hasError: boolean;
@@ -93,6 +94,7 @@ const RootNavigatorInner: React.FC = () => {
 
   useEffect(() => {
     setAuthToken(user?.token);
+    setRealtimeAuthToken(user?.token ?? null);
   }, [user?.token]);
 
   const handleAuthenticated = (nextUser: AuthenticatedUser) => {
