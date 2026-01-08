@@ -1,0 +1,12 @@
+{
+  "expo": {
+    "extra": {
+      "eas": {
+        "projectId": "adc88e44-d189-4f73-b62f-13d6ad9619b7"
+      }
+    },
+    "android": {
+      "package": "com.radaa.app"
+    }
+  }
+}
