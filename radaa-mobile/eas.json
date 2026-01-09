@@ -13,6 +13,14 @@
     },
     "production": {
       "autoIncrement": true
+    },
+    "release": {
+      "distribution": "store",
+      "android": {
+        "prebuildCommand": "./ci-build.sh",
+        "gradleCommand": ":app:bundleRelease",
+        "image": "latest"
+      }
     }
   },
   "submit": {
