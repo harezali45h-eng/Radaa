@@ -73,6 +73,84 @@ export const getMapMarkers = async () => {
   }
 };
 
+export interface OnlinePassengerDTO {
+  id: string;
+  lat: number;
+  lng: number;
+}
+
+export const getOnlinePassengers = async (): Promise<OnlinePassengerDTO[]> => {
+  try {
+    const res = await API.get("/map/online-passengers");
+    const raw = res.data;
+
+    const payload =
+      raw && typeof raw === "object" && "data" in (raw as any)
+        ? (raw as any).data
+        : raw;
+
+    if (!Array.isArray(payload)) {
+      return [];
+    }
+
+    return (payload as any[])
+      .map((item) => {
+        const id = item && item.id != null ? String(item.id) : "";
+        const lat =
+          item && typeof item.lat === "number" ? (item.lat as number) : NaN;
+        const lng =
+          item && typeof item.lng === "number" ? (item.lng as number) : NaN;
+
+        return { id, lat, lng } as OnlinePassengerDTO;
+      })
+      .filter(
+        (p) =>
+          !!p.id && Number.isFinite(p.lat) && Number.isFinite(p.lng),
+      );
+  } catch {
+    return [];
+  }
+};
+
+export interface OnlinePassengerDTO {
+  id: string;
+  lat: number;
+  lng: number;
+}
+
+export const getOnlinePassengers = async (): Promise<OnlinePassengerDTO[]> => {
+  try {
+    const res = await API.get("/map/online-passengers");
+    const raw = res.data;
+
+    const payload =
+      raw && typeof raw === "object" && "data" in (raw as any)
+        ? (raw as any).data
+        : raw;
+
+    if (!Array.isArray(payload)) {
+      return [];
+    }
+
+    return (payload as any[])
+      .map((item) => {
+        const id = item && item.id != null ? String(item.id) : "";
+        const lat =
+          item && typeof item.lat === "number" ? (item.lat as number) : NaN;
+        const lng =
+          item && typeof item.lng === "number" ? (item.lng as number) : NaN;
+
+        return { id, lat, lng } as OnlinePassengerDTO;
+      })
+      .filter(
+        (p) =>
+          !!p.id && Number.isFinite(p.lat) && Number.isFinite(p.lng),
+      );
+  } catch {
+    return [];
+  }
+};
+
 export const getFeatureFlags = async () => {
   try {
     const res = await API.get("/feature-flags");

@@ -1,3 +1,5 @@
+import { haversineDistanceMeters } from "../location/distance";
+
 export interface LatLng {
   lat: number;
   lng: number;
@@ -88,4 +90,89 @@ export function chooseColor(status: MarkerStatus): string {
     default:
       return "bg-slate-600 text-slate-50 border-slate-400";
   }
+}
+
+function distancePointToSegmentMeters(
+  point: LatLng,
+  a: LatLng,
+  b: LatLng,
+): number {
+  const dAB = haversineDistanceMeters(a, b);
+  if (!Number.isFinite(dAB) || dAB <= 0) {
+    return haversineDistanceMeters(point, a);
+  }
+
+  const dAP = haversineDistanceMeters(a, point);
+  const dBP = haversineDistanceMeters(b, point);
+
+  const dAB2 = dAB * dAB;
+  const dAP2 = dAP * dAP;
+  const dBP2 = dBP * dBP;
+
+  if (dAP2 >= dAB2 + dBP2) {
+    return dBP;
+  }
+
+  if (dBP2 >= dAB2 + dAP2) {
+    return dAP;
+  }
+
+  const s = (dAB + dAP + dBP) / 2;
+  const areaSq = Math.max(s * (s - dAB) * (s - dAP) * (s - dBP), 0);
+  const area = Math.sqrt(areaSq);
+
+  if (!Number.isFinite(area) || area <= 0) {
+    return Math.min(dAP, dBP);
+  }
+
+  return (2 * area) / dAB;
+}
+
+export function isPointNearPolyline(
+  point: LatLng,
+  polyline: LatLng[],
+  maxDistanceMeters = 200,
+): boolean {
+  if (
+    !point ||
+    !polyline ||
+    !Array.isArray(polyline) ||
+    polyline.length < 2 ||
+    typeof point.lat !== "number" ||
+    typeof point.lng !== "number"
+  ) {
+    return false;
+  }
+
+  const threshold = Number.isFinite(maxDistanceMeters) && maxDistanceMeters > 0
+    ? maxDistanceMeters
+    : 200;
+
+  let minDistance = Number.POSITIVE_INFINITY;
+
+  for (let index = 0; index < polyline.length - 1; index += 1) {
+    const a = polyline[index];
+    const b = polyline[index + 1];
+
+    if (
+      !a ||
+      !b ||
+      typeof a.lat !== "number" ||
+      typeof a.lng !== "number" ||
+      typeof b.lat !== "number" ||
+      typeof b.lng !== "number"
+    ) {
+      continue;
+    }
+
+    const distance = distancePointToSegmentMeters(point, a, b);
+    if (Number.isFinite(distance) && distance < minDistance) {
+      minDistance = distance;
+      if (minDistance <= threshold) {
+        return true;
+      }
+    }
+  }
+
+  return minDistance <= threshold;
 }

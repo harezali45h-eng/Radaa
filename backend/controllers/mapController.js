@@ -3,6 +3,7 @@ import Route from "../models/Route.js";
 import { getRatingSummariesForMatatus } from "../services/ratingsService.js";
 import { isFeatureEnabled } from "../utils/featureFlags.js";
 import { FEATURE_FLAG_KEYS } from "../config/featureFlags.js";
+import { listPassengerPresence } from "../services/paxPresenceService.js";
 
 export const getMapMarkers = async (req, res, next) => {
   try {
@@ -65,6 +66,39 @@ export const getRoutePolyline = async (req, res, next) => {
         name: route.name,
         polyline: route.polyline
       }
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export const getOnlinePassengers = async (req, res, next) => {
+  try {
+    const snapshot = await listPassengerPresence();
+
+    const passengers = Array.isArray(snapshot)
+      ? snapshot
+          .filter((entry) => {
+            if (!entry || !entry.passengerId || !entry.location) return false;
+
+            const { lat, lng } = entry.location;
+            return typeof lat === "number" && typeof lng === "number";
+          })
+          .map((entry) => ({
+            id: entry.passengerId.toString(),
+            lat: entry.location.lat,
+            lng: entry.location.lng,
+          }))
+      : [];
+
+    if (process.env.NODE_ENV !== "production") {
+      // eslint-disable-next-line no-console
+      console.log("[MAP] online passengers returned:", passengers.length);
+    }
+
+    return res.json({
+      success: true,
+      data: passengers,
     });
   } catch (error) {
     return next(error);

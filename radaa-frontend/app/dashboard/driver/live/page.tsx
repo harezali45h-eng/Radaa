@@ -28,13 +28,14 @@ import {
   uploadMatatuPhotoV2,
   type MatatuPhoto,
 } from "@/lib/api/matatu";
-import { getMapMarkers, getStagesGeoJson } from "@/lib/api";
+import { getMapMarkers, getStagesGeoJson, getOnlinePassengers } from "@/lib/api";
 import { useRideIntent } from "@/context/RideIntentContext";
 import {
   buildRouteBetweenStages as buildRouteBetweenStagesGeo,
   findNearestStage as findNearestStageGeo,
 } from "@/lib/location/stageRouting";
 import { haversineDistanceMeters } from "@/lib/location/distance";
+import { isPointNearPolyline } from "@/lib/map/markerHelpers";
 import {
   getVisibleLiveRequests,
   type VisibleLiveRequest,
@@ -140,6 +141,9 @@ export default function DriverLiveDashboardPage() {
   const [photoCaption, setPhotoCaption] = useState("");
   const [photoError, setPhotoError] = useState<string | null>(null);
   const [photoSuccess, setPhotoSuccess] = useState<string | null>(null);
+  const [onlinePassengers, setOnlinePassengers] = useState<
+    { id: string; location: LatLng }[]
+  >([]);
 
   useEffect(() => {
     if (typeof console !== "undefined") {
@@ -544,6 +548,62 @@ export default function DriverLiveDashboardPage() {
 
     setError(null);
   }, [token, isDriver]);
+
+  useEffect(() => {
+    if (!token || !isDriver || !driverOnline) {
+      setOnlinePassengers([]);
+      return;
+    }
+
+    if (!coords) {
+      setOnlinePassengers([]);
+      return;
+    }
+
+    if (
+      !activeRoute ||
+      !Array.isArray(activeRoute.path) ||
+      activeRoute.path.length < 2
+    ) {
+      setOnlinePassengers([]);
+      return;
+    }
+
+    let cancelled = false;
+
+    const run = async () => {
+      try {
+        const raw = await getOnlinePassengers();
+        if (cancelled) return;
+
+        const next = (Array.isArray(raw) ? raw : [])
+          .map((entry) => ({
+            id: String((entry as any).id ?? ""),
+            location: {
+              lat: Number((entry as any).lat),
+              lng: Number((entry as any).lng),
+            },
+          }))
+          .filter(
+            (p) =>
+              !!p.id &&
+              Number.isFinite(p.location.lat) &&
+              Number.isFinite(p.location.lng),
+          );
+        setOnlinePassengers(next);
+      } catch {
+        if (!cancelled) {
+          setOnlinePassengers([]);
+        }
+      }
+    };
+
+    void run();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [token, isDriver, driverOnline, coords, activeRoute]);
 
   useEffect(() => {
     if (!token || !coords || !isDriver) {
@@ -1012,6 +1072,38 @@ export default function DriverLiveDashboardPage() {
 
   const routePath = activeRoute ? activeRoute.path : null;
 
+  const passengerDots = useMemo(
+    () => {
+      if (
+        !routePath ||
+        !Array.isArray(routePath) ||
+        routePath.length < 2 ||
+        onlinePassengers.length === 0
+      ) {
+        return [] as { id: string; location: LatLng }[];
+      }
+
+      return onlinePassengers.filter((p) =>
+        isPointNearPolyline(p.location, routePath, 200),
+      );
+    },
+    [onlinePassengers, routePath],
+  );
+
+  useEffect(() => {
+    if (typeof console === "undefined") {
+      return;
+    }
+
+    if (process.env.NODE_ENV === "production") {
+      return;
+    }
+
+    console.log(
+      "[DRIVER MAP] rendering " + passengerDots.length + " passenger dots",
+    );
+  }, [passengerDots.length]);
+
   const pickupStageName = formatStageName(currentPickupStage);
   const destinationStageName = formatStageName(currentDestinationStage);
 
@@ -1210,6 +1302,7 @@ export default function DriverLiveDashboardPage() {
         <MapWrapper
           matatus={[]}
           passengers={passengerMarkers}
+          passengerDots={passengerDots}
           userLocation={coords}
           displayPositions={displayPositions}
           project={project}

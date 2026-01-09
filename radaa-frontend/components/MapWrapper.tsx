@@ -20,6 +20,7 @@ interface Matatu extends MatatuLike {
 export interface MapWrapperProps {
   matatus: Matatu[];
   passengers: PassengerPoint[];
+  passengerDots?: PassengerPoint[];
   userLocation: LatLng | null;
   displayPositions: Record<string, LatLng>;
   project: (location: LatLng | null | undefined) => CSSProperties;
@@ -46,6 +47,7 @@ export default function MapWrapper(props: MapWrapperProps) {
       <GoogleMapContainer
         matatus={props.matatus}
         passengers={props.passengers}
+        passengerDots={props.passengerDots}
         userLocation={props.userLocation}
         onCenterOnMe={props.onCenterOnMe}
         onSelectMatatu={props.onSelectMatatu}
@@ -67,6 +69,7 @@ export default function MapWrapper(props: MapWrapperProps) {
     <MapContainer
       matatus={props.matatus}
       passengers={props.passengers}
+      passengerDots={props.passengerDots}
       userLocation={props.userLocation}
       displayPositions={props.displayPositions}
       project={props.project}

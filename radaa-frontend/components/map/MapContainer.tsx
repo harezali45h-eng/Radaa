@@ -2,6 +2,7 @@ import type { CSSProperties } from "react";
 import type { LatLng, MatatuLike, MarkerStatus } from "@/lib/map/markerHelpers";
 import MatatuMarker from "./MatatuMarker";
 import PassengerMarker from "./PassengerMarker";
+import PassengerDot from "./PassengerDot";
 
 interface PassengerPoint {
   id: string;
@@ -20,6 +21,7 @@ type RouteConfidence = "active_reliable" | "moving_slow" | "uncertain";
 interface MapContainerProps {
   matatus: Matatu[];
   passengers: PassengerPoint[];
+  passengerDots?: PassengerPoint[];
   userLocation: LatLng | null;
   displayPositions: Record<string, LatLng>;
   project: (location: LatLng | null | undefined) => CSSProperties;
@@ -48,6 +50,7 @@ function resolveStatus(matatu: Matatu, driverMode?: boolean): MarkerStatus {
 export default function MapContainer({
   matatus,
   passengers,
+  passengerDots,
   userLocation,
   displayPositions,
   project,
@@ -68,6 +71,10 @@ export default function MapContainer({
   const effectiveMode: "user" | "driver" = driverMode ? "driver" : "user";
   const showMatatus = effectiveMode === "user";
   const showPassengers = effectiveMode === "driver";
+  const passengerDotsToRender =
+    Array.isArray(passengerDots) && passengerDots.length > 0
+      ? passengerDots
+      : [];
 
   const hasZoomHint = typeof zoomLevelHint === "number";
   const zoom = hasZoomHint
@@ -209,6 +216,12 @@ export default function MapContainer({
                   }}
                 />
               );
+            })}
+
+          {showPassengers &&
+            passengerDotsToRender.map((p) => {
+              const style = project(p.location);
+              return <PassengerDot key={`dot-${p.id}`} style={style} />;
             })}
 
           {userLocation && (

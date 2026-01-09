@@ -26,6 +26,7 @@ interface Matatu extends MatatuLike {
 interface GoogleMapContainerProps {
   matatus: Matatu[];
   passengers: PassengerPoint[];
+  passengerDots?: PassengerPoint[];
   userLocation: LatLng | null;
   onCenterOnMe: () => void;
   onSelectMatatu: (id: string) => void;
@@ -140,6 +141,7 @@ const mapOptions: google.maps.MapOptions = {
 export default function GoogleMapContainer({
   matatus,
   passengers,
+  passengerDots,
   userLocation,
   onCenterOnMe,
   onSelectMatatu,
@@ -262,6 +264,10 @@ export default function GoogleMapContainer({
     mode ?? (driverMode ? "driver" : "user");
   const showMatatus = effectiveMode === "user";
   const showPassengers = effectiveMode === "driver";
+  const passengerDotsToRender =
+    Array.isArray(passengerDots) && passengerDots.length > 0
+      ? passengerDots
+      : [];
 
   const effectiveRoutePath = Array.isArray(routePath) && routePath.length >= 2
     ? routePath
@@ -446,6 +452,23 @@ export default function GoogleMapContainer({
                   fillOpacity: passengerFillOpacity,
                   strokeColor: "#166534",
                   strokeWeight: 2,
+                }}
+              />
+            ))}
+
+          {showPassengers &&
+            passengerDotsToRender.map((p) => (
+              <Marker
+                key={`dot-${p.id}`}
+                position={p.location}
+                options={{ clickable: false }}
+                icon={{
+                  path: google.maps.SymbolPath.CIRCLE,
+                  scale: 3,
+                  fillColor: "#D100D1",
+                  fillOpacity: passengerFillOpacity,
+                  strokeColor: "#831843",
+                  strokeWeight: 1,
                 }}
               />
             ))}
