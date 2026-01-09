@@ -1,19 +1,31 @@
 import axios from 'axios';
 
-const RAW_API_BASE_URL =
-  process.env.EXPO_PUBLIC_API_BASE_URL ||
-  process.env.NEXT_PUBLIC_API_BASE_URL ||
-  process.env.API_BASE_URL ||
-  '';
+const RAW_API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
 
-export const API_BASE_URL = RAW_API_BASE_URL.replace(/\/+$/, '');
+export const API_BASE_URL = (RAW_API_BASE_URL ?? '').replace(/\/+$/, '');
+
+const RAW_SOCKET_URL_FOR_VALIDATION = process.env.EXPO_PUBLIC_SOCKET_URL;
+const SOCKET_URL_FOR_VALIDATION = (RAW_SOCKET_URL_FOR_VALIDATION ?? '').replace(/\/+$/, '');
 
 const MISSING_API_BASE_URL_MESSAGE =
-  'API base URL is not configured for the mobile app. Set EXPO_PUBLIC_API_BASE_URL, NEXT_PUBLIC_API_BASE_URL, or API_BASE_URL before building.';
+  'API base URL is not configured for the mobile app. Set EXPO_PUBLIC_API_BASE_URL before building.';
+
+const MISSING_SOCKET_URL_MESSAGE =
+  'Realtime socket URL is not configured for the mobile app. Set EXPO_PUBLIC_SOCKET_URL before building.';
 
 export const ensureApiConfigured = (): void => {
+  const problems: string[] = [];
+
   if (!API_BASE_URL) {
-    throw new Error(MISSING_API_BASE_URL_MESSAGE);
+    problems.push(MISSING_API_BASE_URL_MESSAGE);
+  }
+
+  if (!SOCKET_URL_FOR_VALIDATION) {
+    problems.push(MISSING_SOCKET_URL_MESSAGE);
+  }
+
+  if (problems.length > 0) {
+    throw new Error(problems.join(' '));
   }
 };
 
