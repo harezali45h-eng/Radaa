@@ -17,7 +17,6 @@
     "release": {
       "distribution": "store",
       "android": {
-        "prebuildCommand": "bash ./ci-build.sh",
         "gradleCommand": ":app:bundleRelease",
         "image": "latest"
       }
