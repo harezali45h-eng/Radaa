@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Button, StyleSheet, Text, TextInput } from 'react-native';
+import { Alert, Button, StyleSheet, Text, TextInput } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import ScreenContainer from '../../components/ScreenContainer';
@@ -36,7 +36,9 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onAuthenticated }) => {
         data && typeof data === 'object' && 'data' in data ? (data as any).data : data;
 
       if (!payload || typeof payload.token !== 'string') {
-        setError('Unexpected login response from the server.');
+        const message = 'Unexpected login response from the server.';
+        setError(message);
+        Alert.alert('Login failed', message);
         return;
       }
 
@@ -47,6 +49,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onAuthenticated }) => {
 
       onAuthenticated(nextUser);
     } catch (err: any) {
+      console.error('Login error', err);
       const maybeResponse = err?.response?.data as any;
       const message =
         (maybeResponse &&
@@ -57,6 +60,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onAuthenticated }) => {
         'Login failed. Please check your details and try again.';
 
       setError(message);
+      Alert.alert('Login failed', message);
     } finally {
       setSubmitting(false);
     }
