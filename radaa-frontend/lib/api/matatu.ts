@@ -60,6 +60,7 @@ export interface MatatuPhoto {
   url: string;
   status?: "pending" | "approved" | "rejected";
   caption?: string;
+  category?: string;
 }
 
 export async function getMatatuPhotos(
@@ -133,6 +134,7 @@ export async function uploadMatatuPhotoV2(
   if (options.caption) {
     formData.append("caption", options.caption);
   }
+  formData.append("category", "exterior");
 
   await request<any>(`/matatus/${id}/photos/v2`, {
     method: "POST",
