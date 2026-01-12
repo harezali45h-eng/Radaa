@@ -10,6 +10,7 @@ import {
   onPaxOnline,
   onPaxPresenceSnapshot,
 } from '../../realtime/socket';
+import { apiClient, ensureApiConfigured } from '../../config/api';
 
 const INITIAL_REGION: Region = {
   latitude: -1.286389,
@@ -27,6 +28,87 @@ type PaxMarker = {
 const DriverMapScreen: React.FC = () => {
   const [region, setRegion] = useState<Region>(INITIAL_REGION);
   const [paxMarkers, setPaxMarkers] = useState<Record<string, PaxMarker>>({});
+
+  // REST snapshot fallback: periodically fetch /map/online-passengers so that
+  // drivers see passengers even if realtime sockets are unavailable.
+  useEffect(() => {
+    let cancelled = false;
+    let interval: ReturnType<typeof setInterval> | null = null;
+
+    const loadSnapshot = async () => {
+      try {
+        ensureApiConfigured();
+
+        const response = await apiClient.get('/map/online-passengers');
+        const raw = response.data as any;
+        const payload =
+          raw && typeof raw === 'object' && 'data' in raw ? (raw as any).data : raw;
+
+        if (!Array.isArray(payload) || cancelled) {
+          return;
+        }
+
+        const next: Record<string, PaxMarker> = {};
+
+        (payload as any[]).forEach((item) => {
+          if (!item) return;
+
+          const id = item.id != null ? String(item.id) : '';
+          const lat =
+            typeof item.lat === 'number'
+              ? (item.lat as number)
+              : typeof item.location?.lat === 'number'
+              ? (item.location.lat as number)
+              : NaN;
+          const lng =
+            typeof item.lng === 'number'
+              ? (item.lng as number)
+              : typeof item.location?.lng === 'number'
+              ? (item.location.lng as number)
+              : NaN;
+
+          if (!id || !Number.isFinite(lat) || !Number.isFinite(lng)) {
+            return;
+          }
+
+          next[id] = {
+            passengerId: id,
+            latitude: lat,
+            longitude: lng,
+          };
+        });
+
+        if (!cancelled) {
+          setPaxMarkers((prev) => {
+            // Merge snapshot with any newer realtime updates by preferring
+            // existing entries when they exist.
+            const merged: Record<string, PaxMarker> = { ...next };
+            Object.keys(prev).forEach((key) => {
+              merged[key] = prev[key];
+            });
+            return merged;
+          });
+        }
+      } catch (error) {
+        if (__DEV__) {
+          // eslint-disable-next-line no-console
+          console.log('[DriverMap] failed to load online passengers snapshot', error);
+        }
+      }
+    };
+
+    void loadSnapshot();
+    interval = setInterval(() => {
+      void loadSnapshot();
+    }, 15000);
+
+    return () => {
+      cancelled = true;
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
