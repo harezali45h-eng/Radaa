@@ -18,7 +18,7 @@
       "distribution": "store",
       "android": {
         "gradleCommand": ":app:bundleRelease",
-        "image": "latest"
+        "image": "ubuntu-22.04-jdk-17"
       }
     }
   },
