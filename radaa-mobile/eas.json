@@ -16,6 +16,9 @@
     },
     "release": {
       "distribution": "store",
+      "env": {
+        "EXPO_NO_METRO_WORKSPACE_ROOT": "1"
+      },
       "android": {
         "gradleCommand": ":app:bundleRelease",
         "image": "ubuntu-22.04-jdk-17-ndk-r25b"
