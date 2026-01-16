@@ -7,17 +7,29 @@ on:
       - deploy
 
 jobs:
-  build:
+  build-android-aab:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    # All run steps default to the mobile app directory
+    defaults:
+      run:
+        working-directory: ./radaa-mobile
+
+    env:
+      CI: true
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: npm
+          cache-dependency-path: |
+            radaa-mobile/package-lock.json
 
       - name: Install npm dependencies
         run: npm ci
@@ -25,17 +37,39 @@ jobs:
       - name: Set up Java 17
         uses: actions/setup-java@v3
         with:
-          distribution: 'temurin'
+          distribution: temurin
           java-version: 17
 
-      - name: Export secrets
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('radaa-mobile/android/**/*.gradle*', 'radaa-mobile/android/**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Export secrets to environment
         run: |
-          echo "GOOGLE_MAPS_ANDROID_KEY=${{ secrets.GOOGLE_MAPS_ANDROID_KEY }}" >> $GITHUB_ENV
-          echo "FIREBASE_API_KEY=${{ secrets.FIREBASE_API_KEY }}" >> $GITHUB_ENV
+          # Optional: only set if secret exists, to avoid empty env vars
+          if [ -n "${{ secrets.GOOGLE_MAPS_ANDROID_KEY }}" ]; then
+            echo "GOOGLE_MAPS_ANDROID_KEY=${{ secrets.GOOGLE_MAPS_ANDROID_KEY }}" >> "$GITHUB_ENV"
+          fi
+        shell: bash
 
-      - name: Make gradlew executable
-        run: chmod +x ./android/gradlew
+      - name: Make Gradle wrapper executable
+        run: chmod +x android/gradlew
 
-      - name: Build Android AAB
-        run: ./gradlew clean bundleRelease --no-daemon -Dorg.gradle.jvmargs="-Xmx2048m"
-        working-directory: android
+      - name: Build Android AAB (release)
+        working-directory: ./radaa-mobile/android
+        run: |
+          ./gradlew clean bundleRelease \
+            --no-daemon \
+            -Dorg.gradle.jvmargs="-Xmx3072m -XX:MaxMetaspaceSize=1024m -Dfile.encoding=UTF-8"
+
+      - name: Verify AAB artifact
+        working-directory: ./radaa-mobile
+        run: |
+          ls -R android/app/build/outputs/bundle
+          test -f android/app/build/outputs/bundle/release/app-release.aab
