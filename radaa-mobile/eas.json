@@ -1,31 +1,17 @@
 {
   "cli": {
-    "version": ">= 16.28.0",
-    "appVersionSource": "remote"
+    "version": ">= 16.0.0"
   },
   "build": {
-    "development": {
-      "developmentClient": true,
-      "distribution": "internal"
-    },
-    "preview": {
-      "distribution": "internal"
-    },
     "production": {
-      "autoIncrement": true
-    },
-    "release": {
-      "distribution": "store",
-      "env": {
-        "EXPO_NO_METRO_WORKSPACE_ROOT": "1"
-      },
       "android": {
-        "gradleCommand": ":app:bundleRelease",
-        "image": "ubuntu-22.04-jdk-17-ndk-r25b"
+        "buildType": "app-bundle"
+      },
+      "env": {
+        "EXPO_PUBLIC_API_BASE_URL": "https://radaa-1.onrender.com",
+        "EXPO_PUBLIC_SOCKET_URL": "https://radaa-1.onrender.com",
+        "EXPO_PUBLIC_GOOGLE_MAPS_ANDROID_KEY": "AIzaSyAMQnUibmzV2RijWg1QLoOB87aQY-5tCyg"
       }
     }
-  },
-  "submit": {
-    "production": {}
   }
 }

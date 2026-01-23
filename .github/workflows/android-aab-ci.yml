@@ -32,6 +32,8 @@ jobs:
             radaa-mobile/package-lock.json
 
       - name: Install npm dependencies
+        env:
+          NODE_ENV: production
         run: npm ci
 
       - name: Set up Java 17
@@ -62,6 +64,8 @@ jobs:
         run: chmod +x android/gradlew
 
       - name: Build Android AAB (release)
+        env:
+          NODE_ENV: production
         working-directory: ./radaa-mobile/android
         run: |
           ./gradlew clean bundleRelease \

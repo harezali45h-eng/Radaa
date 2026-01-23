@@ -1,10 +1,16 @@
 import axios from 'axios';
+import Constants from 'expo-constants';
 
-const RAW_API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
+const extra = (Constants.expoConfig?.extra ?? {}) as {
+  apiBaseUrl?: string;
+  socketUrl?: string;
+};
+
+const RAW_API_BASE_URL = extra.apiBaseUrl;
 
 export const API_BASE_URL = (RAW_API_BASE_URL ?? '').replace(/\/+$/, '');
 
-const RAW_SOCKET_URL_FOR_VALIDATION = process.env.EXPO_PUBLIC_SOCKET_URL;
+const RAW_SOCKET_URL_FOR_VALIDATION = extra.socketUrl;
 const SOCKET_URL_FOR_VALIDATION = (RAW_SOCKET_URL_FOR_VALIDATION ?? '').replace(/\/+$/, '');
 
 const MISSING_API_BASE_URL_MESSAGE =

@@ -1,6 +1,11 @@
 import { io, Socket } from 'socket.io-client';
+import Constants from 'expo-constants';
 
-const RAW_SOCKET_URL = process.env.EXPO_PUBLIC_SOCKET_URL;
+const extra = (Constants.expoConfig?.extra ?? {}) as {
+  socketUrl?: string;
+};
+
+const RAW_SOCKET_URL = extra.socketUrl;
 const SOCKET_URL = (RAW_SOCKET_URL ?? '').replace(/\/+$/, '');
 const SOCKET_NAMESPACE = '/realtime';
 
