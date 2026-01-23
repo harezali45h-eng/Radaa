@@ -1,8 +1,26 @@
 {
+  "__note": "Mobile app EAS config only. Run EAS builds from the 'radaa-mobile/' directory.",
   "cli": {
     "version": ">= 16.0.0"
   },
   "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_API_BASE_URL": "https://radaa-1.onrender.com",
+        "EXPO_PUBLIC_SOCKET_URL": "https://radaa-1.onrender.com",
+        "EXPO_PUBLIC_GOOGLE_MAPS_ANDROID_KEY": "AIzaSyAMQnUibmzV2RijWg1QLoOB87aQY-5tCyg"
+      }
+    },
+    "preview": {
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_API_BASE_URL": "https://radaa-1.onrender.com",
+        "EXPO_PUBLIC_SOCKET_URL": "https://radaa-1.onrender.com",
+        "EXPO_PUBLIC_GOOGLE_MAPS_ANDROID_KEY": "AIzaSyAMQnUibmzV2RijWg1QLoOB87aQY-5tCyg"
+      }
+    },
     "production": {
       "android": {
         "buildType": "app-bundle"

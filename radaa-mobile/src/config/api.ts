@@ -4,6 +4,7 @@ import Constants from 'expo-constants';
 const extra = (Constants.expoConfig?.extra ?? {}) as {
   apiBaseUrl?: string;
   socketUrl?: string;
+  googleMapsAndroidKey?: string;
 };
 
 const RAW_API_BASE_URL = extra.apiBaseUrl;
@@ -13,11 +14,17 @@ export const API_BASE_URL = (RAW_API_BASE_URL ?? '').replace(/\/+$/, '');
 const RAW_SOCKET_URL_FOR_VALIDATION = extra.socketUrl;
 const SOCKET_URL_FOR_VALIDATION = (RAW_SOCKET_URL_FOR_VALIDATION ?? '').replace(/\/+$/, '');
 
+const RAW_GOOGLE_MAPS_ANDROID_KEY_FOR_VALIDATION = extra.googleMapsAndroidKey;
+const GOOGLE_MAPS_ANDROID_KEY_FOR_VALIDATION = (RAW_GOOGLE_MAPS_ANDROID_KEY_FOR_VALIDATION ?? '').trim();
+
 const MISSING_API_BASE_URL_MESSAGE =
   'API base URL is not configured for the mobile app. Set EXPO_PUBLIC_API_BASE_URL before building.';
 
 const MISSING_SOCKET_URL_MESSAGE =
   'Realtime socket URL is not configured for the mobile app. Set EXPO_PUBLIC_SOCKET_URL before building.';
+
+const MISSING_GOOGLE_MAPS_KEY_MESSAGE =
+  'Google Maps Android key is not configured for the mobile app. Set EXPO_PUBLIC_GOOGLE_MAPS_ANDROID_KEY before building.';
 
 export const ensureApiConfigured = (): void => {
   const problems: string[] = [];
@@ -28,6 +35,10 @@ export const ensureApiConfigured = (): void => {
 
   if (!SOCKET_URL_FOR_VALIDATION) {
     problems.push(MISSING_SOCKET_URL_MESSAGE);
+  }
+
+  if (!GOOGLE_MAPS_ANDROID_KEY_FOR_VALIDATION) {
+    problems.push(MISSING_GOOGLE_MAPS_KEY_MESSAGE);
   }
 
   if (problems.length > 0) {

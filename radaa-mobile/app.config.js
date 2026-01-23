@@ -2,27 +2,45 @@
  * @param {import('expo/config').ConfigContext} ctx
  * @returns {import('expo/config').ExpoConfig}
  */
-export default ({ config }) => ({
-  // Start from the base config (app.json), then layer on release settings.
-  ...config,
-  // Android versioning for Play Store upgrade to versionCode 11.
-  version: '1.0.11',
-  android: {
-    ...config.android,
-    versionCode: 11,
-    config: {
-      ...(config.android?.config || {}),
-      googleMaps: {
-        ...(config.android?.config?.googleMaps || {}),
-        apiKey: process.env.EXPO_PUBLIC_GOOGLE_MAPS_ANDROID_KEY,
+export default ({ config }) => {
+  const {
+    EXPO_PUBLIC_API_BASE_URL,
+    EXPO_PUBLIC_SOCKET_URL,
+    EXPO_PUBLIC_GOOGLE_MAPS_ANDROID_KEY,
+  } = process.env;
+
+  if (
+    !EXPO_PUBLIC_API_BASE_URL ||
+    !EXPO_PUBLIC_SOCKET_URL ||
+    !EXPO_PUBLIC_GOOGLE_MAPS_ANDROID_KEY
+  ) {
+    throw new Error(
+      'EXPO_PUBLIC_API_BASE_URL, EXPO_PUBLIC_SOCKET_URL, and EXPO_PUBLIC_GOOGLE_MAPS_ANDROID_KEY must be set before building the app.',
+    );
+  }
+
+  return {
+    // Start from the base config (app.json), then layer on release settings.
+    ...config,
+    // Android versioning for Play Store upgrade to versionCode 12.
+    version: '1.0.12',
+    android: {
+      ...config.android,
+      versionCode: 12,
+      config: {
+        ...(config.android?.config || {}),
+        googleMaps: {
+          ...(config.android?.config?.googleMaps || {}),
+          apiKey: EXPO_PUBLIC_GOOGLE_MAPS_ANDROID_KEY,
+        },
       },
     },
-  },
-  // Runtime‑visible configuration, consumed via Constants.expoConfig.extra.
-  extra: {
-    ...(config.extra || {}),
-    apiBaseUrl: process.env.EXPO_PUBLIC_API_BASE_URL,
-    socketUrl: process.env.EXPO_PUBLIC_SOCKET_URL,
-    googleMapsAndroidKey: process.env.EXPO_PUBLIC_GOOGLE_MAPS_ANDROID_KEY,
-  },
-});
+    // Runtime‑visible configuration, consumed via Constants.expoConfig.extra.
+    extra: {
+      ...(config.extra || {}),
+      apiBaseUrl: EXPO_PUBLIC_API_BASE_URL,
+      socketUrl: EXPO_PUBLIC_SOCKET_URL,
+      googleMapsAndroidKey: EXPO_PUBLIC_GOOGLE_MAPS_ANDROID_KEY,
+    },
+  };
+};
