@@ -8,8 +8,15 @@ const extra = (Constants.expoConfig?.extra ?? {}) as {
 };
 
 const RAW_API_BASE_URL = extra.apiBaseUrl;
+const NORMALIZED_RAW_API_BASE_URL = (RAW_API_BASE_URL ?? '').replace(/\/+$/, '');
+const API_PATH_SUFFIX = '/api';
 
-export const API_BASE_URL = (RAW_API_BASE_URL ?? '').replace(/\/+$/, '');
+export const API_BASE_URL =
+  (NORMALIZED_RAW_API_BASE_URL &&
+    (NORMALIZED_RAW_API_BASE_URL.endsWith(API_PATH_SUFFIX)
+      ? NORMALIZED_RAW_API_BASE_URL
+      : `${NORMALIZED_RAW_API_BASE_URL}${API_PATH_SUFFIX}`)) ||
+  '';
 
 const RAW_SOCKET_URL_FOR_VALIDATION = extra.socketUrl;
 const SOCKET_URL_FOR_VALIDATION = (RAW_SOCKET_URL_FOR_VALIDATION ?? '').replace(/\/+$/, '');
@@ -46,10 +53,20 @@ export const ensureApiConfigured = (): void => {
   }
 };
 
+export const logResolvedApiBaseUrl = (): void => {
+  const resolved = API_BASE_URL || '<undefined>';
+  const raw = RAW_API_BASE_URL || '<undefined>';
+
+  try {
+    console.log('[config/api]', 'API_BASE_URL', resolved, 'rawApiBaseUrl', raw);
+  } catch {
+  }
+};
+
 export const apiClient = axios.create({
   // If the base URL is missing, callers should invoke ensureApiConfigured
   // before making requests so we can fail loudly and render a clear error.
-  baseURL: API_BASE_URL || undefined,
+  baseURL: API_BASE_URL,
   timeout: 10000,
 });
 

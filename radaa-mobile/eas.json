@@ -1,5 +1,4 @@
 {
-  "__note": "Mobile app EAS config only. Run EAS builds from the 'radaa-mobile/' directory.",
   "cli": {
     "version": ">= 16.0.0"
   },

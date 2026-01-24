@@ -22,11 +22,11 @@ export default ({ config }) => {
   return {
     // Start from the base config (app.json), then layer on release settings.
     ...config,
-    // Android versioning for Play Store upgrade to versionCode 12.
-    version: '1.0.12',
+    // Android versioning for Play Store upgrade to versionCode 13.
+    version: '1.0.13',
     android: {
       ...config.android,
-      versionCode: 12,
+      versionCode: 13,
       config: {
         ...(config.android?.config || {}),
         googleMaps: {

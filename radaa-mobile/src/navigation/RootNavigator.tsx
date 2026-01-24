@@ -4,7 +4,7 @@ import AuthNavigator, { type AuthenticatedUser } from './AuthNavigator';
 import DriverNavigator from './DriverNavigator';
 import PassengerNavigator from './PassengerNavigator';
 import ErrorScreen from '../screens/common/ErrorScreen';
-import { ensureApiConfigured, setAuthToken } from '../config/api';
+import { ensureApiConfigured, logResolvedApiBaseUrl, setAuthToken } from '../config/api';
 import { setRealtimeAuthToken } from '../realtime/socket';
 
 type RootErrorBoundaryState = {
@@ -59,9 +59,18 @@ class RootErrorBoundary extends React.Component<{ children?: React.ReactNode }, 
 }
 
 const RootNavigatorInner: React.FC = () => {
-  ensureApiConfigured();
-
   const [user, setUser] = useState<AuthenticatedUser | null>(null);
+  const [configError, setConfigError] = useState<unknown | null>(null);
+
+  // Log and validate configuration once on startup.
+  useEffect(() => {
+    try {
+      logResolvedApiBaseUrl();
+      ensureApiConfigured();
+    } catch (error) {
+      setConfigError(error);
+    }
+  }, []);
 
   useEffect(() => {
     setAuthToken(user?.token);
@@ -71,6 +80,26 @@ const RootNavigatorInner: React.FC = () => {
   const handleAuthenticated = (nextUser: AuthenticatedUser) => {
     setUser(nextUser);
   };
+
+  if (configError) {
+    const rawError = configError;
+
+    let message = 'A fatal application error occurred.';
+
+    if (typeof rawError === 'string') {
+      message = rawError;
+    } else if (rawError && typeof (rawError as any).message === 'string') {
+      message = (rawError as any).message;
+    } else if (rawError != null) {
+      try {
+        message = JSON.stringify(rawError);
+      } catch {
+        message = String(rawError);
+      }
+    }
+
+    return <ErrorScreen message={message} />;
+  }
 
   if (!user) {
     return <AuthNavigator onAuthenticated={handleAuthenticated} />;
